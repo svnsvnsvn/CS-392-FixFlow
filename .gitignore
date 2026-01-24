@@ -1,0 +1,13 @@
+# Ignore DB data
+db/
+*.log
+
+# VS / .NET stuff
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Docker stuff
+*.env
