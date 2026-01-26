@@ -8,9 +8,8 @@ namespace fixflow.web.Data
         public AppUser? User { get; set; }                           // "Pointer" to AppUser. Fields in this class are related to fields in AppUser
         public string FName { get; set; } = string.Empty;
         public string LName { get; set; } = string.Empty;
-        public AppUser? Manager { get; set; }                        // "Pointer" to AppUser. Fields in this class are related to fields in AppUser
-        public string? ManagerId { get; set; }                       // UUID of Manager, must remain as string type as all ASP.NET userId
-
-
+        public FfBuildingDirectory? Location { get; set; }
+        public int LocationCode { get; set; }
+        public int Unit { get; set; }
     }
 }
