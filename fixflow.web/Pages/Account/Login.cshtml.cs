@@ -1,37 +1,55 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using fixflow.web.Data;
 
-namespace fixflow.web.Pages.Account;
+namespace fixflow.Web.Pages.Account;
 
 public class LoginModel : PageModel
 {
     private readonly SignInManager<AppUser> _signInManager;
+    private readonly ILogger<LoginModel> _logger;
 
-    public LoginModel(SignInManager<AppUser> signInManager)
+    public LoginModel(
+        SignInManager<AppUser> signInManager,
+        ILogger<LoginModel> logger)
     {
         _signInManager = signInManager;
+        _logger = logger;
     }
-
-    [BindProperty]
-    public LoginInput Input { get; set; } = new();
-
-    public bool LoginFailed { get; set; }
 
     public class LoginInput
     {
-        public string UserName { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public string UserName { get; set; } = "";
+        public string Password { get; set; } = "";
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public bool LoginFailed { get; set; }
+
+    public void OnGet()
     {
-        var result = await _signInManager.PasswordSignInAsync(Input.UserName, Input.Password, false, false);
+    }
+
+    public async Task<IActionResult> OnPostAsync(
+        string userName,
+        string password)
+    {
+        _logger.LogCritical(
+            "POST user={User} passLen={Len}",
+            userName,
+            password?.Length ?? -1
+        );
+
+        var result = await _signInManager.PasswordSignInAsync(
+            userName,
+            password,
+            isPersistent: false,
+            lockoutOnFailure: false
+        );
+
         if (result.Succeeded)
-        {
-            return RedirectToPage("/Index"); // redirect on successful login
-        }
+            return RedirectToPage("/Account/Home");
+
         LoginFailed = true;
         return Page();
     }

@@ -1,14 +1,30 @@
 @page
-@model fixflow.web.Pages.Account.LoginModel
+@model fixflow.Web.Pages.Account.LoginModel
+
+
+<h2>Login</h2>
+
 <form method="post">
-    <label>Username:</label>
-    <input asp-for="Input.UserName" />
-    <label>Password:</label>
-    <input asp-for="Input.Password" type="password" />
+    @Html.AntiForgeryToken()
+    <div>
+        <label>User Name</label>
+        <input name="UserName" />
+    </div>
+
+    <div>
+        <label>Password</label>
+        <input name="Password" type="password" />
+    </div>
+
     <button type="submit">Login</button>
 </form>
 
 @if (Model.LoginFailed)
 {
-    <p style="color:red">Login failed</p>
+<p style="color:red">Login failed</p>
 }
+
+<br />
+<br />
+<a asp-page="./NewUser">Create account</a>
+
