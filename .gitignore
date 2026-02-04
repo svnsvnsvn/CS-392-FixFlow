@@ -11,3 +11,4 @@ obj/
 
 # Docker stuff
 *.env
+/fixflow.web/appsettings.Development.json
