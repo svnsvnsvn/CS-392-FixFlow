@@ -36,7 +36,7 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
-// AMS - Apply migrations (for DB init and validation)
+// AOU - Apply migrations (for DB init and validation)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<FfDbContext>();
@@ -166,7 +166,8 @@ app.MapControllers();       // For APIs later
 
 app.MapGet("/", context =>
 {
-    context.Response.Redirect("/Account/Login");
+    // AOU - Redirect root to home page or login based on auth status
+    context.Response.Redirect("/Index");
     return Task.CompletedTask;
 });
 
