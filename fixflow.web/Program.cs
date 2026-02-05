@@ -34,6 +34,8 @@ builder.Services.AddControllers();      // For APIs later
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 // AMS - Apply migrations (for DB init and validation)
 using (var scope = app.Services.CreateScope())
 {

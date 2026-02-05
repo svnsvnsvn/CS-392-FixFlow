@@ -1,0 +1,34 @@
+@using Microsoft.AspNetCore.Identity
+@using fixflow.web.Data
+@inject SignInManager<AppUser> SignInManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FixFlow</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar">
+            <a class="navbar-brand" href="/">FixFlow</a>
+            <div class="navbar-links">
+                <a href="/">Home</a>
+                <a href="/Account/Login">Login</a>
+            </div>
+            <div class="navbar-user">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <span class="navbar-username">@User.Identity?.Name</span>
+                }
+            </div>
+        </nav>
+    </header>
+
+    <main class="page">
+        @RenderBody()
+    </main>
+</body>
+</html>

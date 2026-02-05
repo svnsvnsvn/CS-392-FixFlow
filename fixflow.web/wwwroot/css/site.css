@@ -1,0 +1,80 @@
+:root {
+    color-scheme: light;
+    --bg: #0b0f16;
+    --surface: #111827;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --accent: #60a5fa;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0b0f16;
+    color: var(--text);
+}
+
+.site-header {
+    background: var(--surface);
+    border-bottom: 1px solid #1f2937;
+}
+
+.navbar {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 16px;
+}
+
+.navbar-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.navbar-links a:hover {
+    color: var(--accent);
+}
+
+.navbar-user {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.page {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 20px;
+}
+
+input, button {
+    font: inherit;
+}
+
+button {
+    background: var(--accent);
+    border: none;
+    color: #0b0f16;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
