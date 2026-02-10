@@ -13,7 +13,15 @@ public class FfDbContext : IdentityDbContext<AppUser>
     }
 
     // Data tables
-    DbSet<FfUserProfile> FfUserProfile { get; set; }
+    public DbSet<FfUserProfile> FfUserProfiles { get; set; } = default!;
+    public DbSet<FfBuildingDirectory> FfBuildingDirectorys { get; set; } = default!;
+    public DbSet<FfExternalNotes> FfExternalNotess { get; set; } = default!;
+    public DbSet<FfInternalNotes> FfInternalNotess { get; set; } = default!;
+    public DbSet<FfPriorityCodes> FfPriorityCodess { get; set; } = default!;
+    public DbSet<FfStatusCodes> FfStatusCodes { get; set; } = default!;
+    public DbSet<FfTicketFlow> FfTicketFlows { get; set; } = default!;
+    public DbSet<FfTicketRegister> FfTicketRegisters { get; set; } = default!;
+    public DbSet<FfTicketTypes> FfTicketTypess { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder builder)       
     {
@@ -202,10 +210,5 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(g => g.NewAssignee)
             .OnDelete(DeleteBehavior.Restrict);
 
-
-
-
-
     }
-
 }
