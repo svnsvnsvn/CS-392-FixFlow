@@ -1,5 +1,6 @@
 ﻿using fixflow.web.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace fixflow.web.Data
@@ -89,6 +90,37 @@ namespace fixflow.web.Data
                 _logger.LogError("Could not create required user roles. APPLICATION MAY NOT FUNCTION CORRECTLY.");
             }
 
+            // Create a default location Code for new users if it does not exist
+            var defaultLocationExists = await _db.FfBuildingDirectorys
+                .FirstOrDefaultAsync(x => x.LocationName == "Unassigned");
+
+            if (defaultLocationExists == null)
+            {
+                using var defaultLocationTransaction = await _db.Database.BeginTransactionAsync();
+                try
+                {
+                    var defaultLocation = new FfBuildingDirectory
+                    {
+                        LocationName = "Unassigned",
+                        ComplexName = "Unassigned",
+                        BuildingNumber = 0,
+                        NumUnits = 0,
+                        LocationLat = 0,
+                        LocationLon = 0
+                    };
+
+                    _db.FfBuildingDirectorys.Add(defaultLocation);
+                    await _db.SaveChangesAsync();
+                    await defaultLocationTransaction.CommitAsync();
+                }
+                catch
+                {
+                    await defaultLocationTransaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+
             // AMS if no admins exist create the default and set to require password change at next login.
             var admins = await _userManager.GetUsersInRoleAsync("Admin");
             if (!admins.Any())
@@ -121,13 +153,20 @@ namespace fixflow.web.Data
                         throw new Exception($"Failed to add 'admin' role to admin user: {string.Join(", ", resultUR.Errors.Select(e => e.Description))}");
                     }
 
+                    // Get LocationCode of "Unassigned" building
+                    var locationCode = await _db.FfBuildingDirectorys
+                        .Where(x => x.LocationName == "Unassigned")
+                        .Select(x => x.LocationCode)
+                        .SingleAsync();
+
 
                     // Create Profile
                     var initialAdminProfile = new FfUserProfile
                     {
                         FName = "Default",
                         LName = "Administrator",
-                        EmployeeId = initialAdmin.Id
+                        FfUserId = initialAdmin.Id,
+                        LocationCode = locationCode
                     };
 
                     _db.FfUserProfiles.Add(initialAdminProfile);

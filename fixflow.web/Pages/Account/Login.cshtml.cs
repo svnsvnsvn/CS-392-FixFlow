@@ -9,13 +9,16 @@ public class LoginModel : PageModel
 {
     private readonly SignInManager<AppUser> _signInManager;
     private readonly ILogger<LoginModel> _logger;
+    private readonly UserManager<AppUser> _userManager;
 
     public LoginModel(
         SignInManager<AppUser> signInManager,
-        ILogger<LoginModel> logger)
+        ILogger<LoginModel> logger,
+        UserManager<AppUser> userManager)
     {
         _signInManager = signInManager;
         _logger = logger;
+        _userManager = userManager;
     }
 
     public class LoginInput
@@ -48,9 +51,42 @@ public class LoginModel : PageModel
         );
 
         if (result.Succeeded)
-            return RedirectToPage("/Account/Home");
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-        LoginFailed = true;
+            // Check if user needs to change password
+            if (user.ResetPassOnLogin == true)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                return RedirectToPage("/Account/Profile", new { userId = user.Id, token });
+            }
+            else
+            {
+                return RedirectToPage("/Account/Home");
+            }
+        }
+
+        if (result.IsLockedOut)
+        {
+            ModelState.AddModelError("", "Account is locked.");
+            return Page();
+        }
+
+        if (result.IsNotAllowed)
+        {
+            ModelState.AddModelError("", "Sign-in not allowed.");
+            return Page();
+        }
+
+        if (!result.Succeeded)
+        {
+            ModelState.AddModelError("", "Invalid login attempt.");
+            return Page();
+        }
         return Page();
     }
 }

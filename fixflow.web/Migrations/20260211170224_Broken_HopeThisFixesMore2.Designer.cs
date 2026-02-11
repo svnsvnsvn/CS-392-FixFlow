@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using fixflow.web.Data;
@@ -11,9 +12,11 @@ using fixflow.web.Data;
 namespace fixflow.web.Migrations
 {
     [DbContext(typeof(FfDbContext))]
-    partial class FfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211170224_Broken_HopeThisFixesMore2")]
+    partial class Broken_HopeThisFixesMore2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

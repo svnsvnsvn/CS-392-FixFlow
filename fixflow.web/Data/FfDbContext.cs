@@ -46,12 +46,12 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
         // *** FfUserProfile ***
         builder.Entity<FfUserProfile>()                   // Primary Key
-            .HasKey(a => a.EmployeeId);
+            .HasKey(a => a.FfUserId);
 
         builder.Entity<FfUserProfile>()
-            .HasOne(a => a.User)
+            .HasOne(a => a.FfUser)
             .WithOne()
-            .HasForeignKey<FfUserProfile>(a => a.EmployeeId);
+            .HasForeignKey<FfUserProfile>(a => a.FfUserId);
 
         builder.Entity<FfUserProfile>()                  // Foreign Key
             .HasOne(a => a.Location)
@@ -62,8 +62,13 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
 
         // *** FfBuildingDirectory ***
-        builder.Entity<FfBuildingDirectory>()             // Primary Key
+        builder.Entity<FfBuildingDirectory>()            // Primary Key
             .HasKey(b => b.LocationCode);
+
+        builder.Entity<FfBuildingDirectory>()            // Building name "Unassigned" is for new accounts only.  This line restricts the building name "Unassigned" to be
+            .HasIndex(x => x.LocationName)               // unique in that column.  Other names may be duplicated, but "Unassigned" may not.  The "Unassigned" entry is 
+            .IsUnique()                                  // entered on table in DbSeeder.
+            .HasFilter("[LocationName] = 'Unassigned'");
 
         builder.Entity<FfBuildingDirectory>()            // Set Precision.  11cm
             .Property(b => b.LocationLat)

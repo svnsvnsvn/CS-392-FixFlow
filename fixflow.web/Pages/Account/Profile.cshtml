@@ -1,0 +1,61 @@
+﻿@page
+@model fixflow.Web.Pages.Account.ProfileModel
+@{
+    ViewData["Title"] = "User Profile";
+}
+
+<h2>User Profile</h2>
+
+<form method="post" asp-page-handler="UpdateProfile">
+    <div>
+        <label asp-for="ProfileInput.UserName"></label>
+        <input asp-for="ProfileInput.UserName" />
+    </div>
+    <div>
+        <label asp-for="ProfileInput.FirstName"></label>
+        <input asp-for="ProfileInput.FirstName" />
+    </div>
+
+    <div>
+        <label asp-for="ProfileInput.LastName"></label>
+        <input asp-for="ProfileInput.LastName" />
+    </div>
+
+    <div>
+        <label asp-for="ProfileInput.Email"></label>
+        <input asp-for="ProfileInput.Email" />
+    </div>
+
+    <div>
+        <label asp-for="ProfileInput.PhoneNumber"></label>
+        <input asp-for="ProfileInput.PhoneNumber" />
+    </div>
+
+    <button type="submit">Update</button>
+</form>
+
+<br /><br />
+
+<form method="post" asp-page-handler="ChangePassword" asp-route-userId="@Model.PasswordInput.UserId" asp-route-token="@Model.PasswordInput.SecurityTokenStash">
+    <div>
+        <label asp-for="PasswordInput.CurrentPassword"></label>
+        @if (Model.RequireCurrentPassword)
+        {
+            <input type="password" asp-for="PasswordInput.CurrentPassword" />
+        }
+        else
+        {
+            <input asp-for="PasswordInput.CurrentPassword" disabled/>
+        }
+    </div>
+    <div>
+        <label asp-for="PasswordInput.NewPassword"></label>
+        <input type="password" asp-for="PasswordInput.NewPassword" />
+    </div>
+    <div>
+        <label asp-for="PasswordInput.VerifyPassword"></label>
+        <input type="password" asp-for="PasswordInput.VerifyPassword" />
+    </div>
+
+    <button type="submit">Update</button>
+</form>
