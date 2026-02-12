@@ -3,82 +3,79 @@
 @{
     ViewData["Title"] = "Administrator Tools";  
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <script src="~/js/userManager.js"></script>   @*Admin tools UX code*@
-</head>
+<script src="~/js/userManager.js"></script>
 
 <form method="post">
     @Html.AntiForgeryToken()
 </form>
 
-<body>
-    <div class="text-center">
-        <h1 class="display-4" style="font-size: 40px;"> Welcome @User.Identity?.Name ()</h1>
+<div class="admin-shell">
+    <div class="page-header">
+        <h1 class="page-title">Administrator Tools</h1>
+        <p class="page-subtitle">Welcome @User.Identity?.Name</p>
     </div>
-    <div style="max-height: 70vh; overflow-y: auto;">
-        <table cellpadding="5">
-        <thead>
-            <tr align="center">
-                <th style="position: sticky; top: 0; background: white;" rowspan="2">UserName</th>
-                <th style="position: sticky; top: 0; background: white;" rowspan="2">E-Mail</th>
-                <th style="position: sticky; top: 0; background: white;">Pending</th>
-                <th style="position: sticky; top: 0; background: white;">Resident</th>
-                <th style="position: sticky; top: 0; background: white;">Employee</th>
-                <th style="position: sticky; top: 0; background: white;">Manager</th>
-                <th style="position: sticky; top: 0; background: white;">Administrator</th>
-                <th style="position: sticky; top: 0; background: white;" rowspan="2">Locked Out</th>
-                <th style="position: sticky; top: 0; background: white;" rowspan="2">Password</th>
-                <th style="position: sticky; top: 0; background: white;" rowspan="2">Apply</th>
-            </tr>
-            <tr align="center">
-                <th style="position: sticky; top: 40; background: white;"><input type="checkbox" id="filter-Pending" name="filter-Pending" value="Show" checked></th>
-                <th style="position: sticky; top: 40; background: white;"><input type="checkbox" id="filter-Clerk" name="filter-Resident" value="Show" checked></th>
-                <th style="position: sticky; top: 40; background: white;"><input type="checkbox" id="filter-Employee" name="filter-Employee" value="Show" checked></th>
-                <th style="position: sticky; top: 40; background: white;"><input type="checkbox" id="filter-Manager" name="filter-Manager" value="Show" checked></th>
-                <th style="position: sticky; top: 40; background: white;"><input type="checkbox" id="filter-Admin" name="filter-Admin" value="Show" checked></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in Model.Users)
-            {
-                var userRole = await Model.GetUserRoleAsync(user);
-                <tr id="row-@user.Id">
-                    <td>
-                        <span title="ID: @user.Id">@user.UserName</span>    @*Display UserName with tootip ID number*@
-                    </td>   
-                    <td>
-                        <a href="mailto:@user.Email">@user.Email</a>        @*Display User E-Mail with a corresponding mailto:link*@
-                    </td>       
-                    <td align="center">
-                        <input type="radio" id="role-@user.Id-P" name="role-@user.Id" value="Pending" @(userRole == "Pending" ? "checked" : "")>
-                    </td>
-                    <td align="center">
-                        <input type="radio" id="role-@user.Id-C" name="role-@user.Id" value="Clerk" @(userRole == "Resident" ? "checked" : "")>
-                    </td>
-                    <td align="center">
-                        <input type="radio" id="role-@user.Id-E" name="role-@user.Id" value="Employee" @(userRole == "Employee" ? "checked" : "")>
-                    </td>
-                    <td align="center">
-                        <input type="radio" id="role-@user.Id-M" name="role-@user.Id" value="Manager" @(userRole == "Manager" ? "checked" : "")>
-                    </td>
-                    <td align="center">
-                        <input type="radio" id="role-@user.Id-A" name="role-@user.Id" value="Admin" @(userRole == "Admin" ? "checked" : "")>
-                    </td>
-                    <td align="center">
-                        <input type="checkbox" id="lcko-@user.Id" name="lcko-@user.Id" value="Lockedout" @(user.LockoutEnabled ? "checked" : "")>
-                    </td>
-                    <td align="center">
-                        <button type="button" id="pRst-@user.Id">Reset</button>
-                    </td>
-                    <td align="center">
-                        <button type="button" style="visibility:hidden;" id="aply-@user.Id">Apply</button>
-                    </td>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr align="center">
+                    <th rowspan="2">UserName</th>
+                    <th rowspan="2">E-Mail</th>
+                    <th>Pending</th>
+                    <th>Resident</th>
+                    <th>Employee</th>
+                    <th>Manager</th>
+                    <th>Administrator</th>
+                    <th rowspan="2">Locked Out</th>
+                    <th rowspan="2">Password</th>
+                    <th rowspan="2">Apply</th>
                 </tr>
+                <tr class="filter-row" align="center">
+                    <th><input type="checkbox" id="filter-Pending" name="filter-Pending" value="Show" checked></th>
+                    <th><input type="checkbox" id="filter-Clerk" name="filter-Resident" value="Show" checked></th>
+                    <th><input type="checkbox" id="filter-Employee" name="filter-Employee" value="Show" checked></th>
+                    <th><input type="checkbox" id="filter-Manager" name="filter-Manager" value="Show" checked></th>
+                    <th><input type="checkbox" id="filter-Admin" name="filter-Admin" value="Show" checked></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    var userRole = await Model.GetUserRoleAsync(user);
+                    <tr id="row-@user.Id">
+                        <td>
+                            <span title="ID: @user.Id">@user.UserName</span>
+                        </td>
+                        <td>
+                            <a href="mailto:@user.Email">@user.Email</a>
+                        </td>
+                        <td align="center">
+                            <input type="radio" id="role-@user.Id-P" name="role-@user.Id" value="Pending" @(userRole == "Pending" ? "checked" : "")>
+                        </td>
+                        <td align="center">
+                            <input type="radio" id="role-@user.Id-C" name="role-@user.Id" value="Clerk" @(userRole == "Resident" ? "checked" : "")>
+                        </td>
+                        <td align="center">
+                            <input type="radio" id="role-@user.Id-E" name="role-@user.Id" value="Employee" @(userRole == "Employee" ? "checked" : "")>
+                        </td>
+                        <td align="center">
+                            <input type="radio" id="role-@user.Id-M" name="role-@user.Id" value="Manager" @(userRole == "Manager" ? "checked" : "")>
+                        </td>
+                        <td align="center">
+                            <input type="radio" id="role-@user.Id-A" name="role-@user.Id" value="Admin" @(userRole == "Admin" ? "checked" : "")>
+                        </td>
+                        <td align="center">
+                            <input type="checkbox" id="lcko-@user.Id" name="lcko-@user.Id" value="Lockedout" @(user.LockoutEnabled ? "checked" : "")>
+                        </td>
+                        <td align="center">
+                            <button type="button" id="pRst-@user.Id">Reset</button>
+                        </td>
+                        <td align="center">
+                            <button type="button" class="btn-ghost u-hidden" id="aply-@user.Id">Apply</button>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
     </div>
-    </body>
-</html>
+</div>
