@@ -66,7 +66,7 @@ public class LoginModel : PageModel
             }
             else
             {
-                return RedirectToPage("/Account/Home");
+                return RedirectToPage("/Dashboard");
             }
         }
 
