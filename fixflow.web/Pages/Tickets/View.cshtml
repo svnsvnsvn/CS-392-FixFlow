@@ -4,15 +4,17 @@
     ViewData["Title"] = "View Ticket";
 }
 
-<h1>Ticket Details</h1>
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">Ticket Details</h1>
+        <p class="page-subtitle">Review the request and take action.</p>
+    </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <!-- Ticket details will go here -->
-        <p>Ticket details placeholder</p>
-        <p>
+    <div class="card">
+        <div class="placeholder">Ticket details placeholder</div>
+        <div class="form-actions" style="margin-top: 16px;">
             <a asp-page="./Edit" asp-route-id="@Model.TicketId" class="btn btn-primary">Edit</a>
             <a asp-page="./List" class="btn btn-secondary">Back to List</a>
-        </p>
+        </div>
     </div>
 </div>

@@ -4,13 +4,19 @@
     ViewData["Title"] = "Create Ticket";
 }
 
-<h1>Create New Ticket</h1>
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">Create New Ticket</h1>
+        <p class="page-subtitle">Log a maintenance request with the right details.</p>
+    </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <form method="post">
-            <!-- Ticket creation form will go here -->
-            <p>Ticket creation form placeholder</p>
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="placeholder">Ticket creation form placeholder</div>
+            <div class="form-actions">
+                <button type="submit">Submit Ticket</button>
+                <a class="btn btn-secondary" asp-page="./List">Back to Tickets</a>
+            </div>
         </form>
     </div>
 </div>

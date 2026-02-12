@@ -16,10 +16,19 @@
 <body>
     <header class="site-header">
         <nav class="navbar">
-            <a class="navbar-brand" href="/">FixFlow</a>
+            <a class="navbar-brand" href="/Dashboard">FixFlow</a>
             <div class="navbar-links">
-                <a href="/">Home</a>
-                <a href="/Account/Login">Login</a>
+                <a href="/Dashboard">Home</a>
+                <a href="/Dashboard">Index</a>
+                <a href="/Dashboard">Dashboard</a>
+                @if (!SignInManager.IsSignedIn(User))
+                {
+                    <a href="/Account/Login">Login</a>
+                }
+                else
+                {
+                    <a href="/Account/Profile">Profile</a>
+                }
             </div>
             <div class="navbar-user">
                 @if (SignInManager.IsSignedIn(User))

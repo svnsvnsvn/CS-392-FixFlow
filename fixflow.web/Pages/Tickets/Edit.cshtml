@@ -4,13 +4,19 @@
     ViewData["Title"] = "Edit Ticket";
 }
 
-<h1>Edit Ticket</h1>
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">Edit Ticket</h1>
+        <p class="page-subtitle">Adjust ticket details and keep the status accurate.</p>
+    </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <form method="post">
-            <!-- Ticket edit form will go here -->
-            <p>Ticket edit form placeholder</p>
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="placeholder">Ticket edit form placeholder</div>
+            <div class="form-actions">
+                <button type="submit">Save Changes</button>
+                <a class="btn btn-secondary" asp-page="./List">Back to Tickets</a>
+            </div>
         </form>
     </div>
 </div>

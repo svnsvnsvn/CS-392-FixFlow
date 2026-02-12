@@ -72,8 +72,19 @@ app.MapControllers();       // For APIs later
 
 app.MapGet("/", context =>
 {
-    // AOU - Redirect root to home page or login based on auth status
-    context.Response.Redirect("/Index");
+    context.Response.Redirect("/Dashboard");
+    return Task.CompletedTask;
+});
+
+app.MapGet("/Index", context =>
+{
+    context.Response.Redirect("/Dashboard");
+    return Task.CompletedTask;
+});
+
+app.MapGet("/Home", context =>
+{
+    context.Response.Redirect("/Dashboard");
     return Task.CompletedTask;
 });
 
