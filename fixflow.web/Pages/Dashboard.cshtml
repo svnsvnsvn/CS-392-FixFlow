@@ -1,0 +1,674 @@
+@page
+@model fixflow.web.Pages.DashboardModel
+@{
+    ViewData["Title"] = "Dashboard - FixFlow";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #4facb7 0%, #3d8a93 100%);
+            color: white;
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .brand-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: white;
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+            width: 1.5rem;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-right: 0.75rem;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .btn-logout {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.625rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facb7, #6ec9c0);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(79, 172, 183, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 172, 183, 0.4);
+        }
+
+        /* Content Container */
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: linear-gradient(135deg, #4facb7 0%, #6ec9c0 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(79, 172, 183, 0.2);
+        }
+
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-message {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        /* Stats Grid (for Manager/Admin) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Tickets Section */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .tab:hover {
+            color: #4facb7;
+        }
+
+        .tab.active {
+            color: #4facb7;
+            border-bottom-color: #4facb7;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .ticket-id {
+            font-weight: 600;
+            color: #4facb7;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-submitted { background: #dbeafe; color: #1e40af; }
+        .badge-review { background: #fef3c7; color: #92400e; }
+        .badge-assigned { background: #e0e7ff; color: #3730a3; }
+        .badge-progress { background: #ddd6fe; color: #5b21b6; }
+        .badge-hold { background: #fecaca; color: #991b1b; }
+        .badge-completed { background: #d1fae5; color: #065f46; }
+
+        .priority-high { color: #dc2626; font-weight: 600; }
+        .priority-medium { color: #f59e0b; font-weight: 600; }
+        .priority-low { color: #059669; font-weight: 600; }
+
+        .btn-view {
+            background: #4facb7;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-view:hover {
+            background: #3d8a93;
+            transform: translateY(-2px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Mobile Responsive */
+        @@media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 1rem 0;
+            }
+
+            .sidebar-brand {
+                padding: 0 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .topbar {
+                padding: 1rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-name">FixFlow</div>
+            <div class="brand-subtitle">Maintenance System</div>
+        </div>
+
+        <!-- Navigation based on role -->
+        <nav>
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/Dashboard" class="nav-item active">
+                    <span class="nav-icon">🏠</span>
+                    Dashboard
+                </a>
+
+                @* Client-only navigation *@
+                @if (Model.UserRole == "Client")
+                {
+                    <a href="/Tickets/Create" class="nav-item">
+                        <span class="nav-icon">➕</span>
+                        Create Ticket
+                    </a>
+                    <a href="/Tickets/MyTickets" class="nav-item">
+                        <span class="nav-icon">📋</span>
+                        My Tickets
+                    </a>
+                }
+
+                @* Technician navigation *@
+                @if (Model.UserRole == "Technician")
+                {
+                    <a href="/Tickets/WorkQueue" class="nav-item">
+                        <span class="nav-icon">🔧</span>
+                        Work Queue
+                    </a>
+                    <a href="/Tickets/MyAssignments" class="nav-item">
+                        <span class="nav-icon">📝</span>
+                        My Assignments
+                    </a>
+                }
+
+                @* Manager navigation *@
+                @if (Model.UserRole == "Manager")
+                {
+                    <a href="/Tickets/All" class="nav-item">
+                        <span class="nav-icon">🎫</span>
+                        All Tickets
+                    </a>
+                    <a href="/Tickets/Unassigned" class="nav-item">
+                        <span class="nav-icon">⏳</span>
+                        Unassigned
+                    </a>
+                    <a href="/Reports" class="nav-item">
+                        <span class="nav-icon">📊</span>
+                        Reports
+                    </a>
+                }
+
+                @* Admin navigation *@
+                @if (Model.UserRole == "Admin")
+                {
+                    <a href="/Admin/Users" class="nav-item">
+                        <span class="nav-icon">👥</span>
+                        Manage Users
+                    </a>
+                    <a href="/Admin/Categories" class="nav-item">
+                        <span class="nav-icon">📁</span>
+                        Categories
+                    </a>
+                    <a href="/Admin/Reports" class="nav-item">
+                        <span class="nav-icon">📊</span>
+                        Reports
+                    </a>
+                    <a href="/Admin/Settings" class="nav-item">
+                        <span class="nav-icon">⚙️</span>
+                        Settings
+                    </a>
+                }
+            </div>
+        </nav>
+
+        <!-- User Info & Logout -->
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">@Model.UserInitials</div>
+                <div class="user-details">
+                    <div class="user-name">@Model.UserName</div>
+                    <div class="user-role">@Model.UserRole</div>
+                </div>
+            </div>
+            <form method="post" asp-page-handler="Logout">
+                <button type="submit" class="btn-logout">Logout</button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <h1 class="page-title">Dashboard</h1>
+            <div class="topbar-actions">
+                @if (Model.UserRole == "Client")
+                {
+                    <a href="/Tickets/Create" class="btn-primary">+ New Ticket</a>
+                }
+                @if (Model.UserRole == "Manager")
+                {
+                    <a href="/Tickets/Unassigned" class="btn-primary">Assign Tickets</a>
+                }
+                @if (Model.UserRole == "Admin")
+                {
+                    <a href="/Admin/Users" class="btn-primary">+ Add User</a>
+                }
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h2 class="welcome-title">Welcome back, @Model.UserName!</h2>
+                <p class="welcome-message">@Model.WelcomeMessage</p>
+            </div>
+
+            <!-- Stats (for Manager/Admin only) -->
+            @if (Model.UserRole == "Manager" || Model.UserRole == "Admin")
+            {
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Tickets</div>
+                        <div class="stat-value">@Model.TotalTickets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value">@Model.PendingTickets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">In Progress</div>
+                        <div class="stat-value">@Model.InProgressTickets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Completed Today</div>
+                        <div class="stat-value">@Model.CompletedToday</div>
+                    </div>
+                </div>
+            }
+
+            <!-- Tickets Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h3 class="section-title">@Model.TicketsSectionTitle</h3>
+                </div>
+
+                <!-- Tabs (optional filtering) -->
+                <div class="tabs">
+                    <button class="tab active">All</button>
+                    <button class="tab">Active</button>
+                    <button class="tab">Completed</button>
+                </div>
+
+                <!-- Tickets Table -->
+                <div class="table-container">
+                    @if (Model.Tickets != null && Model.Tickets.Any())
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ticket ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    @if (Model.UserRole != "Client")
+                                    {
+                                        <th>Submitted By</th>
+                                    }
+                                    @if (Model.UserRole == "Technician")
+                                    {
+                                        <th>Due Date</th>
+                                    }
+                                    <th>Created</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ticket in Model.Tickets)
+                                {
+                                    <tr>
+                                        <td><span class="ticket-id">#@ticket.Id</span></td>
+                                        <td>@ticket.Title</td>
+                                        <td>@ticket.Category</td>
+                                        <td>
+                                            <span class="priority-@ticket.Priority.ToLower()">
+                                                @ticket.Priority
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-@ticket.Status.ToLower().Replace(" ", "")">
+                                                @ticket.Status
+                                            </span>
+                                        </td>
+                                        @if (Model.UserRole != "Client")
+                                        {
+                                            <td>@ticket.SubmittedBy</td>
+                                        }
+                                        @if (Model.UserRole == "Technician")
+                                        {
+                                            <td>@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
+                                        }
+                                        <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            <a href="/Tickets/Details/@ticket.Id" class="btn-view">View</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No tickets to display</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
