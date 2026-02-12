@@ -1,4 +1,32 @@
 ﻿@page
 @model fixflow.Web.Pages.Account.NewUserModel
 
-<h1>Create New User</h1>
+@{
+    ViewData["Title"] = "New User Info";
+}
+
+<h2>New User Information</h2>
+
+<form method="post">
+    <div>
+        <label asp-for="Input.FirstName"></label>
+        <input asp-for="Input.FirstName" />
+    </div>
+
+    <div>
+        <label asp-for="Input.LastName"></label>
+        <input asp-for="Input.LastName" />
+    </div>
+
+    <div>
+        <label asp-for="Input.PhoneNumber"></label>
+        <input asp-for="Input.PhoneNumber" />
+    </div>
+
+    <div>
+        <label asp-for="Input.Email"></label>
+        <input asp-for="Input.Email" />
+    </div>
+
+    <button type="submit">Submit</button>
+</form>
