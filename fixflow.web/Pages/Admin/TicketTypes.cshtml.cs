@@ -17,7 +17,7 @@ namespace fixflow.web.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            TicketTypes = await _context.FfTicketTypes.ToListAsync();
+            TicketTypes = await _context.FfTicketTypess.ToListAsync();
         }
     }
 }

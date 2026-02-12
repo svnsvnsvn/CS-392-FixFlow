@@ -20,7 +20,7 @@ namespace fixflow.web.Pages.Tickets
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             TicketId = id;
-            var ticket = await _context.FfTicketRegister.FirstOrDefaultAsync(m => m.TicketId == id);
+            var ticket = await _context.FfTicketRegisters.FirstOrDefaultAsync(m => m.TicketId == id);
 
             if (ticket == null)
             {

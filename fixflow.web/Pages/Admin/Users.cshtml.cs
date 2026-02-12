@@ -17,7 +17,7 @@ namespace fixflow.web.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            Users = await _context.FfUserProfile.ToListAsync();
+            Users = await _context.FfUserProfiles.ToListAsync();
         }
     }
 }

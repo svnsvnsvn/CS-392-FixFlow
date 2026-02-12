@@ -17,7 +17,7 @@ namespace fixflow.web.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            PriorityCodes = await _context.FfPriorityCodes.ToListAsync();
+            PriorityCodes = await _context.FfPriorityCodess.ToListAsync();
         }
     }
 }

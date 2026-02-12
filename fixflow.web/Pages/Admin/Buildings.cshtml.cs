@@ -17,7 +17,7 @@ namespace fixflow.web.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            Buildings = await _context.FfBuildingDirectory.ToListAsync();
+            Buildings = await _context.FfBuildingDirectorys.ToListAsync();
         }
     }
 }
