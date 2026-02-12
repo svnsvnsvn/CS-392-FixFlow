@@ -1,0 +1,18 @@
+@page "{id:guid}"
+@model fixflow.web.Pages.Tickets.ViewModel
+@{
+    ViewData["Title"] = "View Ticket";
+}
+
+<h1>Ticket Details</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Ticket details will go here -->
+        <p>Ticket details placeholder</p>
+        <p>
+            <a asp-page="./Edit" asp-route-id="@Model.TicketId" class="btn btn-primary">Edit</a>
+            <a asp-page="./List" class="btn btn-secondary">Back to List</a>
+        </p>
+    </div>
+</div>
