@@ -1,0 +1,44 @@
+﻿@page
+@model fixflow.Web.Pages.Account.NewUserModel
+
+@{
+    ViewData["Title"] = "New User Info";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">New User Information</h1>
+        <p class="page-subtitle">Create your account details before setting a password.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label asp-for="Input.FirstName"></label>
+                    <input asp-for="Input.FirstName" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Input.LastName"></label>
+                    <input asp-for="Input.LastName" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Input.PhoneNumber"></label>
+                    <input asp-for="Input.PhoneNumber" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Input.Email"></label>
+                    <input asp-for="Input.Email" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Submit</button>
+                <a class="btn btn-secondary" asp-page="./Login">Back to Login</a>
+            </div>
+        </form>
+    </div>
+</div>

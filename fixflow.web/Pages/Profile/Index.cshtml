@@ -1,0 +1,19 @@
+@page
+@model fixflow.web.Pages.Profile.IndexModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Quick snapshot of your account settings.</p>
+    </div>
+
+    <div class="card">
+        <div class="placeholder">User profile placeholder</div>
+        <div class="form-actions" style="margin-top: 16px;">
+            <a asp-page="./Edit" class="btn btn-primary">Edit Profile</a>
+        </div>
+    </div>
+</div>

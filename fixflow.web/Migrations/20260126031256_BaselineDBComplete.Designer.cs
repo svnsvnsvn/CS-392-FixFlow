@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using fixflow.web.Data;
@@ -11,9 +12,11 @@ using fixflow.web.Data;
 namespace fixflow.web.Migrations
 {
     [DbContext(typeof(FfDbContext))]
-    partial class FfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260126031256_BaselineDBComplete")]
+    partial class BaselineDBComplete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,6 +190,9 @@ namespace fixflow.web.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<bool>("PassswordChangeRequired")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("PasswordExpire")
                         .HasColumnType("timestamp with time zone");
 
@@ -197,9 +203,6 @@ namespace fixflow.web.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ResetPassOnLogin")
                         .HasColumnType("boolean");
 
                     b.Property<string>("SecurityStamp")
@@ -256,7 +259,7 @@ namespace fixflow.web.Migrations
 
                     b.HasKey("LocationCode");
 
-                    b.ToTable("FfBuildingDirectorys", t =>
+                    b.ToTable("FfBuildingDirectory", t =>
                         {
                             t.HasCheckConstraint("CK_Latitude_Range", "\"LocationLat\" >= -90 AND \"LocationLat\" <= 90");
 
@@ -286,16 +289,16 @@ namespace fixflow.web.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserFfUserId")
+                    b.Property<string>("UserEmployeeId")
                         .HasColumnType("text");
 
                     b.HasKey("XNoteId");
 
                     b.HasIndex("TicketId");
 
-                    b.HasIndex("UserFfUserId");
+                    b.HasIndex("UserEmployeeId");
 
-                    b.ToTable("FfExternalNotess");
+                    b.ToTable("FfExternalNotes");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfInternalNotes", b =>
@@ -320,16 +323,16 @@ namespace fixflow.web.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserFfUserId")
+                    b.Property<string>("UserEmployeeId")
                         .HasColumnType("text");
 
                     b.HasKey("INoteId");
 
                     b.HasIndex("TicketId");
 
-                    b.HasIndex("UserFfUserId");
+                    b.HasIndex("UserEmployeeId");
 
-                    b.ToTable("FfInternalNotess");
+                    b.ToTable("FfInternalNotes");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfPriorityCodes", b =>
@@ -346,7 +349,7 @@ namespace fixflow.web.Migrations
 
                     b.HasKey("Code");
 
-                    b.ToTable("FfPriorityCodess");
+                    b.ToTable("FfPriorityCodes");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfStatusCodes", b =>
@@ -398,7 +401,7 @@ namespace fixflow.web.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("FfTicketFlows");
+                    b.ToTable("FfTicketFlow");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfTicketRegister", b =>
@@ -448,7 +451,7 @@ namespace fixflow.web.Migrations
 
                     b.HasIndex("TicketTroubleType");
 
-                    b.ToTable("FfTicketRegisters");
+                    b.ToTable("FfTicketRegister");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfTicketTypes", b =>
@@ -465,12 +468,12 @@ namespace fixflow.web.Migrations
 
                     b.HasKey("Code");
 
-                    b.ToTable("FfTicketTypess");
+                    b.ToTable("FfTicketTypes");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfUserProfile", b =>
                 {
-                    b.Property<string>("FfUserId")
+                    b.Property<string>("EmployeeId")
                         .HasColumnType("text");
 
                     b.Property<string>("FName")
@@ -487,11 +490,11 @@ namespace fixflow.web.Migrations
                     b.Property<int>("Unit")
                         .HasColumnType("integer");
 
-                    b.HasKey("FfUserId");
+                    b.HasKey("EmployeeId");
 
                     b.HasIndex("LocationCode");
 
-                    b.ToTable("FfUserProfiles");
+                    b.ToTable("FfUserProfile");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -555,7 +558,7 @@ namespace fixflow.web.Migrations
 
                     b.HasOne("fixflow.web.Data.FfUserProfile", "User")
                         .WithMany()
-                        .HasForeignKey("UserFfUserId");
+                        .HasForeignKey("UserEmployeeId");
 
                     b.Navigation("Ticket");
 
@@ -572,7 +575,7 @@ namespace fixflow.web.Migrations
 
                     b.HasOne("fixflow.web.Data.FfUserProfile", "User")
                         .WithMany()
-                        .HasForeignKey("UserFfUserId");
+                        .HasForeignKey("UserEmployeeId");
 
                     b.Navigation("Ticket");
 
@@ -657,9 +660,9 @@ namespace fixflow.web.Migrations
 
             modelBuilder.Entity("fixflow.web.Data.FfUserProfile", b =>
                 {
-                    b.HasOne("fixflow.web.Data.AppUser", "FfUser")
+                    b.HasOne("fixflow.web.Data.AppUser", "User")
                         .WithOne()
-                        .HasForeignKey("fixflow.web.Data.FfUserProfile", "FfUserId")
+                        .HasForeignKey("fixflow.web.Data.FfUserProfile", "EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -669,9 +672,9 @@ namespace fixflow.web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("FfUser");
-
                     b.Navigation("Location");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

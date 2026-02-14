@@ -1,0 +1,22 @@
+@page
+@model fixflow.web.Pages.Tickets.CreateModel
+@{
+    ViewData["Title"] = "Create Ticket";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">Create New Ticket</h1>
+        <p class="page-subtitle">Log a maintenance request with the right details.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="placeholder">Ticket creation form placeholder</div>
+            <div class="form-actions">
+                <button type="submit">Submit Ticket</button>
+                <a class="btn btn-secondary" asp-page="./List">Back to Tickets</a>
+            </div>
+        </form>
+    </div>
+</div>

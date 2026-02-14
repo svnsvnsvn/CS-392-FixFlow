@@ -1,0 +1,22 @@
+@page
+@model fixflow.web.Pages.Profile.EditModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">Edit Profile</h1>
+        <p class="page-subtitle">Update your profile details.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="placeholder">Profile edit form placeholder</div>
+            <div class="form-actions">
+                <button type="submit">Save Changes</button>
+                <a class="btn btn-secondary" asp-page="./Index">Back to Profile</a>
+            </div>
+        </form>
+    </div>
+</div>

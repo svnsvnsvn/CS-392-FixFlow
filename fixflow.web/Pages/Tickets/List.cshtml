@@ -1,0 +1,21 @@
+@page
+@model fixflow.web.Pages.Tickets.ListModel
+@{
+    ViewData["Title"] = "Tickets List";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">All Tickets</h1>
+        <p class="page-subtitle">Track and manage every maintenance request.</p>
+    </div>
+
+    <div class="card">
+        <div class="toolbar">
+            <div class="page-subtitle">Recent ticket activity</div>
+            <a asp-page="Create" class="btn btn-primary">Create New Ticket</a>
+        </div>
+
+        <div class="placeholder" style="margin-top: 16px;">Tickets list placeholder</div>
+    </div>
+</div>

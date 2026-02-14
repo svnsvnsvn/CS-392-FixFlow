@@ -1,0 +1,22 @@
+@page "{id:guid}"
+@model fixflow.web.Pages.Tickets.EditModel
+@{
+    ViewData["Title"] = "Edit Ticket";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title">Edit Ticket</h1>
+        <p class="page-subtitle">Adjust ticket details and keep the status accurate.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="placeholder">Ticket edit form placeholder</div>
+            <div class="form-actions">
+                <button type="submit">Save Changes</button>
+                <a class="btn btn-secondary" asp-page="./List">Back to Tickets</a>
+            </div>
+        </form>
+    </div>
+</div>

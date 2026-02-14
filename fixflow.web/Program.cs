@@ -32,13 +32,21 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddControllers();      // For APIs later
 
+builder.Services.AddScoped<FfDbSeeder>();
+
 var app = builder.Build();
 
-// AMS - Apply migrations (for DB init and validation)
+app.UseStaticFiles();
+
+// Apply migrations (for DB init and validation, then run seeder)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<FfDbContext>();
     db.Database.Migrate();
+
+    // AMS - Seed Database
+    var seeder = scope.ServiceProvider.GetRequiredService<FfDbSeeder>();
+    await seeder.SeedDbAsync();
 }
 
 
@@ -64,7 +72,19 @@ app.MapControllers();       // For APIs later
 
 app.MapGet("/", context =>
 {
-    context.Response.Redirect("/Account/Login");
+    context.Response.Redirect("/Dashboard");
+    return Task.CompletedTask;
+});
+
+app.MapGet("/Index", context =>
+{
+    context.Response.Redirect("/Dashboard");
+    return Task.CompletedTask;
+});
+
+app.MapGet("/Home", context =>
+{
+    context.Response.Redirect("/Dashboard");
     return Task.CompletedTask;
 });
 

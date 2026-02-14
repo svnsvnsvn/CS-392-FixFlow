@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using fixflow.web.Data;
@@ -11,9 +12,11 @@ using fixflow.web.Data;
 namespace fixflow.web.Migrations
 {
     [DbContext(typeof(FfDbContext))]
-    partial class FfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211164842_Broken_HopeThisFixes")]
+    partial class Broken_HopeThisFixes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -286,14 +289,14 @@ namespace fixflow.web.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserFfUserId")
+                    b.Property<string>("UserEmployeeId")
                         .HasColumnType("text");
 
                     b.HasKey("XNoteId");
 
                     b.HasIndex("TicketId");
 
-                    b.HasIndex("UserFfUserId");
+                    b.HasIndex("UserEmployeeId");
 
                     b.ToTable("FfExternalNotess");
                 });
@@ -320,14 +323,14 @@ namespace fixflow.web.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserFfUserId")
+                    b.Property<string>("UserEmployeeId")
                         .HasColumnType("text");
 
                     b.HasKey("INoteId");
 
                     b.HasIndex("TicketId");
 
-                    b.HasIndex("UserFfUserId");
+                    b.HasIndex("UserEmployeeId");
 
                     b.ToTable("FfInternalNotess");
                 });
@@ -470,7 +473,7 @@ namespace fixflow.web.Migrations
 
             modelBuilder.Entity("fixflow.web.Data.FfUserProfile", b =>
                 {
-                    b.Property<string>("FfUserId")
+                    b.Property<string>("EmployeeId")
                         .HasColumnType("text");
 
                     b.Property<string>("FName")
@@ -487,7 +490,7 @@ namespace fixflow.web.Migrations
                     b.Property<int>("Unit")
                         .HasColumnType("integer");
 
-                    b.HasKey("FfUserId");
+                    b.HasKey("EmployeeId");
 
                     b.HasIndex("LocationCode");
 
@@ -555,7 +558,7 @@ namespace fixflow.web.Migrations
 
                     b.HasOne("fixflow.web.Data.FfUserProfile", "User")
                         .WithMany()
-                        .HasForeignKey("UserFfUserId");
+                        .HasForeignKey("UserEmployeeId");
 
                     b.Navigation("Ticket");
 
@@ -572,7 +575,7 @@ namespace fixflow.web.Migrations
 
                     b.HasOne("fixflow.web.Data.FfUserProfile", "User")
                         .WithMany()
-                        .HasForeignKey("UserFfUserId");
+                        .HasForeignKey("UserEmployeeId");
 
                     b.Navigation("Ticket");
 
@@ -657,9 +660,9 @@ namespace fixflow.web.Migrations
 
             modelBuilder.Entity("fixflow.web.Data.FfUserProfile", b =>
                 {
-                    b.HasOne("fixflow.web.Data.AppUser", "FfUser")
+                    b.HasOne("fixflow.web.Data.AppUser", "User")
                         .WithOne()
-                        .HasForeignKey("fixflow.web.Data.FfUserProfile", "FfUserId")
+                        .HasForeignKey("fixflow.web.Data.FfUserProfile", "EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -669,9 +672,9 @@ namespace fixflow.web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("FfUser");
-
                     b.Navigation("Location");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
