@@ -4,15 +4,50 @@
     ViewData["Title"] = "Manage Priority Codes";
 }
 
-<h1>Manage Priority Codes</h1>
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-exclamation-triangle"></i> Manage Priority Codes</h1>
+        <p class="page-subtitle">Configure priority levels for ticket classification</p>
+    </div>
 
-<p>
-    <a asp-page="./PriorityCodeCreate" class="btn btn-primary">Add New Priority Code</a>
-</p>
+    <div class="toolbar">
+        <div></div>
+        <a asp-page="./PriorityCodeCreate" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Priority Code
+        </a>
+    </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <!-- Priority codes list will go here -->
-        <p>Priority codes management placeholder</p>
+    <div class="card">
+        @if (Model.PriorityCodes != null && Model.PriorityCodes.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-hash"></i> Code</th>
+                        <th><i class="bi bi-exclamation-triangle"></i> Priority Name</th>
+                        <th><i class="bi bi-pencil-square"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var priority in Model.PriorityCodes)
+                    {
+                        <tr>
+                            <td>@priority.Code</td>
+                            <td>@priority.PriorityName</td>
+                            <td>
+                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="placeholder">
+                <i class="bi bi-exclamation-triangle" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p>No priority codes configured yet. Click "Add New Priority Code" to get started.</p>
+            </div>
+        }
     </div>
 </div>

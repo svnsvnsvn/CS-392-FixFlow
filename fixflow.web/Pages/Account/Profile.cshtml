@@ -6,7 +6,7 @@
 
 <div class="page-shell">
     <div class="page-header">
-        <h1 class="page-title">User Profile</h1>
+        <h1 class="page-title"><i class="bi bi-person-circle"></i> User Profile</h1>
         <p class="page-subtitle">Update your contact details and password settings.</p>
     </div>
 
@@ -39,7 +39,7 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit">Save Profile</button>
+                <button type="submit"><i class="bi bi-save"></i> Save Profile</button>
             </div>
         </form>
     </div>
@@ -47,7 +47,7 @@
     <div class="card">
         <form method="post" asp-page-handler="ChangePassword" asp-route-userId="@Model.PasswordInput.UserId" asp-route-token="@Model.PasswordInput.SecurityTokenStash" class="form-stack">
             <div class="page-header">
-                <h2 class="page-title">Password</h2>
+                <h2 class="page-title"><i class="bi bi-shield-lock"></i> Password</h2>
                 <p class="page-subtitle">Keep your account secure with a strong password.</p>
             </div>
 
@@ -74,7 +74,7 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit">Update Password</button>
+                <button type="submit"><i class="bi bi-key"></i> Update Password</button>
             </div>
         </form>
     </div>

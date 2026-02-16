@@ -4,15 +4,50 @@
     ViewData["Title"] = "Manage Ticket Types";
 }
 
-<h1>Manage Ticket Types</h1>
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-folder"></i> Manage Ticket Types</h1>
+        <p class="page-subtitle">Configure categories for maintenance requests</p>
+    </div>
 
-<p>
-    <a asp-page="./TicketTypeCreate" class="btn btn-primary">Add New Ticket Type</a>
-</p>
+    <div class="toolbar">
+        <div></div>
+        <a asp-page="./TicketTypeCreate" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Ticket Type
+        </a>
+    </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <!-- Ticket types list will go here -->
-        <p>Ticket types management placeholder</p>
+    <div class="card">
+        @if (Model.TicketTypes != null && Model.TicketTypes.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-hash"></i> Code</th>
+                        <th><i class="bi bi-folder"></i> Type Name</th>
+                        <th><i class="bi bi-pencil-square"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticketType in Model.TicketTypes)
+                    {
+                        <tr>
+                            <td>@ticketType.Code</td>
+                            <td>@ticketType.TypeName</td>
+                            <td>
+                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="placeholder">
+                <i class="bi bi-folder" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p>No ticket types configured yet. Click "Add New Ticket Type" to get started.</p>
+            </div>
+        }
     </div>
 </div>
