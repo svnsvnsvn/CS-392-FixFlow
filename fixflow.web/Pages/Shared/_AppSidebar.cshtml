@@ -1,0 +1,35 @@
+@{
+    var userName = User.Identity?.Name ?? "User";
+    var initialChars = userName.Split(new[] { ' ', '.', '_' }, StringSplitOptions.RemoveEmptyEntries);
+    var initials = initialChars.Length > 1
+        ? string.Concat(initialChars[0][0], initialChars[1][0]).ToUpperInvariant()
+        : userName.Substring(0, Math.Min(2, userName.Length)).ToUpperInvariant();
+}
+
+<aside class="app-sidebar">
+    <div class="app-brand">
+        <div class="app-brand-title">FixFlow</div>
+        <div class="app-brand-subtitle">Maintenance System</div>
+    </div>
+
+    <div class="app-nav">
+        <div class="app-nav-title">Main</div>
+        <a class="app-nav-link" href="/Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="app-nav-link" href="/Account/Profile"><i class="bi bi-person-circle"></i> Account</a>
+    </div>
+
+    <div class="app-sidebar-footer">
+        <div class="app-user">
+            <div class="app-user-avatar">@initials</div>
+            <div>
+                <div class="app-user-name">@userName</div>
+                <div class="app-user-role">@User.FindFirst("role")?.Value</div>
+            </div>
+        </div>
+        <form method="post" asp-page="/Dashboard" asp-page-handler="Logout">
+            <button type="submit" class="app-logout">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </form>
+    </div>
+</aside>

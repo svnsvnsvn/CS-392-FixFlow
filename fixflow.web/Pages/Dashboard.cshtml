@@ -2,16 +2,28 @@
 @model fixflow.web.Pages.DashboardModel
 @{
     ViewData["Title"] = "Dashboard - FixFlow";
+    Layout = null;
 }
 
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
     /* Dashboard-specific styling */
     .dashboard-grid {
         display: grid;
         grid-template-columns: 260px 1fr;
         gap: 0;
-        margin: -24px -20px;
-        min-height: calc(100vh - 120px);
+        min-height: 100vh;
+        width: 100%;
     }
 
     .sidebar {
@@ -131,45 +143,133 @@
         background: var(--bg);
     }
 
-    .topbar {
-        background: white;
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid var(--line);
+    .content-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 16px;
+        padding: 1.5rem 2rem 0;
     }
 
-    .topbar-title {
+    .content-title {
         font-size: 1.75rem;
         font-weight: 700;
         color: var(--text);
         margin: 0;
     }
 
+    .content-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+    }
+
     .content-area {
-        padding: 2rem;
+        padding: 1.5rem 2rem 2rem;
         flex: 1;
     }
 
     .welcome-section {
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-        color: white;
-        padding: 2rem;
+        background: var(--surface);
+        color: var(--text);
+        padding: 1.5rem;
         border-radius: var(--radius-lg);
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--line);
         box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-section::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 6px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
     }
 
     .welcome-title {
-        font-size: 1.75rem;
+        font-size: 1.35rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin: 0 0 0.35rem;
+        padding-left: 0.5rem;
     }
 
     .welcome-message {
-        font-size: 1rem;
-        opacity: 0.95;
+        font-size: 0.95rem;
+        color: var(--muted);
+        margin: 0;
+        padding-left: 0.5rem;
+    }
+
+    .table-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin: 0.75rem 0 1rem;
+    }
+
+    .table-toolbar .toolbar-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .table-toolbar .toolbar-spacer {
+        flex: 1;
+    }
+
+    .search-input {
+        min-width: 240px;
+        background: #ffffff;
+    }
+
+    .toolbar-select {
+        min-width: 150px;
+        background: #ffffff;
+    }
+
+    .chip {
+        border: 1px solid var(--line);
+        background: #ffffff;
+        color: var(--muted);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .chip.active {
+        color: var(--accent-3);
+        border-color: rgba(42, 163, 164, 0.35);
+        box-shadow: 0 6px 14px rgba(42, 163, 164, 0.12);
+    }
+
+    .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        color: var(--accent-3);
+        background: #ffffff;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+        border-color: rgba(42, 163, 164, 0.4);
+        box-shadow: 0 6px 14px rgba(42, 163, 164, 0.12);
+        transform: translateY(-1px);
     }
 
     .stats-grid {
@@ -214,9 +314,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--bg);
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--line);
     }
 
     .section-title {
@@ -227,17 +327,20 @@
     }
 
     .tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid var(--bg);
+        display: inline-flex;
+        gap: 0.4rem;
+        margin-bottom: 1.25rem;
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--bg-2);
+        border: 1px solid var(--line);
     }
 
     .tab {
-        padding: 0.75rem 1.5rem;
-        background: none;
+        padding: 0.45rem 1rem;
+        background: transparent;
         border: none;
-        border-bottom: 3px solid transparent;
+        border-radius: 999px;
         cursor: pointer;
         font-weight: 500;
         color: var(--muted);
@@ -251,12 +354,16 @@
     }
 
     .tab.active {
-        color: var(--accent);
-        border-bottom-color: var(--accent);
+        color: var(--text);
+        background: #ffffff;
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
     }
 
     .table-container {
         overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: #ffffff;
     }
 
     table {
@@ -265,7 +372,7 @@
     }
 
     thead {
-        background: var(--bg-2);
+        background: var(--surface-2);
     }
 
     th {
@@ -274,14 +381,14 @@
         font-weight: 600;
         color: var(--muted);
         font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        text-transform: none;
+        letter-spacing: 0.01em;
         border-bottom: 2px solid var(--line);
     }
 
     td {
         padding: 1rem;
-        border-bottom: 1px solid var(--bg);
+        border-bottom: 1px solid var(--line);
         color: var(--text);
     }
 
@@ -290,7 +397,7 @@
     }
 
     .ticket-id {
-        font-weight: 600;
+        font-weight: 700;
         color: var(--accent);
     }
 
@@ -355,7 +462,10 @@
             padding: 1rem 0;
         }
     }
-</style>
+
+    </style>
+</head>
+<body class="dashboard-page">
 
 <div class="dashboard-grid">
     <!-- Sidebar -->
@@ -376,14 +486,6 @@
             @* Client-only navigation *@
             @if (Model.UserRole == "Client")
             {
-                <a href="/Tickets/Create" class="nav-item">
-                    <i class="bi bi-plus-circle"></i>
-                    Create Ticket
-                </a>
-                <a href="/Tickets/MyTickets" class="nav-item">
-                    <i class="bi bi-clipboard-check"></i>
-                    My Tickets
-                </a>
             }
 
             @* Technician navigation *@
@@ -457,33 +559,17 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Top Bar -->
-        <div class="topbar">
-            <h1 class="topbar-title"><i class="bi bi-speedometer2"></i> Dashboard</h1>
-            <div>
-                @if (Model.UserRole == "Client")
-                {
-                    <a href="/Tickets/Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> New Ticket
-                    </a>
-                }
-                @if (Model.UserRole == "Manager")
-                {
-                    <a href="/Tickets/Unassigned" class="btn btn-primary">
-                        <i class="bi bi-clipboard-check"></i> Assign Tickets
-                    </a>
-                }
-                @if (Model.UserRole == "Admin")
-                {
-                    <a href="/Admin/Users" class="btn btn-primary">
-                        <i class="bi bi-person-plus"></i> Add User
-                    </a>
-                }
-            </div>
-        </div>
-
         <!-- Content -->
         <div class="content-area">
+            <div class="content-header">
+                <h1 class="content-title">Dashboard</h1>
+                <div class="content-actions">
+                    <a href="/Tickets/Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Create Ticket
+                    </a>
+                </div>
+            </div>
             <!-- Welcome Section -->
             <div class="welcome-section">
                 <h2 class="welcome-title">Welcome back, @Model.UserName!</h2>
@@ -519,11 +605,35 @@
                     <h3 class="section-title"><i class="bi bi-list-ul"></i> @Model.TicketsSectionTitle</h3>
                 </div>
 
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab active">All</button>
-                    <button class="tab">Active</button>
-                    <button class="tab">Completed</button>
+                <div class="table-toolbar">
+                    <div class="toolbar-group">
+                        <input class="search-input" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                        <select class="toolbar-select" aria-label="Filter by status">
+                            <option selected>All statuses</option>
+                            <option>Submitted</option>
+                            <option>In Progress</option>
+                            <option>Assigned</option>
+                            <option>Completed</option>
+                        </select>
+                        <select class="toolbar-select" aria-label="Filter by priority">
+                            <option selected>All priorities</option>
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                        <select class="toolbar-select" aria-label="Sort tickets">
+                            <option selected>Sort: newest</option>
+                            <option>Sort: oldest</option>
+                            <option>Sort: priority</option>
+                            <option>Sort: status</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-spacer"></div>
+                    <div class="toolbar-group">
+                        <button class="chip active" type="button">All</button>
+                        <button class="chip" type="button">Active</button>
+                        <button class="chip" type="button">Completed</button>
+                    </div>
                 </div>
 
                 <!-- Tickets Table -->
@@ -547,7 +657,7 @@
                                         <th>Due Date</th>
                                     }
                                     <th>Created</th>
-                                    <th>Action</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -581,8 +691,8 @@
                                         }
                                         <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
                                         <td>
-                                            <a href="/Tickets/Details/@ticket.Id" class="btn-view">
-                                                <i class="bi bi-eye"></i> View
+                                            <a href="/Tickets/Details/@ticket.Id" class="icon-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
+                                                <i class="bi bi-eye"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -602,3 +712,5 @@
         </div>
     </main>
 </div>
+</body>
+</html>

@@ -1,6 +1,11 @@
 @using Microsoft.AspNetCore.Identity
 @using fixflow.web.Data
 @inject SignInManager<AppUser> SignInManager
+@{
+    var signedIn = SignInManager.IsSignedIn(User);
+    var hideNav = (ViewData["HideNav"] as bool? ?? false) || signedIn;
+    var fullBleed = hideNav;
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -14,31 +19,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
-<body>
-    <header class="site-header">
-        <nav class="navbar">
-            <a class="navbar-brand" href="/Dashboard">FixFlow</a>
-            <div class="navbar-links">
-                <a href="/Dashboard"><i class="bi bi-house-door"></i> Dashboard</a>
-                @if (!SignInManager.IsSignedIn(User))
-                {
-                    <a href="/Account/Login"><i class="bi bi-box-arrow-in-right"></i> Login</a>
-                }
-                else
-                {
-                    <a href="/Account/Profile"><i class="bi bi-person-circle"></i> Profile</a>
-                }
-            </div>
-            <div class="navbar-user">
-                @if (SignInManager.IsSignedIn(User))
-                {
-                    <span class="navbar-username"><i class="bi bi-person-badge"></i> @User.Identity?.Name</span>
-                }
-            </div>
-        </nav>
-    </header>
+<body class="@(hideNav ? "layoutless" : "")">
+    @if (!hideNav)
+    {
+        <header class="site-header">
+            <nav class="navbar">
+                <a class="navbar-brand" href="/Account/Login">FixFlow</a>
+                <div class="navbar-links">
+                    <a href="/Account/Login"><i class="bi bi-box-arrow-in-right"></i> Log In</a>
+                    <a href="/Account/NewUser"><i class="bi bi-person-plus"></i> Create Account</a>
+                    <a href="/About"><i class="bi bi-info-circle"></i> About Services</a>
+                </div>
+            </nav>
+        </header>
+    }
 
-    <main class="page">
+    <main class="page@(fullBleed ? " page--full" : "")">
         @RenderBody()
     </main>
 </body>
