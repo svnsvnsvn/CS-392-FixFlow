@@ -4,15 +4,50 @@
     ViewData["Title"] = "Manage Status Codes";
 }
 
-<h1>Manage Status Codes</h1>
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-flag"></i> Manage Status Codes</h1>
+        <p class="page-subtitle">Configure status options for ticket workflow</p>
+    </div>
 
-<p>
-    <a asp-page="./StatusCodeCreate" class="btn btn-primary">Add New Status Code</a>
-</p>
+    <div class="toolbar">
+        <div></div>
+        <a asp-page="./StatusCodeCreate" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Status Code
+        </a>
+    </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <!-- Status codes list will go here -->
-        <p>Status codes management placeholder</p>
+    <div class="card">
+        @if (Model.StatusCodes != null && Model.StatusCodes.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-hash"></i> Code</th>
+                        <th><i class="bi bi-flag"></i> Status Name</th>
+                        <th><i class="bi bi-pencil-square"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var status in Model.StatusCodes)
+                    {
+                        <tr>
+                            <td>@status.Code</td>
+                            <td>@status.StatusName</td>
+                            <td>
+                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="placeholder">
+                <i class="bi bi-flag" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p>No status codes configured yet. Click "Add New Status Code" to get started.</p>
+            </div>
+        }
     </div>
 </div>

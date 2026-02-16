@@ -58,6 +58,26 @@ td,
     font-family: var(--font-secondary);
 }
 
+/* Bootstrap Icons spacing */
+.bi {
+    margin-right: 0.35em;
+    vertical-align: -0.125em;
+}
+
+button .bi,
+.btn .bi {
+    margin-right: 0.5em;
+}
+
+/* Icon-only buttons */
+.btn-icon {
+    padding: 10px;
+}
+
+.btn-icon .bi {
+    margin: 0;
+}
+
 .site-header {
     background: rgba(255, 255, 255, 0.85);
     border-bottom: 1px solid var(--line);
@@ -90,6 +110,8 @@ td,
     color: var(--muted);
     text-decoration: none;
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
 }
 
 .navbar-links a:hover {
@@ -123,6 +145,9 @@ td,
     margin: 0;
     font-size: 28px;
     font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .page-subtitle {
@@ -181,6 +206,8 @@ button {
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 8px 18px rgba(42, 163, 164, 0.25);
+    display: inline-flex;
+    align-items: center;
 }
 
 button:hover {
