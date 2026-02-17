@@ -18,7 +18,13 @@ namespace fixflow.web.Pages.Tickets
         public async Task OnGetAsync()
         {
             // Load tickets list here
-            Tickets = await _context.FfTicketRegisters.ToListAsync();
+            Tickets = await _context.FfTicketRegisters
+                .AsNoTracking()
+                .Include(ticket => ticket.TicketType)
+                .Include(ticket => ticket.PriorityCode)
+                .Include(ticket => ticket.StatusCode)
+                .Include(ticket => ticket.Building)
+                .ToListAsync();
         }
     }
 }

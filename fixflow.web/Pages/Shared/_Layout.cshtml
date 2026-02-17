@@ -15,7 +15,7 @@
     <title>@(ViewData["Title"] ?? "FixFlow")</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
@@ -37,5 +37,68 @@
     <main class="page@(fullBleed ? " page--full" : "")">
         @RenderBody()
     </main>
+
+    <div class="announcement-modal" id="announcementModal" aria-hidden="true" hidden>
+        <div class="announcement-card" role="dialog" aria-modal="true" aria-labelledby="announcementTitle">
+            <div class="announcement-header">
+                <h3 class="announcement-title" id="announcementTitle">Announcements</h3>
+                <button class="btn btn-ghost" type="button" id="closeAnnouncements" aria-label="Close announcements">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="announcement-body">
+                <div class="list-item">
+                    <div class="list-title">Emergency request protocol</div>
+                    <div class="list-meta">Use High priority for safety-related issues.</div>
+                </div>
+                <div class="list-item">
+                    <div class="list-title">Maintenance hours</div>
+                    <div class="list-meta">Standard service runs 8am - 6pm weekdays.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const announcementModal = document.getElementById("announcementModal");
+        const closeAnnouncements = document.getElementById("closeAnnouncements");
+
+        const openAnnouncements = () => {
+            if (!announcementModal) {
+                return;
+            }
+            announcementModal.classList.add("active");
+            announcementModal.setAttribute("aria-hidden", "false");
+            announcementModal.removeAttribute("hidden");
+        };
+
+        const closeAnnouncementModal = () => {
+            if (!announcementModal) {
+                return;
+            }
+            announcementModal.classList.remove("active");
+            announcementModal.setAttribute("aria-hidden", "true");
+            announcementModal.setAttribute("hidden", "");
+        };
+
+        if (announcementModal && closeAnnouncements) {
+            closeAnnouncements.addEventListener("click", closeAnnouncementModal);
+            announcementModal.addEventListener("click", (event) => {
+                if (event.target === announcementModal) {
+                    closeAnnouncementModal();
+                }
+            });
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                closeAnnouncementModal();
+            }
+        });
+
+        document.querySelectorAll("[data-announcements-open]").forEach((button) => {
+            button.addEventListener("click", openAnnouncements);
+        });
+    </script>
 </body>
 </html>

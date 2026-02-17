@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Linq;
 
 namespace fixflow.web.Pages
 {
@@ -19,9 +20,17 @@ namespace fixflow.web.Pages
 
         // Section titles that change based on role
         public string TicketsSectionTitle { get; set; } = "My Tickets";
+        public string TicketsViewAllLabel { get; set; } = "My Tickets";
+        public string TicketsViewAllUrl { get; set; } = "/Tickets/List";
 
         // Tickets list
         public List<TicketViewModel> Tickets { get; set; } = new();
+        public List<TicketViewModel> RecentTickets { get; set; } = new();
+
+        // Dashboard modules
+        public List<DashboardAppointment> UpcomingAppointments { get; set; } = new();
+        public List<DashboardActivityItem> RecentActivity { get; set; } = new();
+        public List<DashboardAnnouncement> Announcements { get; set; } = new();
 
         public IActionResult OnGet(string? role = null)
         {
@@ -61,12 +70,16 @@ namespace fixflow.web.Pages
                     SetupClientView();
                     break;
             }
+
+            BuildDashboardModules();
         }
 
         private void SetupClientView()
         {
             WelcomeMessage = "Track your maintenance requests and submit new tickets.";
             TicketsSectionTitle = "My Tickets";
+            TicketsViewAllLabel = "My Tickets";
+            TicketsViewAllUrl = "/Tickets/List";
             
             // Mock client tickets
             Tickets = new List<TicketViewModel>
@@ -110,6 +123,8 @@ namespace fixflow.web.Pages
         {
             WelcomeMessage = "You have 5 assigned tasks. 2 are due today.";
             TicketsSectionTitle = "My Assignments";
+            TicketsViewAllLabel = "My Assignments";
+            TicketsViewAllUrl = "/Tickets/List";
             
             // Mock technician assigned tickets
             Tickets = new List<TicketViewModel>
@@ -154,6 +169,8 @@ namespace fixflow.web.Pages
         {
             WelcomeMessage = "Manage tickets, assign technicians, and oversee operations.";
             TicketsSectionTitle = "All Tickets";
+            TicketsViewAllLabel = "All Tickets";
+            TicketsViewAllUrl = "/Tickets/List";
             
             // Stats for managers
             TotalTickets = 47;
@@ -211,6 +228,8 @@ namespace fixflow.web.Pages
         {
             WelcomeMessage = "System overview and administrative controls.";
             TicketsSectionTitle = "Recent Tickets";
+            TicketsViewAllLabel = "All Tickets";
+            TicketsViewAllUrl = "/Tickets/List";
             
             // Stats for admin
             TotalTickets = 247;
@@ -276,6 +295,64 @@ namespace fixflow.web.Pages
             return name.Length >= 2 ? name.Substring(0, 2).ToUpper() : name.ToUpper();
         }
 
+        private void BuildDashboardModules()
+        {
+            RecentTickets = Tickets
+                .OrderByDescending(ticket => ticket.CreatedDate)
+                .Take(10)
+                .ToList();
+
+            UpcomingAppointments = Tickets
+                .Where(ticket => ticket.DueDate.HasValue)
+                .OrderBy(ticket => ticket.DueDate)
+                .Take(4)
+                .Select(ticket => new DashboardAppointment
+                {
+                    Title = ticket.Title,
+                    Category = ticket.Category,
+                    When = ticket.DueDate ?? ticket.CreatedDate,
+                    Status = ticket.Status
+                })
+                .ToList();
+
+            if (!UpcomingAppointments.Any())
+            {
+                UpcomingAppointments.Add(new DashboardAppointment
+                {
+                    Title = "No upcoming appointments",
+                    Category = "Add a due date to a ticket",
+                    When = DateTime.Now.AddDays(1),
+                    Status = "Open"
+                });
+            }
+
+            RecentActivity = Tickets
+                .OrderByDescending(ticket => ticket.CreatedDate)
+                .Take(6)
+                .Select(ticket => new DashboardActivityItem
+                {
+                    Title = ticket.Title,
+                    Status = ticket.Status,
+                    Meta = $"{ticket.Category} · {ticket.SubmittedBy}",
+                    TimeStamp = ticket.CreatedDate
+                })
+                .ToList();
+
+            Announcements = new List<DashboardAnnouncement>
+            {
+                new DashboardAnnouncement
+                {
+                    Title = "Emergency request protocol",
+                    Body = "Use High priority for safety-related issues."
+                },
+                new DashboardAnnouncement
+                {
+                    Title = "Maintenance hours",
+                    Body = "Standard service runs 8am - 6pm weekdays."
+                }
+            };
+        }
+
         public async Task<IActionResult> OnPostLogoutAsync()
         {
             // Add logout logic here
@@ -295,5 +372,27 @@ namespace fixflow.web.Pages
         public string SubmittedBy { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public DateTime? DueDate { get; set; }
+    }
+
+    public class DashboardAppointment
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public DateTime When { get; set; }
+        public string Status { get; set; } = string.Empty;
+    }
+
+    public class DashboardActivityItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Meta { get; set; } = string.Empty;
+        public DateTime TimeStamp { get; set; }
+    }
+
+    public class DashboardAnnouncement
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
     }
 }

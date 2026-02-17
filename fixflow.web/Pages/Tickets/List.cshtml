@@ -2,20 +2,198 @@
 @model fixflow.web.Pages.Tickets.ListModel
 @{
     ViewData["Title"] = "Tickets List";
+    ViewData["HideNav"] = true;
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title">All Tickets</h1>
-        <p class="page-subtitle">Track and manage every maintenance request.</p>
-    </div>
+<style>
+    .tickets-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
 
-    <div class="card">
-        <div class="toolbar">
-            <div class="page-subtitle">Recent ticket activity</div>
-            <a asp-page="Create" class="btn btn-primary">Create New Ticket</a>
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin: 1rem 0;
+    }
+
+    .filter-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-spacer {
+        flex: 1;
+    }
+
+    .filter-input {
+        min-width: 200px;
+        background: #ffffff;
+    }
+
+    .filter-select {
+        min-width: 150px;
+        background: #ffffff;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #ffffff;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: var(--surface-2);
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 0.875rem;
+        border-bottom: 2px solid var(--line);
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--line);
+        color: var(--text);
+    }
+
+    tbody tr:hover {
+        background: var(--bg-2);
+    }
+
+    .ticket-id {
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted);
+    }
+</style>
+
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+
+    <main class="app-main">
+        <div class="page-shell">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">All Tickets</h1>
+                    <p class="page-subtitle">Track, search, and manage maintenance requests.</p>
+                </div>
+                <div class="tickets-toolbar">
+                    <a href="/Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+                    <a asp-page="Create" class="btn btn-primary">Create New Ticket</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <input class="filter-input" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                        <select class="filter-select" aria-label="Filter by status">
+                            <option selected>All statuses</option>
+                            <option>Submitted</option>
+                            <option>In Progress</option>
+                            <option>Assigned</option>
+                            <option>Completed</option>
+                        </select>
+                        <select class="filter-select" aria-label="Filter by priority">
+                            <option selected>All priorities</option>
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                        <select class="filter-select" aria-label="Sort tickets">
+                            <option selected>Sort: last updated</option>
+                            <option>Sort: newest</option>
+                            <option>Sort: oldest</option>
+                            <option>Sort: priority</option>
+                        </select>
+                    </div>
+                    <div class="filter-spacer"></div>
+                    <div class="filter-group">
+                        <button class="btn btn-ghost" type="button">Clear filters</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    @if (Model.Tickets != null && Model.Tickets.Any())
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Type</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                    <th>Unit</th>
+                                    <th>Requested By</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ticket in Model.Tickets)
+                                {
+                                    <tr>
+                                        <td><span class="ticket-id">@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)</span></td>
+                                        <td>@(ticket.TicketType?.TypeName ?? "-")</td>
+                                        <td><span class="badge">@(ticket.PriorityCode?.PriorityName ?? "-")</span></td>
+                                        <td><span class="badge">@(ticket.StatusCode?.StatusName ?? "-")</span></td>
+                                        <td>@(ticket.Building?.LocationName ?? "-")</td>
+                                        <td>@ticket.Unit</td>
+                                        <td>@ticket.RequestedBy</td>
+                                        <td>
+                                            <a href="/Tickets/Details/@ticket.TicketId" class="btn btn-secondary btn-icon" aria-label="View ticket">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No tickets to display</p>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
-
-        <div class="placeholder" style="margin-top: 16px;">Tickets list placeholder</div>
-    </div>
+    </main>
 </div>
