@@ -68,7 +68,7 @@ public class FfDbContext : IdentityDbContext<AppUser>
         builder.Entity<FfBuildingDirectory>()            // Building name "Unassigned" is for new accounts only.  This line restricts the building name "Unassigned" to be
             .HasIndex(x => x.LocationName)               // unique in that column.  Other names may be duplicated, but "Unassigned" may not.  The "Unassigned" entry is 
             .IsUnique()                                  // entered on table in DbSeeder.
-            .HasFilter("[LocationName] = 'Unassigned'");
+            .HasFilter("\"LocationName\" = 'Unassigned'");
 
         builder.Entity<FfBuildingDirectory>()            // Set Precision.  11cm
             .Property(b => b.LocationLat)
@@ -95,30 +95,30 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
         // *** FfTicketTypes ***
         builder.Entity<FfTicketTypes>()                   // Primary Key
-            .HasKey(c => c.Code);
+            .HasKey(c => c.Id);
 
         builder.Entity<FfTicketTypes>()                  // Ensure Code is incrementing.
-            .Property(c => c.Code)
+            .Property(c => c.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfStatusCodes ***
         builder.Entity<FfStatusCodes>()                   // Primary Key
-            .HasKey(d => d.Code);
+            .HasKey(d => d.Id);
 
         builder.Entity<FfStatusCodes>()                  // Ensure Code is incrementing.
-            .Property(d => d.Code)
+            .Property(d => d.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfPriorityCodes ***
         builder.Entity<FfPriorityCodes>()                   // Primary Key
-            .HasKey(e => e.Code);
+            .HasKey(e => e.Id);
 
         builder.Entity<FfPriorityCodes>()                  // Ensure Code is incrementing.
-            .Property(e => e.Code)
+            .Property(e => e.Id)
             .UseIdentityColumn();
 
 

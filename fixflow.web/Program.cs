@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
+using fixflow.web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers();      // For APIs later
 
 builder.Services.AddScoped<FfDbSeeder>();
+
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 var app = builder.Build();
 
