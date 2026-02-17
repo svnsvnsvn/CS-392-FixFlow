@@ -1,0 +1,32 @@
+@page
+@model fixflow.web.Pages.Admin.PriorityCodeCreateModel
+@{
+    ViewData["Title"] = "Add Priority Code";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-exclamation-triangle"></i> Add Priority Code</h1>
+        <p class="page-subtitle">Create a new priority level for tickets.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="Input.PriorityCode">Priority Code</label>
+                    <input asp-for="Input.PriorityCode" type="number" min="0" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.PriorityName">Priority Name</label>
+                    <input asp-for="Input.PriorityName" type="text" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Save Priority Code</button>
+                <a class="btn btn-secondary" asp-page="./PriorityCodes">Back to Priority Codes</a>
+            </div>
+        </form>
+    </div>
+</div>

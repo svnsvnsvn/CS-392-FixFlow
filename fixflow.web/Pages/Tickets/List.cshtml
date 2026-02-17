@@ -14,35 +14,6 @@
         flex-wrap: wrap;
     }
 
-    .filter-bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        margin: 1rem 0;
-    }
-
-    .filter-group {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .filter-spacer {
-        flex: 1;
-    }
-
-    .filter-input {
-        min-width: 200px;
-        background: #ffffff;
-    }
-
-    .filter-select {
-        min-width: 150px;
-        background: #ffffff;
-    }
-
     .table-container {
         overflow-x: auto;
         border: 1px solid var(--line);
@@ -81,18 +52,6 @@
     .ticket-id {
         font-weight: 700;
         color: var(--accent);
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.3rem 0.65rem;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        border: 1px solid var(--line);
-        background: var(--surface-2);
     }
 
     .empty-state {
@@ -170,11 +129,11 @@
                                     <tr>
                                         <td><span class="ticket-id">@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)</span></td>
                                         <td>@(ticket.TicketType?.TypeName ?? "-")</td>
-                                        <td><span class="badge">@(ticket.PriorityCode?.PriorityName ?? "-")</span></td>
-                                        <td><span class="badge">@(ticket.StatusCode?.StatusName ?? "-")</span></td>
+                                        <td><span class="badge badge-muted">@(ticket.PriorityCode?.PriorityName ?? "-")</span></td>
+                                        <td><span class="badge badge-muted">@(ticket.StatusCode?.StatusName ?? "-")</span></td>
                                         <td>@(ticket.Building?.LocationName ?? "-")</td>
                                         <td>@ticket.Unit</td>
-                                        <td>@ticket.RequestedBy</td>
+                                        <td>@(ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}")</td>
                                         <td>
                                             <a href="/Tickets/Details/@ticket.TicketId" class="btn btn-secondary btn-icon" aria-label="View ticket">
                                                 <i class="bi bi-eye"></i>

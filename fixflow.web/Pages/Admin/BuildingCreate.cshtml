@@ -1,0 +1,48 @@
+@page
+@model fixflow.web.Pages.Admin.BuildingCreateModel
+@{
+    ViewData["Title"] = "Add Building";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-building"></i> Add Building</h1>
+        <p class="page-subtitle">Create a new building location for maintenance requests.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="Input.LocationName">Location Name</label>
+                    <input asp-for="Input.LocationName" type="text" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.ComplexName">Complex Name</label>
+                    <input asp-for="Input.ComplexName" type="text" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.BuildingNumber">Building Number</label>
+                    <input asp-for="Input.BuildingNumber" type="number" min="0" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.NumUnits">Number of Units</label>
+                    <input asp-for="Input.NumUnits" type="number" min="0" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.LocationLat">Latitude</label>
+                    <input asp-for="Input.LocationLat" type="number" step="0.000001" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.LocationLon">Longitude</label>
+                    <input asp-for="Input.LocationLon" type="number" step="0.000001" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Save Building</button>
+                <a class="btn btn-secondary" asp-page="./Buildings">Back to Buildings</a>
+            </div>
+        </form>
+    </div>
+</div>

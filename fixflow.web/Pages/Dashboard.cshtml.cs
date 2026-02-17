@@ -1,11 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Security.Claims;
+using fixflow.web.Data;
 
 namespace fixflow.web.Pages
 {
     public class DashboardModel : PageModel
     {
+        private readonly FfDbContext _context;
+
+        public DashboardModel(FfDbContext context)
+        {
+            _context = context;
+        }
+
         // User Properties
         public string UserName { get; set; } = "Demo User";
         public string UserRole { get; set; } = "Client"; // Client, Technician, Manager, Admin
@@ -32,255 +42,18 @@ namespace fixflow.web.Pages
         public List<DashboardActivityItem> RecentActivity { get; set; } = new();
         public List<DashboardAnnouncement> Announcements { get; set; } = new();
 
-        public IActionResult OnGet(string? role = null)
+        public async Task<IActionResult> OnGetAsync(string? role = null)
         {
             // Get user info (from authentication)
             UserName = User.Identity?.Name ?? "Demo User";
-            
-            // FOR DEMO: Allow testing different roles via query string
-            // In production, this would come from: User.IsInRole("Admin"), etc.
-            UserRole = role ?? "Client"; // Default to Client for testing
-            
-            // Set user initials
+            var userRole = role ?? ResolveRole();
+            UserRole = userRole;
             UserInitials = GetInitials(UserName);
-            
-            // Set welcome message and data based on role
-            SetupRoleBasedContent();
-            
+
+            SetRoleCopy(userRole);
+            await BuildDashboardFromDbAsync(userRole);
+
             return Page();
-        }
-
-        private void SetupRoleBasedContent()
-        {
-            switch (UserRole)
-            {
-                case "Client":
-                    SetupClientView();
-                    break;
-                case "Technician":
-                    SetupTechnicianView();
-                    break;
-                case "Manager":
-                    SetupManagerView();
-                    break;
-                case "Admin":
-                    SetupAdminView();
-                    break;
-                default:
-                    SetupClientView();
-                    break;
-            }
-
-            BuildDashboardModules();
-        }
-
-        private void SetupClientView()
-        {
-            WelcomeMessage = "Track your maintenance requests and submit new tickets.";
-            TicketsSectionTitle = "My Tickets";
-            TicketsViewAllLabel = "My Tickets";
-            TicketsViewAllUrl = "/Tickets/List";
-            
-            // Mock client tickets
-            Tickets = new List<TicketViewModel>
-            {
-                new TicketViewModel
-                {
-                    Id = "001",
-                    Title = "Leaking faucet in kitchen",
-                    Category = "Plumbing",
-                    Priority = "High",
-                    Status = "In Progress",
-                    SubmittedBy = UserName,
-                    CreatedDate = DateTime.Now.AddDays(-2),
-                    DueDate = DateTime.Now.AddDays(1)
-                },
-                new TicketViewModel
-                {
-                    Id = "005",
-                    Title = "AC not cooling properly",
-                    Category = "HVAC",
-                    Priority = "High",
-                    Status = "Assigned",
-                    SubmittedBy = UserName,
-                    CreatedDate = DateTime.Now.AddDays(-1)
-                },
-                new TicketViewModel
-                {
-                    Id = "012",
-                    Title = "Light bulb replacement",
-                    Category = "Electrical",
-                    Priority = "Low",
-                    Status = "Completed",
-                    SubmittedBy = UserName,
-                    CreatedDate = DateTime.Now.AddDays(-5),
-                    DueDate = DateTime.Now.AddDays(-2)
-                }
-            };
-        }
-
-        private void SetupTechnicianView()
-        {
-            WelcomeMessage = "You have 5 assigned tasks. 2 are due today.";
-            TicketsSectionTitle = "My Assignments";
-            TicketsViewAllLabel = "My Assignments";
-            TicketsViewAllUrl = "/Tickets/List";
-            
-            // Mock technician assigned tickets
-            Tickets = new List<TicketViewModel>
-            {
-                new TicketViewModel
-                {
-                    Id = "001",
-                    Title = "Leaking faucet in Building A",
-                    Category = "Plumbing",
-                    Priority = "High",
-                    Status = "In Progress",
-                    SubmittedBy = "john.doe",
-                    CreatedDate = DateTime.Now.AddHours(-3),
-                    DueDate = DateTime.Now.AddHours(5)
-                },
-                new TicketViewModel
-                {
-                    Id = "003",
-                    Title = "Replace ceiling tiles - Room 205",
-                    Category = "Maintenance",
-                    Priority = "Medium",
-                    Status = "Assigned",
-                    SubmittedBy = "jane.smith",
-                    CreatedDate = DateTime.Now.AddDays(-1),
-                    DueDate = DateTime.Now.AddDays(2)
-                },
-                new TicketViewModel
-                {
-                    Id = "007",
-                    Title = "Fix door lock - Office 301",
-                    Category = "Maintenance",
-                    Priority = "High",
-                    Status = "Assigned",
-                    SubmittedBy = "mike.johnson",
-                    CreatedDate = DateTime.Now.AddDays(-2),
-                    DueDate = DateTime.Now
-                }
-            };
-        }
-
-        private void SetupManagerView()
-        {
-            WelcomeMessage = "Manage tickets, assign technicians, and oversee operations.";
-            TicketsSectionTitle = "All Tickets";
-            TicketsViewAllLabel = "All Tickets";
-            TicketsViewAllUrl = "/Tickets/List";
-            
-            // Stats for managers
-            TotalTickets = 47;
-            PendingTickets = 12;
-            InProgressTickets = 18;
-            CompletedToday = 7;
-            
-            // Mock all tickets overview
-            Tickets = new List<TicketViewModel>
-            {
-                new TicketViewModel
-                {
-                    Id = "015",
-                    Title = "Emergency plumbing repair",
-                    Category = "Plumbing",
-                    Priority = "High",
-                    Status = "Submitted",
-                    SubmittedBy = "resident.a",
-                    CreatedDate = DateTime.Now.AddMinutes(-30)
-                },
-                new TicketViewModel
-                {
-                    Id = "014",
-                    Title = "HVAC maintenance check",
-                    Category = "HVAC",
-                    Priority = "Medium",
-                    Status = "In Review",
-                    SubmittedBy = "resident.b",
-                    CreatedDate = DateTime.Now.AddHours(-2)
-                },
-                new TicketViewModel
-                {
-                    Id = "013",
-                    Title = "Electrical outlet not working",
-                    Category = "Electrical",
-                    Priority = "High",
-                    Status = "Assigned",
-                    SubmittedBy = "resident.c",
-                    CreatedDate = DateTime.Now.AddHours(-5)
-                },
-                new TicketViewModel
-                {
-                    Id = "012",
-                    Title = "Weekly cleaning service",
-                    Category = "Cleaning",
-                    Priority = "Low",
-                    Status = "In Progress",
-                    SubmittedBy = "manager",
-                    CreatedDate = DateTime.Now.AddDays(-1)
-                }
-            };
-        }
-
-        private void SetupAdminView()
-        {
-            WelcomeMessage = "System overview and administrative controls.";
-            TicketsSectionTitle = "Recent Tickets";
-            TicketsViewAllLabel = "All Tickets";
-            TicketsViewAllUrl = "/Tickets/List";
-            
-            // Stats for admin
-            TotalTickets = 247;
-            PendingTickets = 23;
-            InProgressTickets = 45;
-            CompletedToday = 15;
-            
-            // Mock recent system tickets
-            Tickets = new List<TicketViewModel>
-            {
-                new TicketViewModel
-                {
-                    Id = "020",
-                    Title = "Fire alarm inspection",
-                    Category = "Safety",
-                    Priority = "High",
-                    Status = "Submitted",
-                    SubmittedBy = "safety.officer",
-                    CreatedDate = DateTime.Now.AddMinutes(-15)
-                },
-                new TicketViewModel
-                {
-                    Id = "019",
-                    Title = "Roof leak - Building C",
-                    Category = "Maintenance",
-                    Priority = "High",
-                    Status = "In Review",
-                    SubmittedBy = "manager.1",
-                    CreatedDate = DateTime.Now.AddHours(-1)
-                },
-                new TicketViewModel
-                {
-                    Id = "018",
-                    Title = "Parking lot lighting",
-                    Category = "Electrical",
-                    Priority = "Medium",
-                    Status = "Assigned",
-                    SubmittedBy = "security",
-                    CreatedDate = DateTime.Now.AddHours(-4)
-                },
-                new TicketViewModel
-                {
-                    Id = "017",
-                    Title = "Monthly pest control",
-                    Category = "Maintenance",
-                    Priority = "Low",
-                    Status = "Completed",
-                    SubmittedBy = "facility.manager",
-                    CreatedDate = DateTime.Now.AddDays(-2)
-                }
-            };
         }
 
         private string GetInitials(string name)
@@ -295,46 +68,175 @@ namespace fixflow.web.Pages
             return name.Length >= 2 ? name.Substring(0, 2).ToUpper() : name.ToUpper();
         }
 
-        private void BuildDashboardModules()
+        private void SetRoleCopy(string role)
         {
+            switch (role)
+            {
+                case "Technician":
+                    WelcomeMessage = "You have assigned tasks waiting in your queue.";
+                    TicketsSectionTitle = "My Assignments";
+                    TicketsViewAllLabel = "My Assignments";
+                    TicketsViewAllUrl = "/Tickets/List";
+                    break;
+                case "Manager":
+                    WelcomeMessage = "Manage tickets, assign technicians, and oversee operations.";
+                    TicketsSectionTitle = "All Tickets";
+                    TicketsViewAllLabel = "All Tickets";
+                    TicketsViewAllUrl = "/Tickets/List";
+                    break;
+                case "Admin":
+                    WelcomeMessage = "System overview and administrative controls.";
+                    TicketsSectionTitle = "Recent Tickets";
+                    TicketsViewAllLabel = "All Tickets";
+                    TicketsViewAllUrl = "/Tickets/List";
+                    break;
+                default:
+                    WelcomeMessage = "Track your maintenance requests and submit new tickets.";
+                    TicketsSectionTitle = "My Tickets";
+                    TicketsViewAllLabel = "My Tickets";
+                    TicketsViewAllUrl = "/Tickets/List";
+                    break;
+            }
+        }
+
+        private string ResolveRole()
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return "Admin";
+            }
+
+            if (User.IsInRole("Manager"))
+            {
+                return "Manager";
+            }
+
+            if (User.IsInRole("Employee"))
+            {
+                return "Technician";
+            }
+
+            if (User.IsInRole("Resident") || User.IsInRole("Pending"))
+            {
+                return "Client";
+            }
+
+            return "Client";
+        }
+
+        private async Task BuildDashboardFromDbAsync(string role)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+            var ticketsQuery = _context.FfTicketRegisters
+                .Include(ticket => ticket.TicketType)
+                .Include(ticket => ticket.PriorityCode)
+                .Include(ticket => ticket.StatusCode)
+                .Include(ticket => ticket.Building)
+                .Include(ticket => ticket.RequestedByUser)
+                .AsNoTracking();
+
+            if (role == "Client")
+            {
+                ticketsQuery = ticketsQuery.Where(ticket => ticket.RequestedBy == userId);
+            }
+            else if (role == "Technician")
+            {
+                ticketsQuery = ticketsQuery.Where(ticket => ticket.EnteredBy == userId);
+            }
+
+            var ticketsData = await ticketsQuery.ToListAsync();
+
+            var ticketIds = ticketsData.Select(ticket => ticket.TicketId).ToList();
+            var flows = await _context.FfTicketFlows
+                .Where(flow => ticketIds.Contains(flow.TicketId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var statusCodes = await _context.FfStatusCodes.AsNoTracking().ToListAsync();
+            var profileLookup = await _context.FfUserProfiles.AsNoTracking()
+                .ToDictionaryAsync(profile => profile.FfUserId, profile => profile);
+
+            Tickets = ticketsData.Select(ticket =>
+            {
+                var created = flows.Where(flow => flow.TicketId == ticket.TicketId)
+                    .OrderBy(flow => flow.TimeStamp)
+                    .Select(flow => flow.TimeStamp)
+                    .FirstOrDefault();
+
+                var requestedByName = profileLookup.TryGetValue(ticket.RequestedBy, out var profile)
+                    ? $"{profile.FName} {profile.LName}".Trim()
+                    : ticket.RequestedBy;
+
+                var ticketTypeName = ticket.TicketType?.TypeName ?? "Maintenance";
+                var buildingName = ticket.Building?.LocationName ?? "Unknown building";
+
+                return new TicketViewModel
+                {
+                    Id = string.IsNullOrWhiteSpace(ticket.TicketShortCode)
+                        ? ticket.TicketId.ToString()
+                        : ticket.TicketShortCode,
+                    Title = $"{ticketTypeName} request at {buildingName}",
+                    Category = ticketTypeName,
+                    Priority = ticket.PriorityCode?.PriorityName ?? "Normal",
+                    Status = ticket.StatusCode?.StatusName ?? "Submitted",
+                    SubmittedBy = requestedByName,
+                    CreatedDate = created == default ? DateTime.UtcNow : created,
+                    DueDate = null
+                };
+            }).ToList();
+
+            TotalTickets = ticketsData.Count;
+            PendingTickets = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == "Submitted");
+            InProgressTickets = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == "In Progress");
+            CompletedToday = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == "Completed" &&
+                flows.Where(flow => flow.TicketId == ticket.TicketId)
+                    .OrderByDescending(flow => flow.TimeStamp)
+                    .Select(flow => flow.TimeStamp)
+                    .FirstOrDefault()
+                    .Date == DateTime.UtcNow.Date);
+
             RecentTickets = Tickets
                 .OrderByDescending(ticket => ticket.CreatedDate)
                 .Take(10)
                 .ToList();
 
             UpcomingAppointments = Tickets
-                .Where(ticket => ticket.DueDate.HasValue)
-                .OrderBy(ticket => ticket.DueDate)
+                .OrderByDescending(ticket => ticket.CreatedDate)
                 .Take(4)
                 .Select(ticket => new DashboardAppointment
                 {
                     Title = ticket.Title,
                     Category = ticket.Category,
-                    When = ticket.DueDate ?? ticket.CreatedDate,
+                    When = ticket.CreatedDate,
                     Status = ticket.Status
                 })
                 .ToList();
 
-            if (!UpcomingAppointments.Any())
-            {
-                UpcomingAppointments.Add(new DashboardAppointment
-                {
-                    Title = "No upcoming appointments",
-                    Category = "Add a due date to a ticket",
-                    When = DateTime.Now.AddDays(1),
-                    Status = "Open"
-                });
-            }
+            var statusLookup = statusCodes.ToDictionary(code => code.Code, code => code.StatusName);
 
-            RecentActivity = Tickets
-                .OrderByDescending(ticket => ticket.CreatedDate)
+            RecentActivity = flows
+                .OrderByDescending(flow => flow.TimeStamp)
                 .Take(6)
-                .Select(ticket => new DashboardActivityItem
+                .Select(flow =>
                 {
-                    Title = ticket.Title,
-                    Status = ticket.Status,
-                    Meta = $"{ticket.Category} · {ticket.SubmittedBy}",
-                    TimeStamp = ticket.CreatedDate
+                    var ticket = ticketsData.FirstOrDefault(item => item.TicketId == flow.TicketId);
+                    var ticketTypeName = ticket?.TicketType?.TypeName ?? "Maintenance";
+                    var buildingName = ticket?.Building?.LocationName ?? "Unknown building";
+                    var statusName = statusLookup.TryGetValue(flow.NewTicketStatus, out var name)
+                        ? name
+                        : "Updated";
+                    var assigneeName = profileLookup.TryGetValue(flow.NewAssignee, out var profile)
+                        ? $"{profile.FName} {profile.LName}".Trim()
+                        : "Unassigned";
+
+                    return new DashboardActivityItem
+                    {
+                        Title = $"{ticketTypeName} · {buildingName}",
+                        Status = statusName,
+                        Meta = assigneeName,
+                        TimeStamp = flow.TimeStamp
+                    };
                 })
                 .ToList();
 

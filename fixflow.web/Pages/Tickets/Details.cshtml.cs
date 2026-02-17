@@ -1,10 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using fixflow.web.Data;
+using System.Security.Claims;
 
 namespace fixflow.web.Pages.Tickets
 {
     public class DetailsModel : PageModel
     {
+        private readonly FfDbContext _context;
+
+        public DetailsModel(FfDbContext context)
+        {
+            _context = context;
+        }
+
         public string UserRole { get; set; } = "Client";
         public bool IsOwnTicket { get; set; } = false;
         public TicketDetailViewModel Ticket { get; set; } = new();
@@ -12,133 +22,128 @@ namespace fixflow.web.Pages.Tickets
         public List<CommentViewModel> InternalNotes { get; set; } = new();
         public List<ActivityViewModel> ActivityHistory { get; set; } = new();
 
-        public IActionResult OnGet(string id, string? role = null)
+        public async Task<IActionResult> OnGetAsync(string id, string? role = null)
         {
             // FOR DEMO: Allow testing different roles via query string
             // In production: UserRole = GetUserRole();
             UserRole = role ?? "Client";
 
-            // Load ticket details
-            LoadTicketData(id);
+            if (!Guid.TryParse(id, out var ticketId))
+            {
+                return NotFound();
+            }
+
+            var ticket = await _context.FfTicketRegisters
+                .Include(t => t.TicketType)
+                .Include(t => t.PriorityCode)
+                .Include(t => t.StatusCode)
+                .Include(t => t.Building)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            var profiles = await _context.FfUserProfiles
+                .AsNoTracking()
+                .ToDictionaryAsync(profile => profile.FfUserId, profile => profile);
+
+            var flows = await _context.FfTicketFlows
+                .Where(flow => flow.TicketId == ticket.TicketId)
+                .OrderBy(flow => flow.TimeStamp)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var statusCodes = await _context.FfStatusCodes
+                .AsNoTracking()
+                .ToDictionaryAsync(code => code.Code, code => code.StatusName);
+
+            var createdDate = flows.Select(flow => flow.TimeStamp).FirstOrDefault();
+            var lastFlow = flows.LastOrDefault();
+
+            var submittedByName = profiles.TryGetValue(ticket.RequestedBy, out var requester)
+                ? $"{requester.FName} {requester.LName}".Trim()
+                : ticket.RequestedBy;
+
+            var assigneeName = lastFlow != null && profiles.TryGetValue(lastFlow.NewAssignee, out var assignee)
+                ? $"{assignee.FName} {assignee.LName}".Trim()
+                : null;
+
+            Ticket = new TicketDetailViewModel
+            {
+                Id = string.IsNullOrWhiteSpace(ticket.TicketShortCode)
+                    ? ticket.TicketId.ToString()
+                    : ticket.TicketShortCode,
+                Title = ticket.TicketType?.TypeName ?? "Maintenance request",
+                Description = "Details will appear once the request is fully documented.",
+                Status = ticket.StatusCode?.StatusName ?? "Submitted",
+                Priority = ticket.PriorityCode?.PriorityName ?? "Normal",
+                Category = ticket.TicketType?.TypeName ?? "General",
+                Building = ticket.Building?.LocationName ?? "Unknown building",
+                RoomNumber = ticket.Unit > 0 ? ticket.Unit.ToString() : "-",
+                SubmittedBy = string.IsNullOrWhiteSpace(submittedByName) ? "Unknown" : submittedByName,
+                CreatedDate = createdDate == default ? DateTime.MinValue : createdDate,
+                AssignedTo = assigneeName,
+                DueDate = null,
+                CompletedDate = TicketStatusIsCompleted(ticket.StatusCode?.StatusName)
+                    ? (lastFlow?.TimeStamp ?? DateTime.UtcNow)
+                    : null
+            };
+
+            PublicComments = await _context.FfExternalNotess
+                .Where(note => note.TicketId == ticket.TicketId)
+                .OrderByDescending(note => note.TimeStamp)
+                .AsNoTracking()
+                .Select(note => new CommentViewModel
+                {
+                    AuthorName = note.CreatedBy,
+                    AuthorRole = string.Empty,
+                    Text = note.Content,
+                    CreatedDate = note.TimeStamp,
+                    IsInternal = false
+                })
+                .ToListAsync();
+
+            InternalNotes = await _context.FfInternalNotess
+                .Where(note => note.TicketId == ticket.TicketId)
+                .OrderByDescending(note => note.TimeStamp)
+                .AsNoTracking()
+                .Select(note => new CommentViewModel
+                {
+                    AuthorName = note.CreatedBy,
+                    AuthorRole = "Staff",
+                    Text = note.Content,
+                    CreatedDate = note.TimeStamp,
+                    IsInternal = true
+                })
+                .ToListAsync();
+
+            ActivityHistory = flows
+                .OrderByDescending(flow => flow.TimeStamp)
+                .Select(flow => new ActivityViewModel
+                {
+                    Action = statusCodes.TryGetValue(flow.NewTicketStatus, out var statusName)
+                        ? $"Status set to '{statusName}'"
+                        : "Ticket updated",
+                    PerformedBy = profiles.TryGetValue(flow.NewAssignee, out var actor)
+                        ? $"{actor.FName} {actor.LName}".Trim()
+                        : "System",
+                    Timestamp = flow.TimeStamp
+                })
+                .ToList();
 
             // Check if current user owns this ticket (for client view)
-            IsOwnTicket = (UserRole == "Client" && Ticket.SubmittedBy == "Demo User");
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            IsOwnTicket = (UserRole == "Client" && !string.IsNullOrEmpty(currentUserId) && ticket.RequestedBy == currentUserId);
 
             return Page();
         }
 
-        private void LoadTicketData(string ticketId)
+        private static bool TicketStatusIsCompleted(string? statusName)
         {
-            // MOCK DATA - Backend will replace with real database query
-            Ticket = new TicketDetailViewModel
-            {
-                Id = ticketId,
-                Title = "Leaking faucet in kitchen - urgent repair needed",
-                Description = "The faucet in the kitchen has been leaking steadily for the past two days. Water is dripping from the base and creating a small puddle. The leak seems to be getting worse over time. This needs immediate attention as it's wasting water and could potentially cause water damage to the cabinet below.",
-                Status = "In Progress",
-                Priority = "High",
-                Category = "Plumbing",
-                Building = "Building A",
-                RoomNumber = "205",
-                SubmittedBy = "john.doe",
-                CreatedDate = DateTime.Now.AddDays(-3),
-                AssignedTo = "Mike Johnson (Technician)",
-                DueDate = DateTime.Now.AddDays(1),
-                CompletedDate = null
-            };
-
-            // Public Comments (visible to everyone)
-            PublicComments = new List<CommentViewModel>
-            {
-                new CommentViewModel
-                {
-                    AuthorName = "john.doe",
-                    AuthorRole = "Client",
-                    Text = "I submitted this ticket because the leak is getting worse. Water is now pooling on the counter.",
-                    CreatedDate = DateTime.Now.AddDays(-3),
-                    IsInternal = false
-                },
-                new CommentViewModel
-                {
-                    AuthorName = "Sarah Manager",
-                    AuthorRole = "Manager",
-                    Text = "Thank you for reporting this. I've assigned this to our plumbing technician. He will be there tomorrow morning.",
-                    CreatedDate = DateTime.Now.AddDays(-2),
-                    IsInternal = false
-                },
-                new CommentViewModel
-                {
-                    AuthorName = "Mike Johnson",
-                    AuthorRole = "Technician",
-                    Text = "I've started working on this. The washer needs to be replaced. I'll have it fixed by end of day.",
-                    CreatedDate = DateTime.Now.AddHours(-2),
-                    IsInternal = false
-                }
-            };
-
-            // Internal Notes (only visible to staff)
-            InternalNotes = new List<CommentViewModel>
-            {
-                new CommentViewModel
-                {
-                    AuthorName = "Sarah Manager",
-                    AuthorRole = "Manager",
-                    Text = "This is the third leak in Building A this month. We may need to schedule a plumbing inspection for the entire building.",
-                    CreatedDate = DateTime.Now.AddDays(-2).AddHours(1),
-                    IsInternal = true
-                },
-                new CommentViewModel
-                {
-                    AuthorName = "Mike Johnson",
-                    AuthorRole = "Technician",
-                    Text = "Parts ordered from supplier. ETA tomorrow 9 AM. Will need about 1 hour to complete the repair.",
-                    CreatedDate = DateTime.Now.AddDays(-1),
-                    IsInternal = true
-                },
-                new CommentViewModel
-                {
-                    AuthorName = "Mike Johnson",
-                    AuthorRole = "Technician",
-                    Text = "Parts arrived. Starting work now. The faucet base also has corrosion that may need addressing in the future.",
-                    CreatedDate = DateTime.Now.AddHours(-2),
-                    IsInternal = true
-                }
-            };
-
-            // Activity History
-            ActivityHistory = new List<ActivityViewModel>
-            {
-                new ActivityViewModel
-                {
-                    Action = "Ticket created",
-                    PerformedBy = "john.doe",
-                    Timestamp = DateTime.Now.AddDays(-3)
-                },
-                new ActivityViewModel
-                {
-                    Action = "Status changed to 'In Review'",
-                    PerformedBy = "Sarah Manager",
-                    Timestamp = DateTime.Now.AddDays(-2).AddHours(2)
-                },
-                new ActivityViewModel
-                {
-                    Action = "Priority set to 'High'",
-                    PerformedBy = "Sarah Manager",
-                    Timestamp = DateTime.Now.AddDays(-2).AddHours(2)
-                },
-                new ActivityViewModel
-                {
-                    Action = "Assigned to Mike Johnson",
-                    PerformedBy = "Sarah Manager",
-                    Timestamp = DateTime.Now.AddDays(-2).AddHours(3)
-                },
-                new ActivityViewModel
-                {
-                    Action = "Status changed to 'In Progress'",
-                    PerformedBy = "Mike Johnson",
-                    Timestamp = DateTime.Now.AddHours(-2)
-                }
-            };
+            return string.Equals(statusName, "Completed", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<IActionResult> OnPostAddCommentAsync(string ticketId, string commentText)

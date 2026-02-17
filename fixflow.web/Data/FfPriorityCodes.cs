@@ -2,8 +2,7 @@
 {
     public class FfPriorityCodes
     {
-        public int Id { get; set; }
-        public int PriorityCode { get; set; } = 0;
+        public int Code { get; set; }
         public string PriorityName { get; set; } = string.Empty;
     }
 }

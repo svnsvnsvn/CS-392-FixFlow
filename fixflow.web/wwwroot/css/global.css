@@ -1,21 +1,21 @@
 :root {
     color-scheme: light;
-    --font-primary: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --font-secondary: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-    --bg: #e7f4f3;
-    --bg-2: #f5fbfa;
+    --font-primary: "Space Grotesk", "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-secondary: "Source Sans 3", "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --bg: #f5f7fb;
+    --bg-2: #eef2f7;
     --surface: #ffffff;
-    --surface-2: #f9fbfb;
-    --text: #111827;
-    --muted: #5f6b7a;
-    --accent: #2aa3a4;
-    --accent-2: #6fc7c1;
-    --accent-3: #1e7c7b;
-    --line: #d7ebe8;
-    --shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
-    --radius-lg: 8px;
-    --radius-md: 6px;
-    --radius-sm: 4px;
+    --surface-2: #f8fafc;
+    --text: #2b2f36;
+    --muted: #5f6773;
+    --accent: #2a6fdd;
+    --accent-2: #6fa8ff;
+    --accent-3: #1a3e7a;
+    --line: #e3e8f1;
+    --shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    --radius-lg: 12px;
+    --radius-md: 10px;
+    --radius-sm: 8px;
 }
 
 * {
@@ -24,8 +24,8 @@
 
 body {
     margin: 0;
-    font-family: var(--font-primary);
-    background: #eef7f7;
+    font-family: var(--font-secondary);
+    background: radial-gradient(circle at top, #f8fbff 0%, var(--bg) 45%, #eef2f7 100%);
     min-height: 100vh;
     color: var(--text);
     text-rendering: optimizeLegibility;
@@ -77,9 +77,9 @@ button .bi,
 }
 
 .site-header {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.9);
     border-bottom: 1px solid var(--line);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
 }
 
 .navbar {
@@ -122,9 +122,9 @@ button .bi,
 }
 
 .page {
-    max-width: 1100px;
-    margin: 24px auto;
-    padding: 0 20px;
+    max-width: 1120px;
+    margin: 28px auto;
+    padding: 0 24px;
 }
 
 .page.page--full {
@@ -170,8 +170,8 @@ button .bi,
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    padding: 20px;
-    box-shadow: none;
+    padding: 24px;
+    box-shadow: var(--shadow);
 }
 
 .page.page--full > * {
@@ -190,11 +190,13 @@ button .bi,
 }
 
 .app-sidebar {
-    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-3) 100%);
-    color: #ffffff;
-    padding: 2rem 0;
+    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(160deg, #0f172a 0%, #111827 45%, #0f172a 100%);
+    color: #e2e8f0;
+    padding: 2.25rem 0 2rem;
     display: flex;
     flex-direction: column;
+    border-right: 1px solid rgba(15, 23, 42, 0.65);
 }
 
 .app-brand {
@@ -202,8 +204,9 @@ button .bi,
 }
 
 .app-brand-title {
-    font-size: 1.5rem;
+    font-size: 1.65rem;
     font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .app-brand-subtitle {
@@ -231,11 +234,11 @@ button .bi,
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.8rem 1.5rem;
-    color: #ffffff;
+    padding: 0.85rem 1.5rem;
+    color: #e2e8f0;
     text-decoration: none;
     border-left: 3px solid transparent;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     background: none;
     border: none;
     border-left: 3px solid transparent;
@@ -247,15 +250,15 @@ button .bi,
 
 .app-nav-link:hover,
 .app-nav-link:focus {
-    background: rgba(255, 255, 255, 0.12);
-    border-left-color: rgba(255, 255, 255, 0.8);
+    background: rgba(148, 163, 184, 0.18);
+    border-left-color: rgba(96, 165, 250, 0.8);
     color: #ffffff;
 }
 
 .app-sidebar-footer {
     margin-top: auto;
     padding: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 .app-user {
@@ -273,12 +276,12 @@ button .bi,
 }
 
 .app-user-settings {
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: rgba(148, 163, 184, 0.15);
     color: #ffffff;
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -290,10 +293,10 @@ button .bi,
 }
 
 .app-user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(148, 163, 184, 0.25);
     display: grid;
     place-items: center;
     font-weight: 600;
@@ -311,10 +314,10 @@ button .bi,
 
 .app-logout {
     width: 100%;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(148, 163, 184, 0.2);
+    border: 1px solid rgba(148, 163, 184, 0.45);
     color: #ffffff;
-    padding: 0.65rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: var(--radius-sm);
     box-shadow: none;
 }
@@ -326,8 +329,9 @@ button .bi,
 }
 
 .app-main {
-    background: var(--bg);
-    padding: 2rem;
+    background: radial-gradient(circle at top left, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0) 40%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 35%, #eef2f7 100%);
+    padding: 2.25rem 2.5rem 3rem;
 }
 
 .app-main > .page-shell {
@@ -391,7 +395,7 @@ button .bi,
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     padding: 24px;
-    box-shadow: none;
+    box-shadow: var(--shadow);
 }
 
 .page > * + * {
@@ -415,35 +419,35 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(42, 163, 164, 0.2);
+    box-shadow: 0 0 0 3px rgba(42, 111, 221, 0.18);
     background: #ffffff;
 }
 
 button {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    border: none;
-    color: #ffffff;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    color: var(--text);
     padding: 10px 14px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease;
     box-shadow: none;
     display: inline-flex;
     align-items: center;
 }
 
 button:hover {
-    transform: translateY(-1px);
-    box-shadow: none;
+    background: var(--bg-2);
+    border-color: #d9e0ea;
 }
 
 .list-item {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 0.75rem 0.9rem;
+    padding: 0.85rem 1rem;
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: 10px;
     background: var(--surface-2);
 }
 
@@ -463,9 +467,9 @@ button:hover {
 .filter-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
-    margin: 1rem 0;
+    margin: 1rem 0 1.25rem;
 }
 
 .filter-group {
@@ -490,7 +494,7 @@ button:hover {
 }
 
 button:focus-visible {
-    outline: 3px solid rgba(42, 163, 164, 0.35);
+    outline: 3px solid rgba(42, 111, 221, 0.25);
     outline-offset: 2px;
 }
 
@@ -502,27 +506,30 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 14px;
+    padding: 10px 16px;
     border-radius: var(--radius-sm);
     text-decoration: none;
     font-weight: 600;
     font-family: var(--font-secondary);
+    letter-spacing: 0.01em;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    background: var(--accent);
     color: #ffffff;
     box-shadow: none;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
+    background: #245fbe;
+    transform: none;
     box-shadow: none;
 }
 
 .btn-secondary {
     background: #ffffff;
-    color: var(--accent-3);
+    color: var(--text);
     border: 1px solid var(--line);
     box-shadow: none;
 }
@@ -534,7 +541,7 @@ a {
 .btn-ghost {
     background: transparent;
     color: var(--muted);
-    border: 1px dashed var(--line);
+    border: 1px solid var(--line);
     box-shadow: none;
 }
 

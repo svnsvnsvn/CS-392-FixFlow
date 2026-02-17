@@ -95,30 +95,30 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
         // *** FfTicketTypes ***
         builder.Entity<FfTicketTypes>()                   // Primary Key
-            .HasKey(c => c.Id);
+            .HasKey(c => c.Code);
 
         builder.Entity<FfTicketTypes>()                  // Ensure Code is incrementing.
-            .Property(c => c.Id)
+            .Property(c => c.Code)
             .UseIdentityColumn();
 
 
 
         // *** FfStatusCodes ***
         builder.Entity<FfStatusCodes>()                   // Primary Key
-            .HasKey(d => d.Id);
+            .HasKey(d => d.Code);
 
         builder.Entity<FfStatusCodes>()                  // Ensure Code is incrementing.
-            .Property(d => d.Id)
+            .Property(d => d.Code)
             .UseIdentityColumn();
 
 
 
         // *** FfPriorityCodes ***
         builder.Entity<FfPriorityCodes>()                   // Primary Key
-            .HasKey(e => e.Id);
+            .HasKey(e => e.Code);
 
         builder.Entity<FfPriorityCodes>()                  // Ensure Code is incrementing.
-            .Property(e => e.Id)
+            .Property(e => e.Code)
             .UseIdentityColumn();
 
 

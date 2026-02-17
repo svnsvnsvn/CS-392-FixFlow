@@ -40,13 +40,13 @@ namespace fixflow.web.Services
                 var newPriorityCode = new FfPriorityCodes
                 {
                     PriorityName = _newPriorityData.PriorityName,
-                    PriorityCode = _newPriorityData.PriorityCode
+                    Code = _newPriorityData.PriorityCode
                 };
 
                 _db.FfPriorityCodess.Add(newPriorityCode);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newPriorityCode.Id);
+                return ServiceResult<int>.Ok(newPriorityCode.Code);
             }
             catch (Exception ex)
             {
@@ -77,13 +77,13 @@ namespace fixflow.web.Services
                 var newStatusCode = new FfStatusCodes
                 {
                     StatusName = _newStatusData.StatusName,
-                    StatusCode = _newStatusData.StatusCode
+                    Code = _newStatusData.StatusCode
                 };
 
                 _db.FfStatusCodes.Add(newStatusCode);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newStatusCode.Id);
+                return ServiceResult<int>.Ok(newStatusCode.Code);
             }
             catch (Exception ex)
             {
@@ -119,7 +119,7 @@ namespace fixflow.web.Services
                 _db.FfTicketTypess.Add(newTicketType);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newTicketType.Id);
+                return ServiceResult<int>.Ok(newTicketType.Code);
             }
             catch (Exception ex)
             {
@@ -197,13 +197,13 @@ namespace fixflow.web.Services
                 var newPriorityCode = new FfPriorityCodes
                 {
                     PriorityName = _newPriorityData.PriorityName,
-                    PriorityCode = _newPriorityData.PriorityCode
+                    Code = _newPriorityData.PriorityCode
                 };
 
                 _db.FfPriorityCodess.Add(newPriorityCode);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newPriorityCode.Id);
+                return ServiceResult<int>.Ok(newPriorityCode.Code);
             }
             catch (Exception ex)
             {
@@ -211,7 +211,7 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, UpdateStatusCodeDto _NewStatusData)
+        public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, UpdateStatusCodeDto _newStatusData)
         {
             try
             {
@@ -234,13 +234,13 @@ namespace fixflow.web.Services
                 var newStatusCode = new FfStatusCodes
                 {
                     StatusName = _newStatusData.StatusName,
-                    StatusCode = _newStatusData.StatusCode
+                    Code = _newStatusData.StatusCode
                 };
 
                 _db.FfStatusCodes.Add(newStatusCode);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newStatusCode.Id);
+                return ServiceResult<int>.Ok(newStatusCode.Code);
             }
             catch (Exception ex)
             {
@@ -248,7 +248,7 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, UpdateTicketTypeDto _NewTicketData)
+        public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, UpdateTicketTypeDto _newTicketData)
         {
             try
             {
@@ -276,7 +276,7 @@ namespace fixflow.web.Services
                 _db.FfTicketTypess.Add(newTicketType);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newTicketType.Id);
+                return ServiceResult<int>.Ok(newTicketType.Code);
             }
             catch (Exception ex)
             {
@@ -316,8 +316,8 @@ namespace fixflow.web.Services
                     ComplexName = _newBuildingData.ComplexName,
                     BuildingNumber = _newBuildingData.BuildingNumber,
                     NumUnits = _newBuildingData.NumUnits,
-                    LocationLat = _newBuildingData.LocationLat,
-                    LocationLon = _newBuildingData.LocationLon
+                    LocationLat = _newBuildingData.LocationLat ?? 0m,
+                    LocationLon = _newBuildingData.LocationLon ?? 0m
                 };
 
                 _db.FfBuildingDirectorys.Add(newBuilding);
