@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using fixflow.web.Data;
+using fixflow.web.Domain.Constants;
 
 
 namespace fixflow.web.Pages.Admin
 
 {
-        [Authorize(Roles = "Admin")] // Restrict access to only admin users
+        [Authorize(Roles = RoleNames.Admin)] // Restrict access to only admin users
         public class AdminUserToolModel : PageModel
         {
             private readonly UserManager<AppUser> _userManager;
@@ -38,6 +39,31 @@ namespace fixflow.web.Pages.Admin
                 bool changedPassword = false;
                 bool changedLockout = false;
                 bool changedRole = false;
+
+                if (data == null || string.IsNullOrWhiteSpace(data.UserID))
+                {
+                    return new JsonResult(new { success = false, reason = "Invalid request payload." })
+                    {
+                        StatusCode = 400
+                    };
+                }
+
+                var allowedRoles = new HashSet<string>
+                {
+                    RoleNames.Admin,
+                    RoleNames.Manager,
+                    RoleNames.Employee,
+                    RoleNames.Resident,
+                    RoleNames.Pending
+                };
+
+                if (!string.IsNullOrWhiteSpace(data.NewRole) && !allowedRoles.Contains(data.NewRole))
+                {
+                    return new JsonResult(new { success = false, reason = "Invalid role." })
+                    {
+                        StatusCode = 400
+                    };
+                }
 
                 //Write to DB here using data.
                 var userToModify = await _userManager.FindByIdAsync(data.UserID);     // Find user in DB
@@ -104,7 +130,7 @@ namespace fixflow.web.Pages.Admin
             }
             else  // 1 or 0 roles currently assigned
             {
-                if ((userToModifyRole == null) && (data.NewRole == "Pending"))
+                if ((userToModifyRole == null) && (data.NewRole == RoleNames.Pending))
                 {
                     changeRole = false;
                 }
@@ -119,7 +145,7 @@ namespace fixflow.web.Pages.Admin
                 // Remove all roles found
                 await _userManager.RemoveFromRolesAsync(userToModify, userToModifyRole);
                 // Add new role received
-                if (data.NewRole != "Pending")
+                if (data.NewRole != RoleNames.Pending)
                 {
                     await _userManager.AddToRoleAsync(userToModify, data.NewRole);
                     changedRole = true;

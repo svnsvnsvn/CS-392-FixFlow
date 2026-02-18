@@ -2,6 +2,7 @@
 {
     public class UpdateBuildingDto
     {
+        public int LocationCode { get; set; } = 0;
         public string LocationName { get; set; } = string.Empty;
         public string ComplexName { get; set; } = string.Empty;
         public int BuildingNumber { get; set; }

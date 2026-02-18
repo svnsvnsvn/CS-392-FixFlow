@@ -5,36 +5,9 @@
     ViewData["HideNav"] = true;
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/tickets.css" />
 <style>
-    .details-shell {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .details-actions {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    .details-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-        gap: 16px;
-        align-items: start;
-    }
-
-    .details-card {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-    }
-
     .details-card + .details-card {
         margin-top: 16px;
     }
@@ -74,12 +47,15 @@
     }
 
     .ticket-description {
-        color: var(--muted);
+        color: var(--text);
         line-height: 1.6;
-        padding: 1rem;
-        background: var(--surface-2);
-        border-radius: 10px;
-        border: 1px solid var(--line);
+        padding: 1rem 0;
+        background: transparent;
+        border-radius: 0;
+        border: none;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        margin: 1rem 0;
     }
 
     .details-card .card-header {
@@ -98,11 +74,16 @@
     }
 
     .comment {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 0.9rem 1rem;
-        background: var(--surface-2);
-        margin-bottom: 12px;
+        border: none;
+        border-radius: 0;
+        padding: 0.9rem 0;
+        background: transparent;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .comment:last-child {
+        border-bottom: none;
     }
 
     .comment-header {
@@ -141,6 +122,7 @@
 
     .comment.internal {
         border-left: 3px solid var(--accent);
+        padding-left: 1rem;
     }
 
     .comment-form {
@@ -187,10 +169,15 @@
     }
 
     .timeline-item {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 0.85rem 1rem;
-        background: var(--surface-2);
+        border: none;
+        border-radius: 0;
+        padding: 0.85rem 0;
+        background: transparent;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .timeline-item:last-child {
+        border-bottom: none;
     }
 
     .timeline-title {
@@ -209,7 +196,7 @@
         border: 1px dashed var(--line);
         color: var(--muted);
         padding: 0.75rem 1rem;
-        border-radius: 10px;
+        border-radius: 0;
         font-size: 0.9rem;
     }
 
@@ -219,6 +206,7 @@
         }
     }
 </style>
+}
 
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
@@ -244,13 +232,25 @@
                         <div class="ticket-meta">
                             <div class="meta-item">
                                 <span class="meta-label">Status</span>
-                                <span class="badge badge-@Model.Ticket.Status.ToLower().Replace(" ", "")">
-                                    @Model.Ticket.Status
-                                </span>
+                                @{
+                                    var detailsStatusClass = Model.Ticket.Status.ToLower().Replace(" ", "");
+                                    var detailsStatusIcon = detailsStatusClass switch
+                                    {
+                                        "submitted" => "circle",
+                                        "inreview" => "clock",
+                                        "assigned" => "user-check",
+                                        "inprogress" => "loader",
+                                        "onhold" => "pause-circle",
+                                        "completed" => "check-circle",
+                                        "cancelled" => "x-circle",
+                                        _ => "circle-dot"
+                                    };
+                                }
+                                <i class="status-icon @detailsStatusClass" data-lucide="@detailsStatusIcon" title="@Model.Ticket.Status"></i>
                             </div>
                             <div class="meta-item">
                                 <span class="meta-label">Priority</span>
-                                <span class="meta-value priority-@Model.Ticket.Priority.ToLower()">
+                                <span class="priority-text @Model.Ticket.Priority.ToLower()">
                                     @Model.Ticket.Priority
                                 </span>
                             </div>
@@ -271,10 +271,13 @@
 
                         @if (Model.UserRole != "Client" || Model.IsOwnTicket)
                         {
-                            <div class="details-actions" style="margin-top: 1.5rem;">
-                                @if (Model.UserRole == "Manager" && Model.Ticket.Status == "Submitted")
+                            <div class="details-actions mt-6">
+                                @if (Model.UserRole == "Manager" && (Model.Ticket.Status == "Submitted" || Model.Ticket.Status == "Assigned"))
                                 {
-                                    <button class="btn btn-primary">Assign Technician</button>
+                                    <form method="post" asp-page-handler="AssignTechnician" asp-route-ticketId="@Model.Ticket.Id" style="display: inline-flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                        <select asp-for="SelectedTechnicianId" asp-items="Model.AvailableTechnicians" class="form-control" style="width: auto; min-width: 200px;"></select>
+                                        <button type="submit" class="btn btn-primary">@(Model.Ticket.Status == "Assigned" ? "Reassign Technician" : "Assign Technician")</button>
+                                    </form>
                                     <button class="btn btn-secondary">Change Priority</button>
                                 }
                                 @if (Model.UserRole == "Technician" && Model.Ticket.Status == "Assigned")
@@ -347,7 +350,7 @@
                         <div class="details-card">
                             <div class="card-header">
                                 <h3 class="card-title">Internal Notes</h3>
-                                <span style="font-size: 0.875rem; color: var(--muted);">Not visible to clients</span>
+                                <span class="text-muted text-sm">Not visible to clients</span>
                             </div>
 
                             @foreach (var note in Model.InternalNotes)

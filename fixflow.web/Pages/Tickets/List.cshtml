@@ -5,61 +5,10 @@
     ViewData["HideNav"] = true;
 }
 
-<style>
-    .tickets-toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
 
-    .table-container {
-        overflow-x: auto;
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        background: #ffffff;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    thead {
-        background: var(--surface-2);
-    }
-
-    th {
-        text-align: left;
-        padding: 1rem;
-        font-weight: 600;
-        color: var(--muted);
-        font-size: 0.875rem;
-        border-bottom: 2px solid var(--line);
-    }
-
-    td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--line);
-        color: var(--text);
-    }
-
-    tbody tr:hover {
-        background: var(--bg-2);
-    }
-
-    .ticket-id {
-        font-weight: 700;
-        color: var(--accent);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: var(--muted);
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/tickets.css" />
+}
 
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
@@ -120,24 +69,56 @@
                                     <th>Location</th>
                                     <th>Unit</th>
                                     <th>Requested By</th>
+                                    <th>Assigned To</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var ticket in Model.Tickets)
                                 {
+                                    var statusClass = (ticket.StatusCode?.StatusName ?? "").ToLower().Replace(" ", "");
+                                    var priorityClass = (ticket.PriorityCode?.PriorityName ?? "").ToLower();
+                                    
                                     <tr>
                                         <td><span class="ticket-id">@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)</span></td>
                                         <td>@(ticket.TicketType?.TypeName ?? "-")</td>
-                                        <td><span class="badge badge-muted">@(ticket.PriorityCode?.PriorityName ?? "-")</span></td>
-                                        <td><span class="badge badge-muted">@(ticket.StatusCode?.StatusName ?? "-")</span></td>
+                                        <td>
+                                            <span class="priority-text @priorityClass">
+                                                @(ticket.PriorityCode?.PriorityName ?? "-")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @{
+                                                var statusIconMap = statusClass switch
+                                                {
+                                                    "submitted" => "circle",
+                                                    "inreview" => "clock",
+                                                    "assigned" => "user-check",
+                                                    "inprogress" => "loader",
+                                                    "onhold" => "pause-circle",
+                                                    "completed" => "check-circle",
+                                                    "cancelled" => "x-circle",
+                                                    _ => "circle-dot"
+                                                };
+                                            }
+                                            <i class="status-icon" data-lucide="@statusIconMap" title="@(ticket.StatusCode?.StatusName ?? "-")"></i>
+                                        </td>
                                         <td>@(ticket.Building?.LocationName ?? "-")</td>
                                         <td>@ticket.Unit</td>
                                         <td>@(ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}")</td>
-                                        <td>
-                                            <a href="/Tickets/Details/@ticket.TicketId" class="btn btn-secondary btn-icon" aria-label="View ticket">
-                                                <i class="bi bi-eye"></i>
+                                        <td>@(Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-")</td>
+                                        <td style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <a href="/Tickets/Details/@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)" class="btn btn-secondary btn-icon" aria-label="View ticket">
+                                                <i data-lucide="eye"></i>
                                             </a>
+                                            @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
+                                            {
+                                                <form method="post" asp-page-handler="PickUpTicket" asp-route-ticketId="@ticket.TicketId" style="display: inline;">
+                                                    <button type="submit" class="btn btn-primary btn-icon" aria-label="Pick up ticket" title="Pick up ticket">
+                                                        <i data-lucide="hand"></i>
+                                                    </button>
+                                                </form>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -147,7 +128,7 @@
                     else
                     {
                         <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
+                            <i data-lucide="inbox"></i>
                             <p>No tickets to display</p>
                         </div>
                     }

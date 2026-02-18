@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace fixflow.web.Migrations
 {
     /// <inheritdoc />
-    public partial class TweaksToTypesAndCodes : Migration
+    public partial class AddDueDateToTicketRegisters : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

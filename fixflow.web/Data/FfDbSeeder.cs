@@ -31,7 +31,7 @@ namespace fixflow.web.Data
                 var status = await _roleManager.CreateAsync(new IdentityRole("Admin"));
                 if (!status.Succeeded)
                 {
-                    rolesCreated = true;
+                    rolesCreated = false;
                     foreach (var e in status.Errors)
                         _logger.LogError("Role 'Admin' failed: {Error}", e.Description);
                 }
@@ -43,7 +43,7 @@ namespace fixflow.web.Data
                 var status = await _roleManager.CreateAsync(new IdentityRole("Manager"));
                 if (!status.Succeeded)
                 {
-                    rolesCreated = true;
+                    rolesCreated = false;
                     foreach (var e in status.Errors)
                         _logger.LogError("Role 'Manager' failed: {Error}", e.Description);
                 }
@@ -55,7 +55,7 @@ namespace fixflow.web.Data
                 var status = await _roleManager.CreateAsync(new IdentityRole("Employee"));
                 if (!status.Succeeded)
                 {
-                    rolesCreated = true;
+                    rolesCreated = false;
                     foreach (var e in status.Errors)
                         _logger.LogError("Role 'Employee' failed: {Error}", e.Description);
                 }
@@ -67,7 +67,7 @@ namespace fixflow.web.Data
                 var status = await _roleManager.CreateAsync(new IdentityRole("Resident"));
                 if (!status.Succeeded)
                 {
-                    rolesCreated = true;
+                    rolesCreated = false;
                     foreach (var e in status.Errors)
                         _logger.LogError("Role 'Resident' failed: {Error}", e.Description);
                 }
@@ -79,7 +79,7 @@ namespace fixflow.web.Data
                 var status = await _roleManager.CreateAsync(new IdentityRole("Pending"));
                 if (!status.Succeeded)
                 {
-                    rolesCreated = true;
+                    rolesCreated = false;
                     foreach (var e in status.Errors)
                         _logger.LogError("Role 'Pending' failed: {Error}", e.Description);
                 }
@@ -91,7 +91,7 @@ namespace fixflow.web.Data
             }
 
             // Create a default location Code for new users if it does not exist
-            var defaultLocationExists = await _db.FfBuildingDirectorys
+            var defaultLocationExists = await _db.FfBuildingDirectories
                 .FirstOrDefaultAsync(x => x.LocationName == "Unassigned");
 
             if (defaultLocationExists == null)
@@ -109,7 +109,7 @@ namespace fixflow.web.Data
                         LocationLon = 0
                     };
 
-                    _db.FfBuildingDirectorys.Add(defaultLocation);
+                    _db.FfBuildingDirectories.Add(defaultLocation);
                     await _db.SaveChangesAsync();
                     await defaultLocationTransaction.CommitAsync();
                 }
@@ -154,7 +154,7 @@ namespace fixflow.web.Data
                     }
 
                     // Get LocationCode of "Unassigned" building
-                    var locationCode = await _db.FfBuildingDirectorys
+                    var locationCode = await _db.FfBuildingDirectories
                         .Where(x => x.LocationName == "Unassigned")
                         .Select(x => x.LocationCode)
                         .SingleAsync();
@@ -189,7 +189,7 @@ namespace fixflow.web.Data
                 }
             }
 
-            var defaultLocationCode = await _db.FfBuildingDirectorys
+            var defaultLocationCode = await _db.FfBuildingDirectories
                 .Where(x => x.LocationName == "Unassigned")
                 .Select(x => x.LocationCode)
                 .SingleAsync();
@@ -254,9 +254,9 @@ namespace fixflow.web.Data
                 }
             }
 
-            if (!await _db.FfBuildingDirectorys.AnyAsync(x => x.LocationName != "Unassigned"))
+            if (!await _db.FfBuildingDirectories.AnyAsync(x => x.LocationName != "Unassigned"))
             {
-                _db.FfBuildingDirectorys.AddRange(new List<FfBuildingDirectory>
+                _db.FfBuildingDirectories.AddRange(new List<FfBuildingDirectory>
                 {
                     new FfBuildingDirectory
                     {
@@ -289,9 +289,9 @@ namespace fixflow.web.Data
                 await _db.SaveChangesAsync();
             }
 
-            if (!await _db.FfPriorityCodess.AnyAsync())
+            if (!await _db.FfPriorityCodes.AnyAsync())
             {
-                _db.FfPriorityCodess.AddRange(new List<FfPriorityCodes>
+                _db.FfPriorityCodes.AddRange(new List<FfPriorityCodes>
                 {
                     new FfPriorityCodes { Code = 1, PriorityName = "Low" },
                     new FfPriorityCodes { Code = 2, PriorityName = "Medium" },
@@ -314,9 +314,9 @@ namespace fixflow.web.Data
                 await _db.SaveChangesAsync();
             }
 
-            if (!await _db.FfTicketTypess.AnyAsync())
+            if (!await _db.FfTicketTypes.AnyAsync())
             {
-                _db.FfTicketTypess.AddRange(new List<FfTicketTypes>
+                _db.FfTicketTypes.AddRange(new List<FfTicketTypes>
                 {
                     new FfTicketTypes { TypeName = "Plumbing" },
                     new FfTicketTypes { TypeName = "Electrical" },
@@ -336,13 +336,13 @@ namespace fixflow.web.Data
                 var residentUser = await _userManager.FindByNameAsync("riley.resident");
                 var pendingUser = await _userManager.FindByNameAsync("penny.pending");
 
-                var locations = await _db.FfBuildingDirectorys
+                var locations = await _db.FfBuildingDirectories
                     .Where(x => x.LocationName != "Unassigned")
                     .ToListAsync();
 
-                var ticketTypes = await _db.FfTicketTypess.ToListAsync();
+                var ticketTypes = await _db.FfTicketTypes.ToListAsync();
                 var statusCodes = await _db.FfStatusCodes.ToListAsync();
-                var priorityCodes = await _db.FfPriorityCodess.ToListAsync();
+                var priorityCodes = await _db.FfPriorityCodes.ToListAsync();
 
                 var submittedStatus = statusCodes.First(x => x.StatusName == "Submitted");
                 var reviewStatus = statusCodes.First(x => x.StatusName == "In Review");
@@ -491,7 +491,7 @@ namespace fixflow.web.Data
                 _db.FfTicketFlows.AddRange(flows);
                 await _db.SaveChangesAsync();
 
-                _db.FfExternalNotess.AddRange(new List<FfExternalNotes>
+                _db.FfExternalNotes.AddRange(new List<FfExternalNotes>
                 {
                     new FfExternalNotes
                     {
@@ -516,7 +516,7 @@ namespace fixflow.web.Data
                     }
                 });
 
-                _db.FfInternalNotess.AddRange(new List<FfInternalNotes>
+                _db.FfInternalNotes.AddRange(new List<FfInternalNotes>
                 {
                     new FfInternalNotes
                     {

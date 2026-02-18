@@ -17,5 +17,6 @@
         public int TicketStatus { get; set; }
         public FfPriorityCodes? PriorityCode { get; set; }
         public int TicketPriority { get; set; }
+        public DateTime? DueDate { get; set; }
     }
 }

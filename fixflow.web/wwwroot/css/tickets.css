@@ -1,0 +1,137 @@
+/* Tickets List & Details Page Styles */
+
+/* --- List.cshtml --- */
+.tickets-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md, 16px);
+    flex-wrap: wrap;
+}
+
+.tickets-toolbar .btn-primary,
+.tickets-toolbar .btn-secondary {
+    background: transparent;
+    color: var(--text);
+}
+
+.tickets-toolbar .btn-primary:hover,
+.tickets-toolbar .btn-secondary:hover {
+    background: transparent;
+    color: var(--accent);
+}
+
+.table-container {
+    overflow-x: auto;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: transparent;
+    border-bottom: 2px solid var(--line);
+}
+
+th {
+    text-align: left;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--line);
+    white-space: nowrap;
+}
+
+td {
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+tbody tr {
+    transition: all 0.15s ease;
+}
+
+tbody tr:hover {
+    background: var(--bg-2);
+}
+
+tbody tr:hover .btn-icon {
+    opacity: 1;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ticket-id {
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.btn-icon {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* --- Details.cshtml --- */
+.details-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md, 16px);
+}
+
+.details-actions {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: var(--spacing-md, 16px);
+    align-items: start;
+}
+
+.details-card {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    transition: none;
+}
+
+.details-card:hover {
+    box-shadow: none;
+}
+
+/* Status Icon */

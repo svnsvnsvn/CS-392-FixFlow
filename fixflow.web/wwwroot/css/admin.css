@@ -1,0 +1,62 @@
+/* Admin User Management Styles */
+
+.admin-shell {
+    max-width: 100%;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    box-shadow: var(--shadow);
+}
+
+.admin-table {
+    width: 100%;
+    min-width: 900px;
+}
+
+.admin-table thead {
+    background: var(--bg-2);
+    position: sticky;
+    top: 0;
+}
+
+.admin-table th {
+    padding: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 2px solid var(--line);
+}
+
+.admin-table td {
+    padding: 12px;
+}
+
+.admin-table tbody tr:hover {
+    background: var(--bg-2);
+}
+
+.filter-row th {
+    padding: 8px;
+    background: var(--surface);
+}
+
+.filter-row input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.admin-table input[type="radio"],
+.admin-table input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.admin-table button {
+    font-size: 0.875rem;
+}

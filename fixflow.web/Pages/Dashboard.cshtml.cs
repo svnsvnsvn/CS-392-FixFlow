@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Claims;
 using fixflow.web.Data;
+using fixflow.web.Domain.Constants;
 
 namespace fixflow.web.Pages
 {
@@ -101,22 +102,22 @@ namespace fixflow.web.Pages
 
         private string ResolveRole()
         {
-            if (User.IsInRole("Admin"))
+            if (User.IsInRole(RoleNames.Admin))
             {
                 return "Admin";
             }
 
-            if (User.IsInRole("Manager"))
+            if (User.IsInRole(RoleNames.Manager))
             {
                 return "Manager";
             }
 
-            if (User.IsInRole("Employee"))
+            if (User.IsInRole(RoleNames.Employee))
             {
                 return "Technician";
             }
 
-            if (User.IsInRole("Resident") || User.IsInRole("Pending"))
+            if (User.IsInRole(RoleNames.Resident) || User.IsInRole(RoleNames.Pending))
             {
                 return "Client";
             }
@@ -187,9 +188,9 @@ namespace fixflow.web.Pages
             }).ToList();
 
             TotalTickets = ticketsData.Count;
-            PendingTickets = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == "Submitted");
-            InProgressTickets = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == "In Progress");
-            CompletedToday = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == "Completed" &&
+            PendingTickets = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == TicketStatusNames.Submitted);
+            InProgressTickets = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == TicketStatusNames.InProgress);
+            CompletedToday = ticketsData.Count(ticket => ticket.StatusCode?.StatusName == TicketStatusNames.Completed &&
                 flows.Where(flow => flow.TicketId == ticket.TicketId)
                     .OrderByDescending(flow => flow.TimeStamp)
                     .Select(flow => flow.TimeStamp)

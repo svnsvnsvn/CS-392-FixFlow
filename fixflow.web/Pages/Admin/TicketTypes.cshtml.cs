@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
+using fixflow.web.Domain.Constants;
 
 namespace fixflow.web.Pages.Admin
 {
+    [Authorize(Roles = RoleNames.Admin)]
     public class TicketTypesModel : PageModel
     {
         private readonly FfDbContext _context;
@@ -17,7 +20,7 @@ namespace fixflow.web.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            TicketTypes = await _context.FfTicketTypess.ToListAsync();
+            TicketTypes = await _context.FfTicketTypes.ToListAsync();
         }
     }
 }

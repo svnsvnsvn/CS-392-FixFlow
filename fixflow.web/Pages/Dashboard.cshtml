@@ -5,485 +5,9 @@
     ViewData["HideNav"] = true;
 }
 
-<style>
-    /* Dashboard-specific styling */
-    .content-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 1.35rem;
-    }
-
-    .content-title {
-        font-size: 2.05rem;
-        font-weight: 700;
-        color: var(--text);
-        margin: 0;
-        letter-spacing: -0.01em;
-    }
-
-    .content-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .content-actions .btn-primary {
-        padding: 12px 18px;
-    }
-
-    .dashboard-shell {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .lead-panel {
-        background: linear-gradient(135deg, #ffffff 0%, #f2f7ff 100%);
-        border: 1px solid #e1e7f3;
-        border-radius: 14px;
-        padding: 1.3rem 1.6rem;
-        margin-bottom: 0.25rem;
-        box-shadow: 0 14px 24px rgba(37, 99, 235, 0.12);
-    }
-
-    .lead-title {
-        font-size: 1.35rem;
-        font-weight: 700;
-        margin: 0 0 0.35rem;
-    }
-
-    .lead-subtitle {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.98rem;
-    }
-
-    .dashboard-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-        gap: 16px;
-        align-items: start;
-    }
-
-    .panel-span {
-        grid-column: 1 / -1;
-    }
-
-    .panel-tickets {
-        grid-column: 1 / 2;
-        grid-row: 2;
-    }
-
-    .panel-activity {
-        grid-column: 2 / 3;
-        grid-row: 2;
-        align-self: start;
-    }
-
-    .panel {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        box-shadow: var(--shadow);
-    }
-
-    .panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 1.1rem 1.4rem 0.9rem;
-        border-bottom: 1px solid var(--line);
-        background: transparent;
-    }
-
-    .panel-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    .panel-subtitle {
-        margin: 0.25rem 0 0;
-        font-size: 0.88rem;
-        color: var(--muted);
-    }
-
-    .panel-actions {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    .panel-body {
-        padding: 1.1rem 1.4rem 1.35rem;
-    }
-
-    .week-controls {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    .week-button {
-        border: 1px solid var(--line);
-        background: #ffffff;
-        border-radius: 10px;
-        width: 36px;
-        height: 36px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--accent-3);
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .week-button:hover {
-        transform: none;
-        box-shadow: none;
-        background: var(--bg-2);
-    }
-
-    .week-days {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 1.15rem;
-    }
-
-    .day-button {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 0.7rem 0.75rem;
-        background: #ffffff;
-        text-align: left;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        font-size: 0.82rem;
-        color: var(--muted);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .day-button.active {
-        border-color: #cfd8e6;
-        box-shadow: none;
-        color: var(--text);
-        background: var(--surface-2);
-    }
-
-    .day-label {
-        text-transform: uppercase;
-        font-size: 0.65rem;
-        letter-spacing: 0.12em;
-    }
-
-    .day-number {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text);
-    }
-
-    .appointment-empty {
-        padding: 0.85rem 1rem;
-        border: 1px dashed var(--line);
-        border-radius: 10px;
-        color: var(--muted);
-        font-size: 0.9rem;
-        background: #f8fafc;
-    }
-
-    .list-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .list-item {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        padding: 0.85rem 1rem;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        background: var(--surface-2);
-    }
-
-    .list-title {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .list-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        color: var(--muted);
-        font-size: 0.8rem;
-    }
-
-    .tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 2px 9px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--accent-3);
-        background: #ffffff;
-    }
-
-
-    .icon-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        color: var(--accent-3);
-        background: #ffffff;
-        text-decoration: none;
-        transition: all 0.2s ease;
-    }
-
-    .icon-btn:hover {
-        border-color: #cfd8e6;
-        box-shadow: none;
-        transform: translateY(-1px);
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.25rem;
-    }
-
-    .stat-card {
-        background: linear-gradient(145deg, #ffffff 0%, #f2f7ff 100%);
-        padding: 1.5rem;
-        border-radius: 14px;
-        border: 1px solid #e1e7f3;
-        box-shadow: 0 16px 24px rgba(37, 99, 235, 0.1);
-    }
-
-    .stat-label {
-        color: var(--muted);
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text);
-    }
-
-    .section {
-        background: white;
-        border-radius: 14px;
-        padding: 2rem;
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--line);
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--text);
-        margin: 0;
-    }
-
-    .tabs {
-        display: inline-flex;
-        gap: 0.4rem;
-        margin-bottom: 1.25rem;
-        padding: 4px;
-        border-radius: 999px;
-        background: var(--bg-2);
-        border: 1px solid var(--line);
-    }
-
-    .tab {
-        padding: 0.45rem 1rem;
-        background: transparent;
-        border: none;
-        border-radius: 999px;
-        cursor: pointer;
-        font-weight: 500;
-        color: var(--muted);
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-        font-family: var(--font-secondary);
-    }
-
-    .tab:hover {
-        color: var(--accent);
-    }
-
-    .tab.active {
-        color: var(--text);
-        background: #ffffff;
-        box-shadow: none;
-    }
-
-    .table-container {
-        overflow-x: auto;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: #ffffff;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    thead {
-        background: var(--surface-2);
-    }
-
-    th {
-        text-align: left;
-        padding: 1rem;
-        font-weight: 600;
-        color: var(--muted);
-        font-size: 0.875rem;
-        text-transform: none;
-        letter-spacing: 0.01em;
-        border-bottom: 2px solid var(--line);
-    }
-
-    td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--line);
-        color: var(--text);
-    }
-
-    tbody tr:hover {
-        background: var(--bg-2);
-    }
-
-    .ticket-id {
-        font-weight: 700;
-        color: var(--accent);
-    }
-
-    .badge-submitted { background: #dbeafe; color: #1e40af; }
-    .badge-inreview { background: #fef3c7; color: #92400e; }
-    .badge-assigned { background: #e0e7ff; color: #3730a3; }
-    .badge-inprogress { background: #ddd6fe; color: #5b21b6; }
-    .badge-onhold { background: #fecaca; color: #991b1b; }
-    .badge-completed { background: #d1fae5; color: #065f46; }
-
-    .priority-high { color: #dc2626; font-weight: 600; }
-    .priority-medium { color: #f59e0b; font-weight: 600; }
-    .priority-low { color: #059669; font-weight: 600; }
-
-    .btn-view {
-        background: var(--accent);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: var(--radius-sm);
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: inline-block;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-view:hover {
-        background: var(--accent-3);
-        transform: translateY(-2px);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: var(--muted);
-    }
-
-    @@keyframes rise-in {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .lead-panel,
-    .stats-grid,
-    .dashboard-layout > .panel {
-        animation: rise-in 0.55s ease both;
-    }
-
-    .stats-grid {
-        animation-delay: 0.08s;
-    }
-
-    .dashboard-layout > .panel:nth-child(1) {
-        animation-delay: 0.1s;
-    }
-
-    .dashboard-layout > .panel:nth-child(2) {
-        animation-delay: 0.16s;
-    }
-
-    .dashboard-layout > .panel:nth-child(3) {
-        animation-delay: 0.22s;
-    }
-
-    .empty-state .bi {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-
-    @@media (max-width: 968px) {
-        .dashboard-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .panel-span,
-        .panel-tickets,
-        .panel-activity {
-            grid-column: 1 / -1;
-        }
-
-        .week-days {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-    }
-
-    </style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+}
 
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
@@ -494,11 +18,11 @@
                 <h1 class="content-title">Dashboard</h1>
                 <div class="content-actions">
                     <button type="button" class="btn btn-secondary" data-announcements-open>
-                        <i class="bi bi-megaphone"></i>
+                        <i data-lucide="megaphone"></i>
                         Announcements
                     </button>
                     <a href="/Tickets/Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i>
+                        <i data-lucide="plus-circle"></i>
                         Create Ticket
                     </a>
                 </div>
@@ -513,19 +37,19 @@
             {
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-ticket-perforated"></i> Total Tickets</div>
+                        <div class="stat-label"><i data-lucide="ticket"></i> Total Tickets</div>
                         <div class="stat-value">@Model.TotalTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-hourglass-split"></i> Pending</div>
+                        <div class="stat-label"><i data-lucide="clock"></i> Pending</div>
                         <div class="stat-value">@Model.PendingTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-arrow-repeat"></i> In Progress</div>
+                        <div class="stat-label"><i data-lucide="refresh-cw"></i> In Progress</div>
                         <div class="stat-value">@Model.InProgressTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-check-circle"></i> Completed Today</div>
+                        <div class="stat-label"><i data-lucide="check-circle"></i> Completed Today</div>
                         <div class="stat-value">@Model.CompletedToday</div>
                     </div>
                 </div>
@@ -541,10 +65,10 @@
                         <div class="panel-actions">
                             <div class="week-controls">
                                 <button class="week-button" type="button" id="weekPrev" aria-label="Previous week">
-                                    <i class="bi bi-chevron-left"></i>
+                                    <i data-lucide="chevron-left"></i>
                                 </button>
                                 <button class="week-button" type="button" id="weekNext" aria-label="Next week">
-                                    <i class="bi bi-chevron-right"></i>
+                                    <i data-lucide="chevron-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -673,18 +197,26 @@
                                                 <td>@ticket.Title</td>
                                                 <td>@ticket.Category</td>
                                                 <td>
-                                                    <span class="priority-@ticket.Priority.ToLower()">
-                                                        @if (ticket.Priority == "High")
-                                                        {
-                                                            <i class="bi bi-exclamation-triangle-fill"></i>
-                                                        }
+                                                    <span class="priority-text @ticket.Priority.ToLower()">
                                                         @ticket.Priority
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge badge-@ticket.Status.ToLower().Replace(" ", "")">
-                                                        @ticket.Status
-                                                    </span>
+                                                    @{
+                                                        var statusClass = ticket.Status.ToLower().Replace(" ", "");
+                                                        var statusIcon = statusClass switch
+                                                        {
+                                                            "submitted" => "circle",
+                                                            "inreview" => "clock",
+                                                            "assigned" => "user-check",
+                                                            "inprogress" => "loader",
+                                                            "onhold" => "pause-circle",
+                                                            "completed" => "check-circle",
+                                                            "cancelled" => "x-circle",
+                                                            _ => "circle-dot"
+                                                        };
+                                                    }
+                                                    <i class="status-icon @statusClass" data-lucide="@statusIcon" title="@ticket.Status"></i>
                                                 </td>
                                                 @if (Model.UserRole != "Client")
                                                 {
@@ -697,7 +229,7 @@
                                                 <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
                                                 <td>
                                                     <a href="/Tickets/Details/@ticket.Id" class="icon-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
-                                                        <i class="bi bi-eye"></i>
+                                                        <i data-lucide="eye"></i>
                                                     </a>
                                                 </td>
                                             </tr>
@@ -708,7 +240,7 @@
                             else
                             {
                                 <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
+                                    <i data-lucide="inbox"></i>
                                     <p>No tickets to display</p>
                                 </div>
                             }

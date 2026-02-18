@@ -53,20 +53,6 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedDbAsync();
 }
 
-
-// AMS - Create a dev user. Delete for production
-using (var scope = app.Services.CreateScope())
-{
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-
-    var devUser = new AppUser { UserName = "fixflow", Email = "dev@fixflow.local" };
-    if (await userManager.FindByNameAsync(devUser.UserName) == null)
-    {
-        await userManager.CreateAsync(devUser, "fixflow");
-    }
-}
-
-
 app.UseAuthentication();
 app.UseAuthorization();
 

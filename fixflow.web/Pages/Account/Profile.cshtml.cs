@@ -5,7 +5,7 @@ using fixflow.web.Data;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace fixflow.Web.Pages.Account
+namespace fixflow.web.Pages.Account
 {
     public class ProfileModel : PageModel
     {

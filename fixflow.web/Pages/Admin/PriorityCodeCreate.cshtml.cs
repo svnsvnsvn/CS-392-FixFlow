@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using fixflow.web.Domain.Constants;
 
 namespace fixflow.web.Pages.Admin
 {
+    [Authorize(Roles = RoleNames.Admin)]
     public class PriorityCodeCreateModel : PageModel
     {
         [BindProperty]

@@ -417,6 +417,9 @@ namespace fixflow.web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("EnteredBy")
                         .IsRequired()
                         .HasColumnType("text");

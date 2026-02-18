@@ -2,17 +2,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
+using fixflow.web.Domain.Constants;
+using fixflow.web.Services;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace fixflow.web.Pages.Tickets
 {
     public class DetailsModel : PageModel
     {
         private readonly FfDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly ITicketService _ticketService;
 
-        public DetailsModel(FfDbContext context)
+        public DetailsModel(FfDbContext context, UserManager<AppUser> userManager, ITicketService ticketService)
         {
             _context = context;
+            _userManager = userManager;
+            _ticketService = ticketService;
         }
 
         public string UserRole { get; set; } = "Client";
@@ -21,25 +29,47 @@ namespace fixflow.web.Pages.Tickets
         public List<CommentViewModel> PublicComments { get; set; } = new();
         public List<CommentViewModel> InternalNotes { get; set; } = new();
         public List<ActivityViewModel> ActivityHistory { get; set; } = new();
+        public List<SelectListItem> AvailableTechnicians { get; set; } = new();
 
-        public async Task<IActionResult> OnGetAsync(string id, string? role = null)
+        [BindProperty]
+        public string SelectedTechnicianId { get; set; } = string.Empty;
+
+        public async Task<IActionResult> OnGetAsync(string id)
         {
-            // FOR DEMO: Allow testing different roles via query string
-            // In production: UserRole = GetUserRole();
-            UserRole = role ?? "Client";
+            // Determine user role
+            if (User.IsInRole(RoleNames.Admin))
+                UserRole = "Admin";
+            else if (User.IsInRole(RoleNames.Manager))
+                UserRole = "Manager";
+            else if (User.IsInRole(RoleNames.Employee))
+                UserRole = "Technician";
+            else
+                UserRole = "Client";
 
-            if (!Guid.TryParse(id, out var ticketId))
+            // Try to parse as GUID first
+            FfTicketRegister? ticket = null;
+            
+            if (Guid.TryParse(id, out var ticketId))
             {
-                return NotFound();
+                ticket = await _context.FfTicketRegisters
+                    .Include(t => t.TicketType)
+                    .Include(t => t.PriorityCode)
+                    .Include(t => t.StatusCode)
+                    .Include(t => t.Building)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TicketId == ticketId);
             }
-
-            var ticket = await _context.FfTicketRegisters
-                .Include(t => t.TicketType)
-                .Include(t => t.PriorityCode)
-                .Include(t => t.StatusCode)
-                .Include(t => t.Building)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+            else
+            {
+                // Try to find by short code
+                ticket = await _context.FfTicketRegisters
+                    .Include(t => t.TicketType)
+                    .Include(t => t.PriorityCode)
+                    .Include(t => t.StatusCode)
+                    .Include(t => t.Building)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TicketShortCode == id);
+            }
 
             if (ticket == null)
             {
@@ -78,7 +108,7 @@ namespace fixflow.web.Pages.Tickets
                     : ticket.TicketShortCode,
                 Title = ticket.TicketType?.TypeName ?? "Maintenance request",
                 Description = "Details will appear once the request is fully documented.",
-                Status = ticket.StatusCode?.StatusName ?? "Submitted",
+                Status = ticket.StatusCode?.StatusName ?? TicketStatusNames.Submitted,
                 Priority = ticket.PriorityCode?.PriorityName ?? "Normal",
                 Category = ticket.TicketType?.TypeName ?? "General",
                 Building = ticket.Building?.LocationName ?? "Unknown building",
@@ -92,7 +122,7 @@ namespace fixflow.web.Pages.Tickets
                     : null
             };
 
-            PublicComments = await _context.FfExternalNotess
+            PublicComments = await _context.FfExternalNotes
                 .Where(note => note.TicketId == ticket.TicketId)
                 .OrderByDescending(note => note.TimeStamp)
                 .AsNoTracking()
@@ -106,7 +136,7 @@ namespace fixflow.web.Pages.Tickets
                 })
                 .ToListAsync();
 
-            InternalNotes = await _context.FfInternalNotess
+            InternalNotes = await _context.FfInternalNotes
                 .Where(note => note.TicketId == ticket.TicketId)
                 .OrderByDescending(note => note.TimeStamp)
                 .AsNoTracking()
@@ -138,12 +168,32 @@ namespace fixflow.web.Pages.Tickets
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             IsOwnTicket = (UserRole == "Client" && !string.IsNullOrEmpty(currentUserId) && ticket.RequestedBy == currentUserId);
 
+            // Load available technicians for assignment (only for managers)
+            if (UserRole == "Manager" || UserRole == "Admin")
+            {
+                var technicians = await _userManager.GetUsersInRoleAsync(RoleNames.Employee);
+                var techniciansWithProfiles = await _context.FfUserProfiles
+                    .Where(p => technicians.Select(t => t.Id).Contains(p.FfUserId))
+                    .ToListAsync();
+
+                AvailableTechnicians = techniciansWithProfiles
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.FfUserId,
+                        Text = $"{p.FName} {p.LName}".Trim()
+                    })
+                    .OrderBy(t => t.Text)
+                    .ToList();
+
+                AvailableTechnicians.Insert(0, new SelectListItem { Value = "", Text = "-- Select Technician --" });
+            }
+
             return Page();
         }
 
         private static bool TicketStatusIsCompleted(string? statusName)
         {
-            return string.Equals(statusName, "Completed", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(statusName, TicketStatusNames.Completed, StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<IActionResult> OnPostAddCommentAsync(string ticketId, string commentText)
@@ -196,6 +246,34 @@ namespace fixflow.web.Pages.Tickets
             // };
             // await _context.TicketComments.AddAsync(note);
             // await _context.SaveChangesAsync();
+
+            return RedirectToPage(new { id = ticketId });
+        }
+
+        public async Task<IActionResult> OnPostAssignTechnicianAsync(string ticketId)
+        {
+            if (string.IsNullOrWhiteSpace(SelectedTechnicianId))
+            {
+                return RedirectToPage(new { id = ticketId });
+            }
+
+            // Parse ticket ID
+            FfTicketRegister? ticket = null;
+            if (Guid.TryParse(ticketId, out var ticketGuid))
+            {
+                ticket = await _context.FfTicketRegisters.FirstOrDefaultAsync(t => t.TicketId == ticketGuid);
+            }
+            else
+            {
+                ticket = await _context.FfTicketRegisters.FirstOrDefaultAsync(t => t.TicketShortCode == ticketId);
+            }
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            await _ticketService.AssignTicketAsync(ticket.TicketId, SelectedTechnicianId);
 
             return RedirectToPage(new { id = ticketId });
         }
