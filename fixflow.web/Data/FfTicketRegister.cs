@@ -17,5 +17,7 @@
         public int TicketStatus { get; set; }
         public FfPriorityCodes? PriorityCode { get; set; }
         public int TicketPriority { get; set; }
+        public string TicketSubject { get; set; } = string.Empty;
+        public string TicketDescription { get; set; } = string.Empty;
     }
 }
