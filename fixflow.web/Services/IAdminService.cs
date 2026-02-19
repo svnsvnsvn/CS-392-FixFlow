@@ -15,4 +15,6 @@ public interface IAdminService
     Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, UpdateStatusCodeDto _NewStatusData);
     Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, UpdateTicketTypeDto _NewTicketData);
     Task<ServiceResult<int>> UpdateBuilding(string _requestorId, RoleTypes _requestorRole, UpdateBuildingDto _newBuildingData);
+
+    Task<ServiceResult<bool>> ChangeUserRole (string _requestorId, RoleTypes _requestorRole, string _targetId, RoleTypes _targetUserNewRole);
 }
