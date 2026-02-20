@@ -157,9 +157,9 @@ namespace fixflow.web.Services
                     LocationName = _newBuildingData.LocationName,
                     ComplexName = _newBuildingData.ComplexName,
                     BuildingNumber = _newBuildingData.BuildingNumber,
-                    NumUnits = _newBuildingData.NumUnits,
-                    LocationLat = _newBuildingData.LocationLat,
-                    LocationLon = _newBuildingData.LocationLon
+                    NumUnits = (int)_newBuildingData.NumUnits,
+                    LocationLat = (decimal)_newBuildingData.LocationLat,
+                    LocationLon = (decimal)_newBuildingData.LocationLon
                 };
 
                 _db.FfBuildingDirectorys.Add(newBuilding);

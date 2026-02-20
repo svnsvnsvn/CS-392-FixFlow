@@ -22,6 +22,7 @@ public class FfDbContext : IdentityDbContext<AppUser>
     public DbSet<FfTicketFlow> FfTicketFlows { get; set; } = default!;
     public DbSet<FfTicketRegister> FfTicketRegisters { get; set; } = default!;
     public DbSet<FfTicketTypes> FfTicketTypess { get; set; } = default!;
+    public DbSet<FfTicketShortCodeConstructor> FfTicketConstructoror { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder builder)       
     {
@@ -195,6 +196,10 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(h => h.TicketPriority)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<FfTicketRegister>()                  // Ensure ticket short code is unique
+            .HasIndex(c => c.TicketShortCode)
+            .IsUnique();
+
         // *** FfTicketFlow ***
         builder.Entity<FfTicketFlow>()                   // Primary Key
             .HasKey(i => i.ActionId);
@@ -215,5 +220,20 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(g => g.NewAssignee)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // *** FfTicketConstructor ***
+        builder.Entity<FfTicketShortCodeConstructor>()                   // Primary Key
+            .HasKey(c => c.Id);
+
+        builder.Entity<FfTicketShortCodeConstructor>()                  // Ensure Code is incrementing.
+            .Property(c => c.Id)
+            .UseIdentityColumn();
+
+        builder.Entity<FfTicketShortCodeConstructor>()                   // Ensure ticket series is unique.
+            .HasIndex(c => c.TicketSeries)
+            .IsUnique();
+
+
+
+        //(short)(DateTime.Now.Year - 2000);        // 2 Digit date.  Yeah Y2K1 issue... but I'll be dead by then.
     }
 }
