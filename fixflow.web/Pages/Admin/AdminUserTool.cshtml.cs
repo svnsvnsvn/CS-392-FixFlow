@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using fixflow.web.Data;
+using fixflow.web.Domain.Enums;
 
 
 namespace fixflow.web.Pages.Admin
 
 {
-        [Authorize(Roles = "Admin")] // Restrict access to only admin users
+        [Authorize(Roles = nameof(RoleTypes.Admin))] // Restrict access to only admin users
         public class AdminUserToolModel : PageModel
         {
             private readonly UserManager<AppUser> _userManager;
