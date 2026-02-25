@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace fixflow.web.Migrations
 {
     /// <inheritdoc />
-    public partial class BaselineDBComplete : Migration
+    public partial class NewBaseline : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,7 +31,7 @@ namespace fixflow.web.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    PassswordChangeRequired = table.Column<bool>(type: "boolean", nullable: false),
+                    ResetPassOnLogin = table.Column<bool>(type: "boolean", nullable: false),
                     PasswordExpire = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -54,7 +54,7 @@ namespace fixflow.web.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfBuildingDirectory",
+                name: "FfBuildingDirectorys",
                 columns: table => new
                 {
                     LocationCode = table.Column<int>(type: "integer", nullable: false)
@@ -68,48 +68,66 @@ namespace fixflow.web.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfBuildingDirectory", x => x.LocationCode);
+                    table.PrimaryKey("PK_FfBuildingDirectorys", x => x.LocationCode);
                     table.CheckConstraint("CK_Latitude_Range", "\"LocationLat\" >= -90 AND \"LocationLat\" <= 90");
                     table.CheckConstraint("CK_Longitude_Range", "\"LocationLon\" >= -180 AND \"LocationLon\" <= 180");
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfPriorityCodes",
+                name: "FfPriorityCodess",
                 columns: table => new
                 {
-                    Code = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PriorityCode = table.Column<int>(type: "integer", nullable: false),
                     PriorityName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfPriorityCodes", x => x.Code);
+                    table.PrimaryKey("PK_FfPriorityCodess", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "FfStatusCodes",
                 columns: table => new
                 {
-                    Code = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    StatusCode = table.Column<int>(type: "integer", nullable: false),
                     StatusName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfStatusCodes", x => x.Code);
+                    table.PrimaryKey("PK_FfStatusCodes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfTicketTypes",
+                name: "FfTicketConstructoror",
                 columns: table => new
                 {
-                    Code = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TicketPrefix = table.Column<string>(type: "text", nullable: false),
+                    SeriesIsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    TicketSeries = table.Column<short>(type: "smallint", nullable: false),
+                    LastTicketUsed = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FfTicketConstructoror", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FfTicketTypess",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TypeName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfTicketTypes", x => x.Code);
+                    table.PrimaryKey("PK_FfTicketTypess", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -219,10 +237,10 @@ namespace fixflow.web.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfUserProfile",
+                name: "FfUserProfiles",
                 columns: table => new
                 {
-                    EmployeeId = table.Column<string>(type: "text", nullable: false),
+                    FfUserId = table.Column<string>(type: "text", nullable: false),
                     FName = table.Column<string>(type: "text", nullable: false),
                     LName = table.Column<string>(type: "text", nullable: false),
                     LocationCode = table.Column<int>(type: "integer", nullable: false),
@@ -230,23 +248,23 @@ namespace fixflow.web.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfUserProfile", x => x.EmployeeId);
+                    table.PrimaryKey("PK_FfUserProfiles", x => x.FfUserId);
                     table.ForeignKey(
-                        name: "FK_FfUserProfile_AspNetUsers_EmployeeId",
-                        column: x => x.EmployeeId,
+                        name: "FK_FfUserProfiles_AspNetUsers_FfUserId",
+                        column: x => x.FfUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_FfUserProfile_FfBuildingDirectory_LocationCode",
+                        name: "FK_FfUserProfiles_FfBuildingDirectorys_LocationCode",
                         column: x => x.LocationCode,
-                        principalTable: "FfBuildingDirectory",
+                        principalTable: "FfBuildingDirectorys",
                         principalColumn: "LocationCode",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfTicketRegister",
+                name: "FfTicketRegisters",
                 columns: table => new
                 {
                     TicketId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -257,136 +275,138 @@ namespace fixflow.web.Migrations
                     Unit = table.Column<int>(type: "integer", nullable: false),
                     TicketTroubleType = table.Column<int>(type: "integer", nullable: false),
                     TicketStatus = table.Column<int>(type: "integer", nullable: false),
-                    TicketPriority = table.Column<int>(type: "integer", nullable: false)
+                    TicketPriority = table.Column<int>(type: "integer", nullable: false),
+                    TicketSubject = table.Column<string>(type: "text", nullable: false),
+                    TicketDescription = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfTicketRegister", x => x.TicketId);
+                    table.PrimaryKey("PK_FfTicketRegisters", x => x.TicketId);
                     table.ForeignKey(
-                        name: "FK_FfTicketRegister_FfBuildingDirectory_Location",
+                        name: "FK_FfTicketRegisters_FfBuildingDirectorys_Location",
                         column: x => x.Location,
-                        principalTable: "FfBuildingDirectory",
+                        principalTable: "FfBuildingDirectorys",
                         principalColumn: "LocationCode",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfTicketRegister_FfPriorityCodes_TicketPriority",
+                        name: "FK_FfTicketRegisters_FfPriorityCodess_TicketPriority",
                         column: x => x.TicketPriority,
-                        principalTable: "FfPriorityCodes",
-                        principalColumn: "Code",
+                        principalTable: "FfPriorityCodess",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfTicketRegister_FfStatusCodes_TicketStatus",
+                        name: "FK_FfTicketRegisters_FfStatusCodes_TicketStatus",
                         column: x => x.TicketStatus,
                         principalTable: "FfStatusCodes",
-                        principalColumn: "Code",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfTicketRegister_FfTicketTypes_TicketTroubleType",
+                        name: "FK_FfTicketRegisters_FfTicketTypess_TicketTroubleType",
                         column: x => x.TicketTroubleType,
-                        principalTable: "FfTicketTypes",
-                        principalColumn: "Code",
+                        principalTable: "FfTicketTypess",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfTicketRegister_FfUserProfile_EnteredBy",
+                        name: "FK_FfTicketRegisters_FfUserProfiles_EnteredBy",
                         column: x => x.EnteredBy,
-                        principalTable: "FfUserProfile",
-                        principalColumn: "EmployeeId",
+                        principalTable: "FfUserProfiles",
+                        principalColumn: "FfUserId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfTicketRegister_FfUserProfile_RequestedBy",
+                        name: "FK_FfTicketRegisters_FfUserProfiles_RequestedBy",
                         column: x => x.RequestedBy,
-                        principalTable: "FfUserProfile",
-                        principalColumn: "EmployeeId",
+                        principalTable: "FfUserProfiles",
+                        principalColumn: "FfUserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfExternalNotes",
+                name: "FfExternalNotess",
                 columns: table => new
                 {
                     XNoteId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TicketId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserEmployeeId = table.Column<string>(type: "text", nullable: true),
+                    UserFfUserId = table.Column<string>(type: "text", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfExternalNotes", x => x.XNoteId);
+                    table.PrimaryKey("PK_FfExternalNotess", x => x.XNoteId);
                     table.ForeignKey(
-                        name: "FK_FfExternalNotes_FfTicketRegister_TicketId",
+                        name: "FK_FfExternalNotess_FfTicketRegisters_TicketId",
                         column: x => x.TicketId,
-                        principalTable: "FfTicketRegister",
+                        principalTable: "FfTicketRegisters",
                         principalColumn: "TicketId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfExternalNotes_FfUserProfile_UserEmployeeId",
-                        column: x => x.UserEmployeeId,
-                        principalTable: "FfUserProfile",
-                        principalColumn: "EmployeeId");
+                        name: "FK_FfExternalNotess_FfUserProfiles_UserFfUserId",
+                        column: x => x.UserFfUserId,
+                        principalTable: "FfUserProfiles",
+                        principalColumn: "FfUserId");
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfInternalNotes",
+                name: "FfInternalNotess",
                 columns: table => new
                 {
                     INoteId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TicketId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserEmployeeId = table.Column<string>(type: "text", nullable: true),
+                    UserFfUserId = table.Column<string>(type: "text", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfInternalNotes", x => x.INoteId);
+                    table.PrimaryKey("PK_FfInternalNotess", x => x.INoteId);
                     table.ForeignKey(
-                        name: "FK_FfInternalNotes_FfTicketRegister_TicketId",
+                        name: "FK_FfInternalNotess_FfTicketRegisters_TicketId",
                         column: x => x.TicketId,
-                        principalTable: "FfTicketRegister",
+                        principalTable: "FfTicketRegisters",
                         principalColumn: "TicketId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfInternalNotes_FfUserProfile_UserEmployeeId",
-                        column: x => x.UserEmployeeId,
-                        principalTable: "FfUserProfile",
-                        principalColumn: "EmployeeId");
+                        name: "FK_FfInternalNotess_FfUserProfiles_UserFfUserId",
+                        column: x => x.UserFfUserId,
+                        principalTable: "FfUserProfiles",
+                        principalColumn: "FfUserId");
                 });
 
             migrationBuilder.CreateTable(
-                name: "FfTicketFlow",
+                name: "FfTicketFlows",
                 columns: table => new
                 {
                     ActionId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TicketId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StatusCodeCode = table.Column<int>(type: "integer", nullable: true),
+                    StatusCodeId = table.Column<int>(type: "integer", nullable: true),
                     NewTicketStatus = table.Column<int>(type: "integer", nullable: false),
                     NewAssignee = table.Column<string>(type: "text", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FfTicketFlow", x => x.ActionId);
+                    table.PrimaryKey("PK_FfTicketFlows", x => x.ActionId);
                     table.ForeignKey(
-                        name: "FK_FfTicketFlow_FfStatusCodes_StatusCodeCode",
-                        column: x => x.StatusCodeCode,
+                        name: "FK_FfTicketFlows_FfStatusCodes_StatusCodeId",
+                        column: x => x.StatusCodeId,
                         principalTable: "FfStatusCodes",
-                        principalColumn: "Code");
+                        principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_FfTicketFlow_FfTicketRegister_TicketId",
+                        name: "FK_FfTicketFlows_FfTicketRegisters_TicketId",
                         column: x => x.TicketId,
-                        principalTable: "FfTicketRegister",
+                        principalTable: "FfTicketRegisters",
                         principalColumn: "TicketId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_FfTicketFlow_FfUserProfile_NewAssignee",
+                        name: "FK_FfTicketFlows_FfUserProfiles_NewAssignee",
                         column: x => x.NewAssignee,
-                        principalTable: "FfUserProfile",
-                        principalColumn: "EmployeeId",
+                        principalTable: "FfUserProfiles",
+                        principalColumn: "FfUserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -428,73 +448,92 @@ namespace fixflow.web.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfExternalNotes_TicketId",
-                table: "FfExternalNotes",
+                name: "IX_FfBuildingDirectorys_LocationName",
+                table: "FfBuildingDirectorys",
+                column: "LocationName",
+                unique: true,
+                filter: "\"LocationName\" = 'Unassigned'");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FfExternalNotess_TicketId",
+                table: "FfExternalNotess",
                 column: "TicketId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfExternalNotes_UserEmployeeId",
-                table: "FfExternalNotes",
-                column: "UserEmployeeId");
+                name: "IX_FfExternalNotess_UserFfUserId",
+                table: "FfExternalNotess",
+                column: "UserFfUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfInternalNotes_TicketId",
-                table: "FfInternalNotes",
+                name: "IX_FfInternalNotess_TicketId",
+                table: "FfInternalNotess",
                 column: "TicketId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfInternalNotes_UserEmployeeId",
-                table: "FfInternalNotes",
-                column: "UserEmployeeId");
+                name: "IX_FfInternalNotess_UserFfUserId",
+                table: "FfInternalNotess",
+                column: "UserFfUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketFlow_NewAssignee",
-                table: "FfTicketFlow",
+                name: "IX_FfTicketConstructoror_TicketSeries",
+                table: "FfTicketConstructoror",
+                column: "TicketSeries",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FfTicketFlows_NewAssignee",
+                table: "FfTicketFlows",
                 column: "NewAssignee");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketFlow_StatusCodeCode",
-                table: "FfTicketFlow",
-                column: "StatusCodeCode");
+                name: "IX_FfTicketFlows_StatusCodeId",
+                table: "FfTicketFlows",
+                column: "StatusCodeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketFlow_TicketId",
-                table: "FfTicketFlow",
+                name: "IX_FfTicketFlows_TicketId",
+                table: "FfTicketFlows",
                 column: "TicketId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketRegister_EnteredBy",
-                table: "FfTicketRegister",
+                name: "IX_FfTicketRegisters_EnteredBy",
+                table: "FfTicketRegisters",
                 column: "EnteredBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketRegister_Location",
-                table: "FfTicketRegister",
+                name: "IX_FfTicketRegisters_Location",
+                table: "FfTicketRegisters",
                 column: "Location");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketRegister_RequestedBy",
-                table: "FfTicketRegister",
+                name: "IX_FfTicketRegisters_RequestedBy",
+                table: "FfTicketRegisters",
                 column: "RequestedBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketRegister_TicketPriority",
-                table: "FfTicketRegister",
+                name: "IX_FfTicketRegisters_TicketPriority",
+                table: "FfTicketRegisters",
                 column: "TicketPriority");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketRegister_TicketStatus",
-                table: "FfTicketRegister",
+                name: "IX_FfTicketRegisters_TicketShortCode",
+                table: "FfTicketRegisters",
+                column: "TicketShortCode",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FfTicketRegisters_TicketStatus",
+                table: "FfTicketRegisters",
                 column: "TicketStatus");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfTicketRegister_TicketTroubleType",
-                table: "FfTicketRegister",
+                name: "IX_FfTicketRegisters_TicketTroubleType",
+                table: "FfTicketRegisters",
                 column: "TicketTroubleType");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FfUserProfile_LocationCode",
-                table: "FfUserProfile",
+                name: "IX_FfUserProfiles_LocationCode",
+                table: "FfUserProfiles",
                 column: "LocationCode");
         }
 
@@ -517,37 +556,40 @@ namespace fixflow.web.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "FfExternalNotes");
+                name: "FfExternalNotess");
 
             migrationBuilder.DropTable(
-                name: "FfInternalNotes");
+                name: "FfInternalNotess");
 
             migrationBuilder.DropTable(
-                name: "FfTicketFlow");
+                name: "FfTicketConstructoror");
+
+            migrationBuilder.DropTable(
+                name: "FfTicketFlows");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "FfTicketRegister");
+                name: "FfTicketRegisters");
 
             migrationBuilder.DropTable(
-                name: "FfPriorityCodes");
+                name: "FfPriorityCodess");
 
             migrationBuilder.DropTable(
                 name: "FfStatusCodes");
 
             migrationBuilder.DropTable(
-                name: "FfTicketTypes");
+                name: "FfTicketTypess");
 
             migrationBuilder.DropTable(
-                name: "FfUserProfile");
+                name: "FfUserProfiles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "FfBuildingDirectory");
+                name: "FfBuildingDirectorys");
         }
     }
 }

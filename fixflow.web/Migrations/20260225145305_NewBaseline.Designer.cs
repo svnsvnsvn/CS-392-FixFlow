@@ -12,8 +12,8 @@ using fixflow.web.Data;
 namespace fixflow.web.Migrations
 {
     [DbContext(typeof(FfDbContext))]
-    [Migration("20260217033540_TweaksToTypesAndCodes")]
-    partial class TweaksToTypesAndCodes
+    [Migration("20260225145305_NewBaseline")]
+    partial class NewBaseline
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -431,6 +431,10 @@ namespace fixflow.web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("TicketDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("TicketPriority")
                         .HasColumnType("integer");
 
@@ -440,6 +444,10 @@ namespace fixflow.web.Migrations
 
                     b.Property<int>("TicketStatus")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TicketSubject")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("TicketTroubleType")
                         .HasColumnType("integer");
@@ -457,11 +465,43 @@ namespace fixflow.web.Migrations
 
                     b.HasIndex("TicketPriority");
 
+                    b.HasIndex("TicketShortCode")
+                        .IsUnique();
+
                     b.HasIndex("TicketStatus");
 
                     b.HasIndex("TicketTroubleType");
 
                     b.ToTable("FfTicketRegisters");
+                });
+
+            modelBuilder.Entity("fixflow.web.Data.FfTicketShortCodeConstructor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LastTicketUsed")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("SeriesIsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TicketPrefix")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<short>("TicketSeries")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketSeries")
+                        .IsUnique();
+
+                    b.ToTable("FfTicketConstructoror");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfTicketTypes", b =>
