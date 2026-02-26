@@ -15,7 +15,7 @@
         @if (Model.LoginFailed)
         {
             <div class="error-message">
-                <span class="error-icon">⚠️</span>
+                <i class="bi bi-exclamation-triangle error-icon"></i>
                 <span>Invalid username or password. Please try again.</span>
             </div>
         }
@@ -42,13 +42,13 @@
                        required />
             </div>
 
-            <button type="submit" class="btn-login">Sign In</button>
+            <button type="submit" class="btn-login"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
         </form>
 
         <div class="divider"></div>
 
         <div class="footer-text">
-            <a asp-page="./NewUser">Create account</a>
+            <a asp-page="./NewUser"><i class="bi bi-person-plus"></i> Create account</a>
         </div>
 
         <div class="footer-text">

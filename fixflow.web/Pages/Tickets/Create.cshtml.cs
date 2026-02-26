@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
 using fixflow.web.Domain.Constants;
+using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
 using fixflow.web.Services;
 using System.ComponentModel.DataAnnotations;
@@ -36,9 +37,9 @@ namespace fixflow.web.Pages.Tickets
         {
             // Check if user is staff (Manager, Technician, or Admin)
             IsStaff = User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Employee) || User.IsInRole(RoleNames.Admin);
-            
+
             await LoadDropdownData();
-            
+
             // Pre-populate location and unit from user profile if available (for residents only)
             if (!IsStaff)
             {
@@ -47,7 +48,7 @@ namespace fixflow.web.Pages.Tickets
                 {
                     var userProfile = await _context.FfUserProfiles
                         .FirstOrDefaultAsync(p => p.FfUserId == user.Id);
-                        
+
                     if (userProfile != null)
                     {
                         Input.LocationCode = userProfile.LocationCode;
@@ -62,7 +63,7 @@ namespace fixflow.web.Pages.Tickets
         public async Task<IActionResult> OnPostAsync()
         {
             IsStaff = User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Employee) || User.IsInRole(RoleNames.Admin);
-            
+
             if (!ModelState.IsValid)
             {
                 await LoadDropdownData();
@@ -75,25 +76,51 @@ namespace fixflow.web.Pages.Tickets
                 return RedirectToPage("/Account/Login");
             }
 
-            var request = new TicketCreateRequest
+            // Determine user role
+            RoleTypes userRole = RoleTypes.Resident;
+            if (User.IsInRole(RoleNames.Admin))
+                userRole = RoleTypes.Admin;
+            else if (User.IsInRole(RoleNames.Manager))
+                userRole = RoleTypes.Manager;
+            else if (User.IsInRole(RoleNames.Employee))
+                userRole = RoleTypes.Employee;
+
+            // Get default status code for "Submitted"
+            var submittedStatus = await _context.FfStatusCodes
+                .FirstOrDefaultAsync(s => s.StatusName == TicketStatusNames.Submitted);
+
+            if (submittedStatus == null)
             {
-                LocationCode = Input.LocationCode,
+                ModelState.AddModelError(string.Empty, "System configuration error: Submitted status not found.");
+                await LoadDropdownData();
+                return Page();
+            }
+
+            // Map to the DTO that the real backend expects
+            var newTicketDto = new NewTicketDto
+            {
+                TicketShortCode = null, // Let backend generate
+                RequestedBy = string.IsNullOrEmpty(Input.ResidentId) ? null : Input.ResidentId,
+                Location = Input.LocationCode,
                 Unit = Input.Unit,
-                TicketTypeCode = Input.TicketTypeCode,
-                Description = Input.Description,
-                ResidentId = Input.ResidentId,
-                DueDate = Input.DueDate
+                TicketTroubleType = Input.TicketTypeCode,
+                PriorityCode = 2, // Default to Normal priority (you may want to make this configurable)
+                TicketPriority = 2, // Same as PriorityCode
+                TicketStatus = submittedStatus.Code,
+                TicketSubject = $"Ticket for Unit {Input.Unit}", // Generate from description or make it a field
+                TicketDescription = Input.Description
             };
 
-            var result = await _ticketService.CreateTicketAsync(user.Id, IsStaff, request);
-            if (!result.Success || result.Data == null)
+            var result = await _ticketService.AddNewTicket(user.Id, userRole, newTicketDto);
+
+            if (!result.Success)
             {
                 ModelState.AddModelError(string.Empty, result.Error ?? "Ticket could not be created.");
                 await LoadDropdownData();
                 return Page();
             }
 
-            TempData["SuccessMessage"] = $"Ticket {result.Data.TicketShortCode} created successfully!";
+            TempData["SuccessMessage"] = $"Ticket created successfully!";
             return RedirectToPage("./List");
         }
 

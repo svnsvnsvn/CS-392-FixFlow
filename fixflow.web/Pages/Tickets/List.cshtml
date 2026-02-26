@@ -17,12 +17,12 @@
         <div class="page-shell">
             <div class="page-header">
                 <div>
-                    <h1 class="page-title">All Tickets</h1>
+                    <h1 class="page-title"><i class="bi bi-list-ul"></i> All Tickets</h1>
                     <p class="page-subtitle">Track, search, and manage maintenance requests.</p>
                 </div>
                 <div class="tickets-toolbar">
-                    <a href="/Dashboard" class="btn btn-secondary">Back to Dashboard</a>
-                    <a asp-page="Create" class="btn btn-primary">Create New Ticket</a>
+                    <a href="/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+                    <a asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create New Ticket</a>
                 </div>
             </div>
 
@@ -78,7 +78,7 @@
                                 {
                                     var statusClass = (ticket.StatusCode?.StatusName ?? "").ToLower().Replace(" ", "");
                                     var priorityClass = (ticket.PriorityCode?.PriorityName ?? "").ToLower();
-                                    
+
                                     <tr>
                                         <td><span class="ticket-id">@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)</span></td>
                                         <td>@(ticket.TicketType?.TypeName ?? "-")</td>
@@ -91,17 +91,17 @@
                                             @{
                                                 var statusIconMap = statusClass switch
                                                 {
-                                                    "submitted" => "circle",
-                                                    "inreview" => "clock",
-                                                    "assigned" => "user-check",
-                                                    "inprogress" => "loader",
-                                                    "onhold" => "pause-circle",
-                                                    "completed" => "check-circle",
-                                                    "cancelled" => "x-circle",
-                                                    _ => "circle-dot"
+                                                    "submitted" => "bi-circle",
+                                                    "inreview" => "bi-clock",
+                                                    "assigned" => "bi-person-check",
+                                                    "inprogress" => "bi-arrow-repeat",
+                                                    "onhold" => "bi-pause-circle",
+                                                    "completed" => "bi-check-circle",
+                                                    "cancelled" => "bi-x-circle",
+                                                    _ => "bi-circle-fill"
                                                 };
                                             }
-                                            <i class="status-icon" data-lucide="@statusIconMap" title="@(ticket.StatusCode?.StatusName ?? "-")"></i>
+                                            <i class="status-icon bi @statusIconMap" title="@(ticket.StatusCode?.StatusName ?? "-")"></i>
                                         </td>
                                         <td>@(ticket.Building?.LocationName ?? "-")</td>
                                         <td>@ticket.Unit</td>
@@ -109,13 +109,13 @@
                                         <td>@(Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-")</td>
                                         <td style="display: flex; gap: 0.5rem; align-items: center;">
                                             <a href="/Tickets/Details/@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)" class="btn btn-secondary btn-icon" aria-label="View ticket">
-                                                <i data-lucide="eye"></i>
+                                                <i class="bi bi-eye"></i>
                                             </a>
                                             @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
                                             {
                                                 <form method="post" asp-page-handler="PickUpTicket" asp-route-ticketId="@ticket.TicketId" style="display: inline;">
                                                     <button type="submit" class="btn btn-primary btn-icon" aria-label="Pick up ticket" title="Pick up ticket">
-                                                        <i data-lucide="hand"></i>
+                                                        <i class="bi bi-hand-thumbs-up"></i>
                                                     </button>
                                                 </form>
                                             }
@@ -128,7 +128,7 @@
                     else
                     {
                         <div class="empty-state">
-                            <i data-lucide="inbox"></i>
+                            <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
                             <p>No tickets to display</p>
                         </div>
                     }

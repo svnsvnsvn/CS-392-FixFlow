@@ -1,12 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
 using fixflow.web.Domain.Constants;
+using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace fixflow.web.Pages.Tickets
 {
@@ -273,14 +274,51 @@ namespace fixflow.web.Pages.Tickets
                 return NotFound();
             }
 
-            await _ticketService.AssignTicketAsync(ticket.TicketId, SelectedTechnicianId);
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToPage("/Account/Login");
+            }
+
+            // Determine user role
+            RoleTypes userRole = RoleTypes.Manager;
+            if (User.IsInRole(RoleNames.Admin))
+                userRole = RoleTypes.Admin;
+
+            // Get "Assigned" status code
+            var assignedStatus = await _context.FfStatusCodes
+                .FirstOrDefaultAsync(s => s.StatusName == TicketStatusNames.Assigned);
+
+            if (assignedStatus == null)
+            {
+                TempData["ErrorMessage"] = "System configuration error: Assigned status not found.";
+                return RedirectToPage(new { id = ticketId });
+            }
+
+            // Use the real backend method: ReassignTicket
+            var result = await _ticketService.ReassignTicket(
+                currentUser.Id,
+                userRole,
+                ticket.TicketId,
+                SelectedTechnicianId,
+                assignedStatus.Code
+            );
+
+            if (!result.Success)
+            {
+                TempData["ErrorMessage"] = result.Error ?? "Ticket assignment failed.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Ticket assigned successfully!";
+            }
 
             return RedirectToPage(new { id = ticketId });
         }
-    }
 
-    // ViewModels
-    public class TicketDetailViewModel
+        // ViewModels
+        public class TicketDetailViewModel
     {
         public string Id { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;

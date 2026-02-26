@@ -16,51 +16,36 @@ namespace fixflow.web.Services
             _userManager = userManager;
         }
 
-<<<<<<< HEAD
         public async Task<ServiceResult<int>> AddPriorityCode(string _requestorId, RoleTypes _requestorRole, NewPriorityCodeDto _newPriorityData)
-=======
-        private ServiceResult<T> ValidateAdminAccess<T>(string requestorId, RoleTypes requestorRole)
-        {
-            if (requestorId == null)
-            {
-                return ServiceResult<T>.Fail("Invalid requestor Id.");
-            }
-
-            if (!Enum.IsDefined(typeof(RoleTypes), requestorRole))
-            {
-                return ServiceResult<T>.Fail("Invalid role.");
-            }
-
-            if (requestorRole != RoleTypes.Admin)
-            {
-                return ServiceResult<T>.Fail("Insufficient privileges.");
-            }
-
-            return null; // Validation passed
-        }
-
-
-        public async Task<ServiceResult<int>> AddPriorityCode(string requestorId, RoleTypes requestorRole, NewPriorityCodeDto newPriorityData)
->>>>>>> origin/ZZ-development/dashboard-refresh
         {
             try
             {
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
                 var newPriorityCode = new FfPriorityCodes
                 {
-                    PriorityName = newPriorityData.PriorityName,
-                    Code = newPriorityData.PriorityCode
+                    PriorityName = _newPriorityData.PriorityName,
+                    PriorityCode = _newPriorityData.PriorityCode
                 };
 
-                _db.FfPriorityCodes.Add(newPriorityCode);
+                _db.FfPriorityCodess.Add(newPriorityCode);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newPriorityCode.Code);
+                return ServiceResult<int>.Ok(newPriorityCode.Id);
             }
             catch (Exception ex)
             {
@@ -68,26 +53,36 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> AddStatusCode(string requestorId, RoleTypes requestorRole, NewStatusCodeDto newStatusData)
+        public async Task<ServiceResult<int>> AddStatusCode(string _requestorId, RoleTypes _requestorRole, NewStatusCodeDto _newStatusData)
         {
             try
             {
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
                 var newStatusCode = new FfStatusCodes
                 {
-                    StatusName = newStatusData.StatusName,
-                    Code = newStatusData.StatusCode
+                    StatusName = _newStatusData.StatusName,
+                    StatusCode = _newStatusData.StatusCode
                 };
 
                 _db.FfStatusCodes.Add(newStatusCode);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newStatusCode.Code);
+                return ServiceResult<int>.Ok(newStatusCode.Id);
             }
             catch (Exception ex)
             {
@@ -95,25 +90,35 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> AddTicketType(string requestorId, RoleTypes requestorRole, NewTicketTypeDto newTicketData)
+        public async Task<ServiceResult<int>> AddTicketType(string _requestorId, RoleTypes _requestorRole, NewTicketTypeDto _newTicketData)
         {
             try
             {
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
                 var newTicketType = new FfTicketTypes
                 {
-                    TypeName = newTicketData.TypeName,
+                    TypeName = _newTicketData.TypeName,
                 };
 
-                _db.FfTicketTypes.Add(newTicketType);
+                _db.FfTicketTypess.Add(newTicketType);
                 await _db.SaveChangesAsync();
 
-                return ServiceResult<int>.Ok(newTicketType.Code);
+                return ServiceResult<int>.Ok(newTicketType.Id);
             }
             catch (Exception ex)
             {
@@ -121,42 +126,43 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> AddBuilding(string requestorId, RoleTypes requestorRole, NewBuildingDto newBuildingData)
+        public async Task<ServiceResult<int>> AddBuilding(string _requestorId, RoleTypes _requestorRole, NewBuildingDto _newBuildingData)
         {
             try
             {
-                // Prevent Location name of "Unassigned" this is a protected location name used as a default.
-                if (newBuildingData.LocationName == "Unassigned")
+                // Prevent Location name of "Unassigned" this is a protected location name sued as a default.
+                if (_newBuildingData.LocationName == "Unassigned")
                 {
                     return ServiceResult<int>.Fail("'Unassigned' is a protected building name and not for use.");
                 }
-                
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
                 var newBuilding = new FfBuildingDirectory
                 {
-<<<<<<< HEAD
                     LocationName = _newBuildingData.LocationName,
                     ComplexName = _newBuildingData.ComplexName,
                     BuildingNumber = _newBuildingData.BuildingNumber,
                     NumUnits = (int)_newBuildingData.NumUnits,
                     LocationLat = (decimal)_newBuildingData.LocationLat,
                     LocationLon = (decimal)_newBuildingData.LocationLon
-=======
-                    LocationName = newBuildingData.LocationName,
-                    ComplexName = newBuildingData.ComplexName,
-                    BuildingNumber = newBuildingData.BuildingNumber,
-                    NumUnits = newBuildingData.NumUnits,
-                    LocationLat = newBuildingData.LocationLat,
-                    LocationLon = newBuildingData.LocationLon
->>>>>>> origin/ZZ-development/dashboard-refresh
                 };
 
-                _db.FfBuildingDirectories.Add(newBuilding);
+                _db.FfBuildingDirectorys.Add(newBuilding);
                 await _db.SaveChangesAsync();
 
                 return ServiceResult<int>.Ok(newBuilding.LocationCode);
@@ -167,27 +173,21 @@ namespace fixflow.web.Services
             }
         }
 
-<<<<<<< HEAD
         public async Task<ServiceResult<int>> UpdatePriorityCode(string _requestorId, RoleTypes _requestorRole, UpdatePriorityCodeDto _updatedPriorityData)
-=======
-        public async Task<ServiceResult<int>> UpdatePriorityCode(string requestorId, RoleTypes requestorRole, UpdatePriorityCodeDto updatePriorityData)
->>>>>>> origin/ZZ-development/dashboard-refresh
         {
             try
             {
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
                 }
 
-                var existingPriorityCode = await _db.FfPriorityCodes.FindAsync(updatePriorityData.PriorityCode);
-                if (existingPriorityCode == null)
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
                 {
-                    return ServiceResult<int>.Fail($"Priority code {updatePriorityData.PriorityCode} not found.");
+                    return ServiceResult<int>.Fail("Invalid role.");
                 }
 
-<<<<<<< HEAD
                 if (_requestorRole != RoleTypes.Admin)
                 {
                     return ServiceResult<int>.Fail("Insufficient privileges.");
@@ -215,16 +215,10 @@ namespace fixflow.web.Services
 
                     return ServiceResult<int>.Ok(existingRecord.Id);
                 }
-                else 
+                else
                 {
                     return ServiceResult<int>.Fail("Priority ID not found.");
                 }
-=======
-                existingPriorityCode.PriorityName = updatePriorityData.PriorityName;
-                await _db.SaveChangesAsync();
-
-                return ServiceResult<int>.Ok(existingPriorityCode.Code);
->>>>>>> origin/ZZ-development/dashboard-refresh
             }
             catch (Exception ex)
             {
@@ -232,27 +226,21 @@ namespace fixflow.web.Services
             }
         }
 
-<<<<<<< HEAD
         public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, UpdateStatusCodeDto _updatedStatusData)
-=======
-        public async Task<ServiceResult<int>> UpdateStatusCode(string requestorId, RoleTypes requestorRole, UpdateStatusCodeDto updateStatusData)
->>>>>>> origin/ZZ-development/dashboard-refresh
         {
             try
             {
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
                 }
 
-                var existingStatusCode = await _db.FfStatusCodes.FindAsync(updateStatusData.StatusCode);
-                if (existingStatusCode == null)
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
                 {
-                    return ServiceResult<int>.Fail($"Status code {updateStatusData.StatusCode} not found.");
+                    return ServiceResult<int>.Fail("Invalid role.");
                 }
 
-<<<<<<< HEAD
                 if (_requestorRole != RoleTypes.Admin)
                 {
                     return ServiceResult<int>.Fail("Insufficient privileges.");
@@ -283,12 +271,6 @@ namespace fixflow.web.Services
                 {
                     return ServiceResult<int>.Fail("Status ID not found.");
                 }
-=======
-                existingStatusCode.StatusName = updateStatusData.StatusName;
-                await _db.SaveChangesAsync();
-
-                return ServiceResult<int>.Ok(existingStatusCode.Code);
->>>>>>> origin/ZZ-development/dashboard-refresh
             }
             catch (Exception ex)
             {
@@ -296,27 +278,21 @@ namespace fixflow.web.Services
             }
         }
 
-<<<<<<< HEAD
         public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, UpdateTicketTypeDto _updatedTicketData)
-=======
-        public async Task<ServiceResult<int>> UpdateTicketType(string requestorId, RoleTypes requestorRole, UpdateTicketTypeDto updateTicketData)
->>>>>>> origin/ZZ-development/dashboard-refresh
         {
             try
             {
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
                 }
 
-                var existingTicketType = await _db.FfTicketTypes.FindAsync(updateTicketData.Code);
-                if (existingTicketType == null)
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
                 {
-                    return ServiceResult<int>.Fail($"Ticket type {updateTicketData.Code} not found.");
+                    return ServiceResult<int>.Fail("Invalid role.");
                 }
 
-<<<<<<< HEAD
                 if (_requestorRole != RoleTypes.Admin)
                 {
                     return ServiceResult<int>.Fail("Insufficient privileges.");
@@ -333,7 +309,7 @@ namespace fixflow.web.Services
                     {
                         _db.FfTicketTypess.Remove(existingRecord);
                     }
-                    
+
                     await _db.SaveChangesAsync();
 
                     return ServiceResult<int>.Ok(1);
@@ -342,12 +318,6 @@ namespace fixflow.web.Services
                 {
                     return ServiceResult<int>.Fail("Status ID not found.");
                 }
-=======
-                existingTicketType.TypeName = updateTicketData.TypeName;
-                await _db.SaveChangesAsync();
-
-                return ServiceResult<int>.Ok(existingTicketType.Code);
->>>>>>> origin/ZZ-development/dashboard-refresh
             }
             catch (Exception ex)
             {
@@ -355,51 +325,38 @@ namespace fixflow.web.Services
             }
         }
 
-<<<<<<< HEAD
         public async Task<ServiceResult<int>> UpdateBuilding(string _requestorId, RoleTypes _requestorRole, UpdateBuildingDto _updatedBuildingData)
         {
             try
             {
                 // Prevent Location name of "Unassigned" this is a protected location name sued as a default.
                 if (_updatedBuildingData.LocationName == "Unassigned")
-=======
-        public async Task<ServiceResult<int>> UpdateBuilding(string requestorId, RoleTypes requestorRole, UpdateBuildingDto updateBuildingData)
-        {
-            try
-            {
-                // Prevent Location name of "Unassigned" this is a protected location name used as a default.
-                if (updateBuildingData.LocationName == "Unassigned")
->>>>>>> origin/ZZ-development/dashboard-refresh
                 {
                     return ServiceResult<int>.Fail("'Unassigned' is a protected building name and not for use.");
                 }
 
-                var validationResult = ValidateAdminAccess<int>(requestorId, requestorRole);
-                if (validationResult != null)
+                // Validate requestor inputs
+                if (_requestorId == null)
                 {
-                    return validationResult;
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
                 }
 
-                var existingBuilding = await _db.FfBuildingDirectories.FindAsync(updateBuildingData.LocationCode);
-                if (existingBuilding == null)
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
                 {
-                    return ServiceResult<int>.Fail($"Building {updateBuildingData.LocationCode} not found.");
+                    return ServiceResult<int>.Fail("Invalid role.");
                 }
 
-                existingBuilding.LocationName = updateBuildingData.LocationName;
-                existingBuilding.ComplexName = updateBuildingData.ComplexName;
-                existingBuilding.BuildingNumber = updateBuildingData.BuildingNumber;
-                existingBuilding.NumUnits = updateBuildingData.NumUnits;
-                existingBuilding.LocationLat = updateBuildingData.LocationLat ?? existingBuilding.LocationLat;
-                existingBuilding.LocationLon = updateBuildingData.LocationLon ?? existingBuilding.LocationLon;
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
 
-<<<<<<< HEAD
                 var existingRecord = await _db.FfBuildingDirectorys.FindAsync(_updatedBuildingData.LocationCode);
                 if (existingRecord != null)
                 {
                     existingRecord.LocationName = _updatedBuildingData.LocationName;
                     existingRecord.ComplexName = _updatedBuildingData.ComplexName;
-                    
+
                     if (_updatedBuildingData.BuildingNumber != null)
                     {
                         if (_updatedBuildingData.BuildingNumber >= 0)
@@ -488,11 +445,6 @@ namespace fixflow.web.Services
                 {
                     return ServiceResult<int>.Fail("Location code not found.");
                 }
-=======
-                await _db.SaveChangesAsync();
-
-                return ServiceResult<int>.Ok(existingBuilding.LocationCode);
->>>>>>> origin/ZZ-development/dashboard-refresh
             }
             catch (Exception ex)
             {

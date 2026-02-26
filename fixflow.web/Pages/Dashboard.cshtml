@@ -18,11 +18,11 @@
                 <h1 class="content-title">Dashboard</h1>
                 <div class="content-actions">
                     <button type="button" class="btn btn-secondary" data-announcements-open>
-                        <i data-lucide="megaphone"></i>
+                        <i class="bi bi-megaphone"></i>
                         Announcements
                     </button>
                     <a href="/Tickets/Create" class="btn btn-primary">
-                        <i data-lucide="plus-circle"></i>
+                        <i class="bi bi-plus-circle"></i>
                         Create Ticket
                     </a>
                 </div>
@@ -37,19 +37,19 @@
             {
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label"><i data-lucide="ticket"></i> Total Tickets</div>
+                        <div class="stat-label"><i class="bi bi-ticket-perforated"></i> Total Tickets</div>
                         <div class="stat-value">@Model.TotalTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i data-lucide="clock"></i> Pending</div>
+                        <div class="stat-label"><i class="bi bi-clock"></i> Pending</div>
                         <div class="stat-value">@Model.PendingTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i data-lucide="refresh-cw"></i> In Progress</div>
+                        <div class="stat-label"><i class="bi bi-arrow-repeat"></i> In Progress</div>
                         <div class="stat-value">@Model.InProgressTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i data-lucide="check-circle"></i> Completed Today</div>
+                        <div class="stat-label"><i class="bi bi-check-circle"></i> Completed Today</div>
                         <div class="stat-value">@Model.CompletedToday</div>
                     </div>
                 </div>
@@ -65,10 +65,10 @@
                         <div class="panel-actions">
                             <div class="week-controls">
                                 <button class="week-button" type="button" id="weekPrev" aria-label="Previous week">
-                                    <i data-lucide="chevron-left"></i>
+                                    <i class="bi bi-chevron-left"></i>
                                 </button>
                                 <button class="week-button" type="button" id="weekNext" aria-label="Next week">
-                                    <i data-lucide="chevron-right"></i>
+                                    <i class="bi bi-chevron-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -229,7 +229,7 @@
                                                 <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
                                                 <td>
                                                     <a href="/Tickets/Details/@ticket.Id" class="icon-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
-                                                        <i data-lucide="eye"></i>
+                                                        <i class="bi bi-eye"></i>
                                                     </a>
                                                 </td>
                                             </tr>
@@ -240,7 +240,7 @@
                             else
                             {
                                 <div class="empty-state">
-                                    <i data-lucide="inbox"></i>
+                                    <i class="bi bi-inbox"></i>
                                     <p>No tickets to display</p>
                                 </div>
                             }
