@@ -1,8 +1,7 @@
-﻿namespace fixflow.web.Data
+﻿namespace fixflow.web.Dto
 {
-    public class FfPriorityCodes
+    public class NewPriorityCodeDto
     {
-        public int Id { get; set; }
         public int PriorityCode { get; set; } = 0;
         public string PriorityName { get; set; } = string.Empty;
     }

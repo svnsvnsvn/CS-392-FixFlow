@@ -22,6 +22,7 @@ public class FfDbContext : IdentityDbContext<AppUser>
     public DbSet<FfTicketFlow> FfTicketFlows { get; set; } = default!;
     public DbSet<FfTicketRegister> FfTicketRegisters { get; set; } = default!;
     public DbSet<FfTicketTypes> FfTicketTypess { get; set; } = default!;
+    public DbSet<FfTicketShortCodeConstructor> FfTicketConstructoror { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder builder)       
     {
@@ -68,7 +69,7 @@ public class FfDbContext : IdentityDbContext<AppUser>
         builder.Entity<FfBuildingDirectory>()            // Building name "Unassigned" is for new accounts only.  This line restricts the building name "Unassigned" to be
             .HasIndex(x => x.LocationName)               // unique in that column.  Other names may be duplicated, but "Unassigned" may not.  The "Unassigned" entry is 
             .IsUnique()                                  // entered on table in DbSeeder.
-            .HasFilter("[LocationName] = 'Unassigned'");
+            .HasFilter("\"LocationName\" = 'Unassigned'");
 
         builder.Entity<FfBuildingDirectory>()            // Set Precision.  11cm
             .Property(b => b.LocationLat)
@@ -95,30 +96,30 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
         // *** FfTicketTypes ***
         builder.Entity<FfTicketTypes>()                   // Primary Key
-            .HasKey(c => c.Code);
+            .HasKey(c => c.Id);
 
         builder.Entity<FfTicketTypes>()                  // Ensure Code is incrementing.
-            .Property(c => c.Code)
+            .Property(c => c.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfStatusCodes ***
         builder.Entity<FfStatusCodes>()                   // Primary Key
-            .HasKey(d => d.Code);
+            .HasKey(d => d.Id);
 
         builder.Entity<FfStatusCodes>()                  // Ensure Code is incrementing.
-            .Property(d => d.Code)
+            .Property(d => d.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfPriorityCodes ***
         builder.Entity<FfPriorityCodes>()                   // Primary Key
-            .HasKey(e => e.Code);
+            .HasKey(e => e.Id);
 
         builder.Entity<FfPriorityCodes>()                  // Ensure Code is incrementing.
-            .Property(e => e.Code)
+            .Property(e => e.Id)
             .UseIdentityColumn();
 
 
@@ -195,6 +196,10 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(h => h.TicketPriority)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<FfTicketRegister>()                  // Ensure ticket short code is unique
+            .HasIndex(c => c.TicketShortCode)
+            .IsUnique();
+
         // *** FfTicketFlow ***
         builder.Entity<FfTicketFlow>()                   // Primary Key
             .HasKey(i => i.ActionId);
@@ -215,5 +220,20 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(g => g.NewAssignee)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // *** FfTicketConstructor ***
+        builder.Entity<FfTicketShortCodeConstructor>()                   // Primary Key
+            .HasKey(c => c.Id);
+
+        builder.Entity<FfTicketShortCodeConstructor>()                  // Ensure Code is incrementing.
+            .Property(c => c.Id)
+            .UseIdentityColumn();
+
+        builder.Entity<FfTicketShortCodeConstructor>()                   // Ensure ticket series is unique.
+            .HasIndex(c => c.TicketSeries)
+            .IsUnique();
+
+
+
+        //(short)(DateTime.Now.Year - 2000);        // 2 Digit date.  Yeah Y2K1 issue... but I'll be dead by then.
     }
 }

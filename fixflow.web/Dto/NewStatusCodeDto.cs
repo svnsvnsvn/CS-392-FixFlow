@@ -1,8 +1,7 @@
-﻿namespace fixflow.web.Data
+﻿namespace fixflow.web.Dto
 {
-    public class FfStatusCodes
+    public class NewStatusCodeDto
     {
-        public int Id { get; set; }
         public int StatusCode { get; set; } = 0;
         public string StatusName { get; set; } = string.Empty;
     }

@@ -256,6 +256,10 @@ namespace fixflow.web.Migrations
 
                     b.HasKey("LocationCode");
 
+                    b.HasIndex("LocationName")
+                        .IsUnique()
+                        .HasFilter("\"LocationName\" = 'Unassigned'");
+
                     b.ToTable("FfBuildingDirectorys", t =>
                         {
                             t.HasCheckConstraint("CK_Latitude_Range", "\"LocationLat\" >= -90 AND \"LocationLat\" <= 90");
@@ -334,34 +338,40 @@ namespace fixflow.web.Migrations
 
             modelBuilder.Entity("fixflow.web.Data.FfPriorityCodes", b =>
                 {
-                    b.Property<int>("Code")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Code"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PriorityCode")
+                        .HasColumnType("integer");
 
                     b.Property<string>("PriorityName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Code");
+                    b.HasKey("Id");
 
                     b.ToTable("FfPriorityCodess");
                 });
 
             modelBuilder.Entity("fixflow.web.Data.FfStatusCodes", b =>
                 {
-                    b.Property<int>("Code")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Code"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("integer");
 
                     b.Property<string>("StatusName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Code");
+                    b.HasKey("Id");
 
                     b.ToTable("FfStatusCodes");
                 });
@@ -381,7 +391,7 @@ namespace fixflow.web.Migrations
                     b.Property<int>("NewTicketStatus")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("StatusCodeCode")
+                    b.Property<int?>("StatusCodeId")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("TicketId")
@@ -394,7 +404,7 @@ namespace fixflow.web.Migrations
 
                     b.HasIndex("NewAssignee");
 
-                    b.HasIndex("StatusCodeCode");
+                    b.HasIndex("StatusCodeId");
 
                     b.HasIndex("TicketId");
 
@@ -418,6 +428,10 @@ namespace fixflow.web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("TicketDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("TicketPriority")
                         .HasColumnType("integer");
 
@@ -427,6 +441,10 @@ namespace fixflow.web.Migrations
 
                     b.Property<int>("TicketStatus")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TicketSubject")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("TicketTroubleType")
                         .HasColumnType("integer");
@@ -444,6 +462,9 @@ namespace fixflow.web.Migrations
 
                     b.HasIndex("TicketPriority");
 
+                    b.HasIndex("TicketShortCode")
+                        .IsUnique();
+
                     b.HasIndex("TicketStatus");
 
                     b.HasIndex("TicketTroubleType");
@@ -451,19 +472,48 @@ namespace fixflow.web.Migrations
                     b.ToTable("FfTicketRegisters");
                 });
 
-            modelBuilder.Entity("fixflow.web.Data.FfTicketTypes", b =>
+            modelBuilder.Entity("fixflow.web.Data.FfTicketShortCodeConstructor", b =>
                 {
-                    b.Property<int>("Code")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Code"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LastTicketUsed")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("SeriesIsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TicketPrefix")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<short>("TicketSeries")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketSeries")
+                        .IsUnique();
+
+                    b.ToTable("FfTicketConstructoror");
+                });
+
+            modelBuilder.Entity("fixflow.web.Data.FfTicketTypes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("TypeName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Code");
+                    b.HasKey("Id");
 
                     b.ToTable("FfTicketTypess");
                 });
@@ -589,7 +639,7 @@ namespace fixflow.web.Migrations
 
                     b.HasOne("fixflow.web.Data.FfStatusCodes", "StatusCode")
                         .WithMany()
-                        .HasForeignKey("StatusCodeCode");
+                        .HasForeignKey("StatusCodeId");
 
                     b.HasOne("fixflow.web.Data.FfTicketRegister", "Ticket")
                         .WithMany()

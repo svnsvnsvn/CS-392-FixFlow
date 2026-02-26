@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace fixflow.Web.Pages.Account;
@@ -41,10 +42,22 @@ public class NewUserModel : PageModel
         if (!ModelState.IsValid)
             return Page();
 
+        bool availableUserNameFound = false;
+        int increment = 0;
         string newUserName = Input.FirstName + "." + Input.LastName;
-
-        // ***************** Code to prevent duplicate users, i.e. john.smith  next should be john.smith1
-
+        do
+        {
+            var validRequestor = await _userManager.FindByNameAsync(newUserName);
+            if (validRequestor != null)
+            {
+                increment++;
+                newUserName = Input.FirstName + "." + Input.LastName + increment.ToString();
+            }
+            else
+            {
+                availableUserNameFound = true;
+            }
+        } while (!availableUserNameFound);
 
         // Build new user from form inputs
         var user = new AppUser
@@ -74,13 +87,20 @@ public class NewUserModel : PageModel
                 throw new Exception("User role assignment failed.");
             }
 
+            // Get the "Unassigned" building code for profile
+            var defaultBuilding = await _db.FfBuildingDirectorys.SingleAsync(b => b.LocationName == "Unassigned");
+            if (defaultBuilding == null)
+            {
+                throw new Exception("User creation failed. Unassigned building not found.");
+            }
+            
             // Build user profile
             var userProfile = new FfUserProfile
             {
                 FName = Input.FirstName,
                 LName = Input.LastName,
                 FfUserId = user.Id,
-                Location = null
+                LocationCode = defaultBuilding.LocationCode
             };
 
 
