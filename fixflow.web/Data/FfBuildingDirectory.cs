@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace fixflow.web.Data
+﻿namespace fixflow.web.Data
 {
     public class FfBuildingDirectory
     {

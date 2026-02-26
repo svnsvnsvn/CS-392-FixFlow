@@ -1,11 +1,12 @@
 ﻿using fixflow.web.Data;
+using fixflow.web.Domain.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace fixflow.Web.Pages.Account;
+namespace fixflow.web.Pages.Account;
 
 public class NewUserModel : PageModel
 {
@@ -81,7 +82,7 @@ public class NewUserModel : PageModel
             }
 
             // New user assigned pending role while awaiting full onboard.        
-            var resultUR = await _userManager.AddToRoleAsync(user, "Pending");
+            var resultUR = await _userManager.AddToRoleAsync(user, RoleNames.Pending);
             if (!resultUR.Succeeded)
             {
                 throw new Exception("User role assignment failed.");

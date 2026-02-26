@@ -2,492 +2,34 @@
 @model fixflow.web.Pages.DashboardModel
 @{
     ViewData["Title"] = "Dashboard - FixFlow";
+    ViewData["HideNav"] = true;
 }
 
-<style>
-    /* Dashboard-specific styling */
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: 260px 1fr;
-        gap: 0;
-        margin: -24px -20px;
-        min-height: calc(100vh - 120px);
-    }
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+}
 
-    .sidebar {
-        background: linear-gradient(180deg, var(--accent) 0%, var(--accent-3) 100%);
-        color: white;
-        padding: 2rem 0;
-        display: flex;
-        flex-direction: column;
-    }
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
 
-    .sidebar-brand {
-        padding: 0 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .brand-name {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .brand-subtitle {
-        font-size: 0.875rem;
-        opacity: 0.9;
-    }
-
-    .nav-section-title {
-        padding: 0 1.5rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        opacity: 0.7;
-        margin-bottom: 0.5rem;
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-        padding: 0.875rem 1.5rem;
-        color: white;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border-left: 3px solid transparent;
-    }
-
-    .nav-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-left-color: white;
-    }
-
-    .nav-item.active {
-        background: rgba(255, 255, 255, 0.15);
-        border-left-color: white;
-        font-weight: 600;
-    }
-
-    .nav-item .bi {
-        font-size: 1.25rem;
-        margin-right: 0.75rem;
-        width: 1.5rem;
-    }
-
-    .sidebar-footer {
-        margin-top: auto;
-        padding: 1.5rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .user-info {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 1.125rem;
-        margin-right: 0.75rem;
-    }
-
-    .user-name {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .user-role {
-        font-size: 0.75rem;
-        opacity: 0.8;
-    }
-
-    .btn-logout {
-        width: 100%;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 0.625rem;
-        border-radius: var(--radius-sm);
-    }
-
-    .btn-logout:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: none;
-        box-shadow: none;
-    }
-
-    .main-content {
-        display: flex;
-        flex-direction: column;
-        background: var(--bg);
-    }
-
-    .topbar {
-        background: white;
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid var(--line);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .topbar-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--text);
-        margin: 0;
-    }
-
-    .content-area {
-        padding: 2rem;
-        flex: 1;
-    }
-
-    .welcome-section {
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: var(--radius-lg);
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow);
-    }
-
-    .welcome-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .welcome-message {
-        font-size: 1rem;
-        opacity: 0.95;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow);
-    }
-
-    .stat-label {
-        color: var(--muted);
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text);
-    }
-
-    .section {
-        background: white;
-        border-radius: var(--radius-lg);
-        padding: 2rem;
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--bg);
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--text);
-        margin: 0;
-    }
-
-    .tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid var(--bg);
-    }
-
-    .tab {
-        padding: 0.75rem 1.5rem;
-        background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        cursor: pointer;
-        font-weight: 500;
-        color: var(--muted);
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-        font-family: var(--font-secondary);
-    }
-
-    .tab:hover {
-        color: var(--accent);
-    }
-
-    .tab.active {
-        color: var(--accent);
-        border-bottom-color: var(--accent);
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    thead {
-        background: var(--bg-2);
-    }
-
-    th {
-        text-align: left;
-        padding: 1rem;
-        font-weight: 600;
-        color: var(--muted);
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid var(--line);
-    }
-
-    td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--bg);
-        color: var(--text);
-    }
-
-    tbody tr:hover {
-        background: var(--bg-2);
-    }
-
-    .ticket-id {
-        font-weight: 600;
-        color: var(--accent);
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .badge-submitted { background: #dbeafe; color: #1e40af; }
-    .badge-inreview { background: #fef3c7; color: #92400e; }
-    .badge-assigned { background: #e0e7ff; color: #3730a3; }
-    .badge-inprogress { background: #ddd6fe; color: #5b21b6; }
-    .badge-onhold { background: #fecaca; color: #991b1b; }
-    .badge-completed { background: #d1fae5; color: #065f46; }
-
-    .priority-high { color: #dc2626; font-weight: 600; }
-    .priority-medium { color: #f59e0b; font-weight: 600; }
-    .priority-low { color: #059669; font-weight: 600; }
-
-    .btn-view {
-        background: var(--accent);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: var(--radius-sm);
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: inline-block;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-view:hover {
-        background: var(--accent-3);
-        transform: translateY(-2px);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: var(--muted);
-    }
-
-    .empty-state .bi {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-
-    @@media (max-width: 968px) {
-        .dashboard-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .sidebar {
-            padding: 1rem 0;
-        }
-    }
-</style>
-
-<div class="dashboard-grid">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <div class="brand-name">FixFlow</div>
-            <div class="brand-subtitle">Maintenance System</div>
-        </div>
-
-        <!-- Navigation based on role -->
-        <nav>
-            <div class="nav-section-title">Main</div>
-            <a href="/Dashboard" class="nav-item active">
-                <i class="bi bi-house-door"></i>
-                Dashboard
-            </a>
-
-            @* Client-only navigation *@
-            @if (Model.UserRole == "Client")
-            {
-                <a href="/Tickets/Create" class="nav-item">
-                    <i class="bi bi-plus-circle"></i>
-                    Create Ticket
-                </a>
-                <a href="/Tickets/MyTickets" class="nav-item">
-                    <i class="bi bi-clipboard-check"></i>
-                    My Tickets
-                </a>
-            }
-
-            @* Technician navigation *@
-            @if (Model.UserRole == "Technician")
-            {
-                <a href="/Tickets/WorkQueue" class="nav-item">
-                    <i class="bi bi-tools"></i>
-                    Work Queue
-                </a>
-                <a href="/Tickets/MyAssignments" class="nav-item">
-                    <i class="bi bi-list-check"></i>
-                    My Assignments
-                </a>
-            }
-
-            @* Manager navigation *@
-            @if (Model.UserRole == "Manager")
-            {
-                <a href="/Tickets/All" class="nav-item">
-                    <i class="bi bi-ticket-perforated"></i>
-                    All Tickets
-                </a>
-                <a href="/Tickets/Unassigned" class="nav-item">
-                    <i class="bi bi-hourglass-split"></i>
-                    Unassigned
-                </a>
-                <a href="/Reports" class="nav-item">
-                    <i class="bi bi-graph-up"></i>
-                    Reports
-                </a>
-            }
-
-            @* Admin navigation *@
-            @if (Model.UserRole == "Admin")
-            {
-                <a href="/Admin/Users" class="nav-item">
-                    <i class="bi bi-people"></i>
-                    Manage Users
-                </a>
-                <a href="/Admin/Categories" class="nav-item">
-                    <i class="bi bi-folder"></i>
-                    Categories
-                </a>
-                <a href="/Admin/Reports" class="nav-item">
-                    <i class="bi bi-graph-up"></i>
-                    Reports
-                </a>
-                <a href="/Admin/Settings" class="nav-item">
-                    <i class="bi bi-gear"></i>
-                    Settings
-                </a>
-            }
-        </nav>
-
-        <!-- User Info & Logout -->
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">@Model.UserInitials</div>
-                <div>
-                    <div class="user-name">@Model.UserName</div>
-                    <div class="user-role">@Model.UserRole</div>
+    <main class="app-main">
+        <div class="dashboard-shell">
+            <div class="content-header">
+                <h1 class="content-title">Dashboard</h1>
+                <div class="content-actions">
+                    <button type="button" class="btn btn-secondary" data-announcements-open>
+                        <i data-lucide="megaphone"></i>
+                        Announcements
+                    </button>
+                    <a href="/Tickets/Create" class="btn btn-primary">
+                        <i data-lucide="plus-circle"></i>
+                        Create Ticket
+                    </a>
                 </div>
             </div>
-            <form method="post" asp-page-handler="Logout">
-                <button type="submit" class="btn-logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </button>
-            </form>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Top Bar -->
-        <div class="topbar">
-            <h1 class="topbar-title"><i class="bi bi-speedometer2"></i> Dashboard</h1>
-            <div>
-                @if (Model.UserRole == "Client")
-                {
-                    <a href="/Tickets/Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> New Ticket
-                    </a>
-                }
-                @if (Model.UserRole == "Manager")
-                {
-                    <a href="/Tickets/Unassigned" class="btn btn-primary">
-                        <i class="bi bi-clipboard-check"></i> Assign Tickets
-                    </a>
-                }
-                @if (Model.UserRole == "Admin")
-                {
-                    <a href="/Admin/Users" class="btn btn-primary">
-                        <i class="bi bi-person-plus"></i> Add User
-                    </a>
-                }
-            </div>
-        </div>
-
-        <!-- Content -->
-        <div class="content-area">
-            <!-- Welcome Section -->
-            <div class="welcome-section">
-                <h2 class="welcome-title">Welcome back, @Model.UserName!</h2>
-                <p class="welcome-message">@Model.WelcomeMessage</p>
+            <div class="lead-panel">
+                <h2 class="lead-title">Welcome back, @Model.UserName!</h2>
+                <p class="lead-subtitle">@Model.WelcomeMessage</p>
             </div>
 
             <!-- Stats (for Manager/Admin only) -->
@@ -495,110 +37,298 @@
             {
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-ticket-perforated"></i> Total Tickets</div>
+                        <div class="stat-label"><i data-lucide="ticket"></i> Total Tickets</div>
                         <div class="stat-value">@Model.TotalTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-hourglass-split"></i> Pending</div>
+                        <div class="stat-label"><i data-lucide="clock"></i> Pending</div>
                         <div class="stat-value">@Model.PendingTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-arrow-repeat"></i> In Progress</div>
+                        <div class="stat-label"><i data-lucide="refresh-cw"></i> In Progress</div>
                         <div class="stat-value">@Model.InProgressTickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-check-circle"></i> Completed Today</div>
+                        <div class="stat-label"><i data-lucide="check-circle"></i> Completed Today</div>
                         <div class="stat-value">@Model.CompletedToday</div>
                     </div>
                 </div>
             }
 
-            <!-- Tickets Section -->
-            <div class="section">
-                <div class="section-header">
-                    <h3 class="section-title"><i class="bi bi-list-ul"></i> @Model.TicketsSectionTitle</h3>
-                </div>
-
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab active">All</button>
-                    <button class="tab">Active</button>
-                    <button class="tab">Completed</button>
-                </div>
-
-                <!-- Tickets Table -->
-                <div class="table-container">
-                    @if (Model.Tickets != null && Model.Tickets.Any())
-                    {
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Ticket ID</th>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    @if (Model.UserRole != "Client")
-                                    {
-                                        <th>Submitted By</th>
-                                    }
-                                    @if (Model.UserRole == "Technician")
-                                    {
-                                        <th>Due Date</th>
-                                    }
-                                    <th>Created</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var ticket in Model.Tickets)
-                                {
-                                    <tr>
-                                        <td><span class="ticket-id">#@ticket.Id</span></td>
-                                        <td>@ticket.Title</td>
-                                        <td>@ticket.Category</td>
-                                        <td>
-                                            <span class="priority-@ticket.Priority.ToLower()">
-                                                @if (ticket.Priority == "High")
-                                                {
-                                                    <i class="bi bi-exclamation-triangle-fill"></i>
-                                                }
-                                                @ticket.Priority
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-@ticket.Status.ToLower().Replace(" ", "")">
-                                                @ticket.Status
-                                            </span>
-                                        </td>
-                                        @if (Model.UserRole != "Client")
-                                        {
-                                            <td>@ticket.SubmittedBy</td>
-                                        }
-                                        @if (Model.UserRole == "Technician")
-                                        {
-                                            <td>@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
-                                        }
-                                        <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
-                                        <td>
-                                            <a href="/Tickets/Details/@ticket.Id" class="btn-view">
-                                                <i class="bi bi-eye"></i> View
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
-                            <p>No tickets to display</p>
+            <div class="dashboard-layout">
+                <section class="panel panel-span" id="schedule">
+                    <div class="panel-header">
+                        <div>
+                            <h3 class="panel-title">Weekly View</h3>
+                            <p class="panel-subtitle">Tap a day to reveal appointments.</p>
                         </div>
-                    }
-                </div>
+                        <div class="panel-actions">
+                            <div class="week-controls">
+                                <button class="week-button" type="button" id="weekPrev" aria-label="Previous week">
+                                    <i data-lucide="chevron-left"></i>
+                                </button>
+                                <button class="week-button" type="button" id="weekNext" aria-label="Next week">
+                                    <i data-lucide="chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="week-days" id="weekDays" data-week-start="@DateTime.Today.ToString("yyyy-MM-dd")">
+                            @for (var i = 0; i < 7; i++)
+                            {
+                                var day = DateTime.Today.AddDays(i);
+                                var isActive = i == 0;
+                                <button class="day-button @(isActive ? "active" : "")" type="button" data-date="@day.ToString("yyyy-MM-dd")">
+                                    <span class="day-label">@day.ToString("ddd")</span>
+                                    <span class="day-number">@day.Day</span>
+                                </button>
+                            }
+                        </div>
+                        <div class="list-stack" id="appointmentList">
+                            @foreach (var appointment in Model.UpcomingAppointments)
+                            {
+                                <div class="list-item" data-date="@appointment.When.ToString("yyyy-MM-dd")">
+                                    <div class="list-title">@appointment.Title</div>
+                                    <div class="list-meta">
+                                        <span>@appointment.When.ToString("MMM dd · h:mm tt")</span>
+                                        <span class="tag">@appointment.Status</span>
+                                        <span>@appointment.Category</span>
+                                    </div>
+                                </div>
+                            }
+                            <div class="appointment-empty" id="appointmentEmpty">No appointments scheduled for this day.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel panel-activity" id="activity">
+                    <div class="panel-header">
+                        <div>
+                            <h3 class="panel-title">Recent Activity</h3>
+                            <p class="panel-subtitle">Latest ticket updates across your queue.</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="list-stack">
+                            @foreach (var activity in Model.RecentActivity)
+                            {
+                                <div class="list-item">
+                                    <div class="list-title">@activity.Title</div>
+                                    <div class="list-meta">
+                                        <span>@activity.TimeStamp.ToString("MMM dd · h:mm tt")</span>
+                                        <span class="tag">@activity.Status</span>
+                                        <span>@activity.Meta</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel panel-tickets" id="tickets">
+                    <div class="panel-header">
+                        <div>
+                            <h3 class="panel-title">@Model.TicketsSectionTitle Snapshot</h3>
+                            <p class="panel-subtitle">Top 10 most recently updated tickets.</p>
+                        </div>
+                        <div class="panel-actions">
+                            <a href="@Model.TicketsViewAllUrl" class="btn btn-secondary">View all</a>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="filter-bar">
+                            <div class="filter-group">
+                                <input class="filter-input" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                                <select class="filter-select" aria-label="Filter by status">
+                                    <option selected>All statuses</option>
+                                    <option>Submitted</option>
+                                    <option>In Progress</option>
+                                    <option>Assigned</option>
+                                    <option>Completed</option>
+                                </select>
+                                <select class="filter-select" aria-label="Filter by priority">
+                                    <option selected>All priorities</option>
+                                    <option>High</option>
+                                    <option>Medium</option>
+                                    <option>Low</option>
+                                </select>
+                                <select class="filter-select" aria-label="Sort tickets">
+                                    <option selected>Sort: last updated</option>
+                                    <option>Sort: newest</option>
+                                    <option>Sort: oldest</option>
+                                    <option>Sort: priority</option>
+                                </select>
+                            </div>
+                            <div class="filter-spacer"></div>
+                            <div class="filter-group">
+                                <button class="btn btn-ghost" type="button">Clear filters</button>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            @if (Model.RecentTickets != null && Model.RecentTickets.Any())
+                            {
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Ticket ID</th>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Priority</th>
+                                            <th>Status</th>
+                                            @if (Model.UserRole != "Client")
+                                            {
+                                                <th>Submitted By</th>
+                                            }
+                                            @if (Model.UserRole == "Technician")
+                                            {
+                                                <th>Due Date</th>
+                                            }
+                                            <th>Created</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var ticket in Model.RecentTickets)
+                                        {
+                                            <tr>
+                                                <td><span class="ticket-id">#@ticket.Id</span></td>
+                                                <td>@ticket.Title</td>
+                                                <td>@ticket.Category</td>
+                                                <td>
+                                                    <span class="priority-text @ticket.Priority.ToLower()">
+                                                        @ticket.Priority
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    @{
+                                                        var statusClass = ticket.Status.ToLower().Replace(" ", "");
+                                                        var statusIcon = statusClass switch
+                                                        {
+                                                            "submitted" => "circle",
+                                                            "inreview" => "clock",
+                                                            "assigned" => "user-check",
+                                                            "inprogress" => "loader",
+                                                            "onhold" => "pause-circle",
+                                                            "completed" => "check-circle",
+                                                            "cancelled" => "x-circle",
+                                                            _ => "circle-dot"
+                                                        };
+                                                    }
+                                                    <i class="status-icon @statusClass" data-lucide="@statusIcon" title="@ticket.Status"></i>
+                                                </td>
+                                                @if (Model.UserRole != "Client")
+                                                {
+                                                    <td>@ticket.SubmittedBy</td>
+                                                }
+                                                @if (Model.UserRole == "Technician")
+                                                {
+                                                    <td>@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
+                                                }
+                                                <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    <a href="/Tickets/Details/@ticket.Id" class="icon-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
+                                                        <i data-lucide="eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i data-lucide="inbox"></i>
+                                    <p>No tickets to display</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </main>
 </div>
+
+<script>
+    const weekDays = document.getElementById("weekDays");
+    const appointmentList = document.getElementById("appointmentList");
+    const appointmentEmpty = document.getElementById("appointmentEmpty");
+    const weekPrev = document.getElementById("weekPrev");
+    const weekNext = document.getElementById("weekNext");
+    let currentWeekStart = new Date();
+
+    const updateAppointments = (date) => {
+        if (!appointmentList || !appointmentEmpty) {
+            return;
+        }
+
+        let matches = 0;
+        appointmentList.querySelectorAll(".list-item").forEach((item) => {
+            const itemDate = item.getAttribute("data-date");
+            const show = itemDate === date;
+            item.style.display = show ? "flex" : "none";
+            if (show) {
+                matches += 1;
+            }
+        });
+
+        appointmentEmpty.style.display = matches ? "none" : "block";
+    };
+
+    const updateWeekButtons = (startDate) => {
+        currentWeekStart = new Date(startDate);
+        if (!weekDays) {
+            return;
+        }
+
+        const dayButtons = Array.from(weekDays.querySelectorAll(".day-button"));
+        dayButtons.forEach((button, index) => {
+            const date = new Date(startDate);
+            date.setDate(date.getDate() + index);
+            const iso = date.toISOString().slice(0, 10);
+            button.setAttribute("data-date", iso);
+            button.querySelector(".day-label").textContent = date.toLocaleDateString(undefined, { weekday: "short" });
+            button.querySelector(".day-number").textContent = date.getDate();
+        });
+
+        dayButtons.forEach((button, index) => {
+            button.classList.toggle("active", index === 0);
+        });
+
+        updateAppointments(dayButtons[0].getAttribute("data-date"));
+    };
+
+    if (weekDays) {
+        weekDays.addEventListener("click", (event) => {
+            const button = event.target.closest(".day-button");
+            if (!button) {
+                return;
+            }
+            weekDays.querySelectorAll(".day-button").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+            updateAppointments(button.getAttribute("data-date"));
+        });
+    }
+
+    if (weekPrev && weekNext) {
+        const changeWeek = (direction) => {
+            const startDate = new Date(currentWeekStart);
+            startDate.setDate(startDate.getDate() + direction * 7);
+            updateWeekButtons(startDate);
+        };
+
+        weekPrev.addEventListener("click", () => changeWeek(-1));
+        weekNext.addEventListener("click", () => changeWeek(1));
+    }
+
+    if (weekDays) {
+        const firstDate = weekDays.querySelector(".day-button")?.getAttribute("data-date");
+        if (firstDate) {
+            currentWeekStart = new Date(firstDate);
+            updateAppointments(firstDate);
+        }
+    }
+</script>

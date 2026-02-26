@@ -1,0 +1,32 @@
+@page
+@model fixflow.web.Pages.Admin.StatusCodeCreateModel
+@{
+    ViewData["Title"] = "Add Status Code";
+}
+
+<div class="page-shell">
+    <div class="page-header">
+        <h1 class="page-title"><i data-lucide="flag"></i> Add Status Code</h1>
+        <p class="page-subtitle">Create a new status label for tickets.</p>
+    </div>
+
+    <div class="card">
+        <form method="post" class="form-stack">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="Input.StatusCode">Status Code</label>
+                    <input asp-for="Input.StatusCode" type="number" min="0" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.StatusName">Status Name</label>
+                    <input asp-for="Input.StatusName" type="text" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Save Status Code</button>
+                <a class="btn btn-secondary" asp-page="./StatusCodes">Back to Status Codes</a>
+            </div>
+        </form>
+    </div>
+</div>

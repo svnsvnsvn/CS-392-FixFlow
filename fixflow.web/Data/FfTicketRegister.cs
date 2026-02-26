@@ -17,7 +17,11 @@
         public int TicketStatus { get; set; }
         public FfPriorityCodes? PriorityCode { get; set; }
         public int TicketPriority { get; set; }
+<<<<<<< HEAD
         public string TicketSubject { get; set; } = string.Empty;
         public string TicketDescription { get; set; } = string.Empty;
+=======
+        public DateTime? DueDate { get; set; }
+>>>>>>> origin/ZZ-development/dashboard-refresh
     }
 }

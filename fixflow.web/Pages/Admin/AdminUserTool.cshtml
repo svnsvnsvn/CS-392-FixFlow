@@ -15,7 +15,7 @@
         overflow-x: auto;
         background: white;
         border: 1px solid var(--line);
-        border-radius: var(--radius-lg);
+        border-radius: 0;
         box-shadow: var(--shadow);
     }
 
@@ -35,69 +35,10 @@
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        color: var(--muted);
-        border-bottom: 2px solid var(--line);
-    }
 
-    .admin-table td {
-        padding: 12px;
-    }
-
-    .admin-table tbody tr:hover {
-        background: var(--bg-2);
-    }
-
-    .filter-row th {
-        padding: 8px;
-        background: var(--surface);
-    }
-
-    .filter-row input[type="checkbox"] {
-        cursor: pointer;
-    }
-
-    .admin-table input[type="radio"],
-    .admin-table input[type="checkbox"] {
-        cursor: pointer;
-        width: 18px;
-        height: 18px;
-    }
-
-    .admin-table button {
-        font-size: 0.875rem;
-        padding: 6px 12px;
-    }
-
-    .u-hidden {
-        opacity: 0.5;
-    }
-</style>
-
-<form method="post">
-    @Html.AntiForgeryToken()
-</form>
-
-<div class="admin-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-shield-lock-fill"></i> Administrator Tools</h1>
-        <p class="page-subtitle">Welcome @User.Identity?.Name</p>
-    </div>
-
-    <div class="admin-table-wrap">
-        <table class="admin-table">
-            <thead>
-                <tr align="center">
-                    <th rowspan="2"><i class="bi bi-person"></i> UserName</th>
-                    <th rowspan="2"><i class="bi bi-envelope"></i> E-Mail</th>
-                    <th><i class="bi bi-hourglass"></i> Pending</th>
-                    <th><i class="bi bi-house"></i> Resident</th>
-                    <th><i class="bi bi-person-badge"></i> Employee</th>
-                    <th><i class="bi bi-briefcase"></i> Manager</th>
-                    <th><i class="bi bi-shield-check"></i> Administrator</th>
-                    <th rowspan="2"><i class="bi bi-lock"></i> Locked Out</th>
-                    <th rowspan="2"><i class="bi bi-key"></i> Password</th>
-                    <th rowspan="2"><i class="bi bi-check-circle"></i> Apply</th>
+        @section Styles {
+            <link rel="stylesheet" href="~/css/admin.css" />
+        }
                 </tr>
                 <tr class="filter-row" align="center">
                     <th><input type="checkbox" id="filter-Pending" name="filter-Pending" value="Show" checked></th>
@@ -137,10 +78,10 @@
                             <input type="checkbox" id="lcko-@user.Id" name="lcko-@user.Id" value="Lockedout" @(user.LockoutEnabled ? "checked" : "")>
                         </td>
                         <td align="center">
-                            <button type="button" id="pRst-@user.Id"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+                            <button type="button" id="pRst-@user.Id"><i data-lucide="refresh-cw"></i> Reset</button>
                         </td>
                         <td align="center">
-                            <button type="button" class="btn-ghost u-hidden" id="aply-@user.Id"><i class="bi bi-check"></i> Apply</button>
+                            <button type="button" class="btn-ghost u-hidden" id="aply-@user.Id"><i data-lucide="check"></i> Apply</button>
                         </td>
                     </tr>
                 }

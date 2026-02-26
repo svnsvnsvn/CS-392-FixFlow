@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using fixflow.web.Data;
 
-namespace fixflow.Web.Pages.Account;
+namespace fixflow.web.Pages.Account;
 
 public class LoginModel : PageModel
 {
@@ -37,10 +37,9 @@ public class LoginModel : PageModel
         string userName,
         string password)
     {
-        _logger.LogCritical(
-            "POST user={User} passLen={Len}",
-            userName,
-            password?.Length ?? -1
+        _logger.LogInformation(
+            "Login attempt for user={User}",
+            userName
         );
 
         var result = await _signInManager.PasswordSignInAsync(

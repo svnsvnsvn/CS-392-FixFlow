@@ -1,80 +1,58 @@
-﻿@page
-@model fixflow.Web.Pages.Account.LoginModel
+@page
+@model fixflow.web.Pages.Account.LoginModel
 @{
     ViewData["Title"] = "Login - FixFlow";
-    Layout = null;
+    Layout = "_Layout";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="~/css/site.css" />
-</head>
-<body>
-    <div class="auth-shell">
-        <div class="login-container">
-            <div class="logo-section">
-                <div class="logo-text">FixFlow</div>
-                <div class="logo-subtitle">Maintenance Request System</div>
+<div class="auth-shell">
+    <div class="login-container">
+        <div class="logo-section">
+            <div class="logo-text">FixFlow</div>
+            <div class="logo-subtitle">Maintenance Request System</div>
+        </div>
+
+        @if (Model.LoginFailed)
+        {
+            <div class="error-message">
+                <span class="error-icon">⚠️</span>
+                <span>Invalid username or password. Please try again.</span>
+            </div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input name="userName"
+                       type="text"
+                       id="username"
+                       placeholder="Enter your username"
+                       autocomplete="username"
+                       required />
             </div>
 
-            @if (!ModelState.IsValid)
-            {
-                <div class="error-message">
-                    <i class="bi bi-exclamation-triangle error-icon"></i>
-                    <div>
-                        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                        {
-                            <div>@error.ErrorMessage</div>
-                        }
-                    </div>
-                </div>
-            }
-
-            <form method="post">
-                @Html.AntiForgeryToken()
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input name="userName"
-                           type="text" 
-                           id="username" 
-                           placeholder="Enter your username"
-                           autocomplete="username"
-                           required />
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input name="password"
-                           type="password" 
-                           id="password" 
-                           placeholder="Enter your password"
-                           autocomplete="current-password"
-                           required />
-                </div>
-
-                <button type="submit" class="btn-login">
-                    <i class="bi bi-box-arrow-in-right"></i> Sign In
-                </button>
-            </form>
-
-            <div class="divider"></div>
-
-            <div class="footer-text">
-                <a asp-page="./NewUser"><i class="bi bi-person-plus"></i> Create account</a>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input name="password"
+                       type="password"
+                       id="password"
+                       placeholder="Enter your password"
+                       autocomplete="current-password"
+                       required />
             </div>
 
-            <div class="footer-text">
-                Secure access to your maintenance dashboard
-            </div>
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+
+        <div class="divider"></div>
+
+        <div class="footer-text">
+            <a asp-page="./NewUser">Create account</a>
+        </div>
+
+        <div class="footer-text">
+            Secure access to your maintenance dashboard
         </div>
     </div>
-</body>
-</html>
+</div>

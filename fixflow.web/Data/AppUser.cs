@@ -6,5 +6,5 @@ public class AppUser : IdentityUser
 {
     // Optional extra fields
     public bool ResetPassOnLogin { get; set; } = false;          // Account locked for password change, not hard locked
-    public DateTime PasswordExpire {  get; set; } = DateTime.Now + TimeSpan.FromDays(60);
+    public DateTime PasswordExpire {  get; set; } = DateTime.UtcNow.AddDays(60);
 }

@@ -6,14 +6,14 @@
 
 <div class="page-shell">
     <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-flag"></i> Manage Status Codes</h1>
+        <h1 class="page-title"><i data-lucide="flag"></i> Manage Status Codes</h1>
         <p class="page-subtitle">Configure status options for ticket workflow</p>
     </div>
 
     <div class="toolbar">
         <div></div>
         <a asp-page="./StatusCodeCreate" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add New Status Code
+            <i data-lucide="plus-circle"></i> Add New Status Code
         </a>
     </div>
 
@@ -23,19 +23,19 @@
             <table>
                 <thead>
                     <tr>
-                        <th><i class="bi bi-hash"></i> Code</th>
-                        <th><i class="bi bi-flag"></i> Status Name</th>
-                        <th><i class="bi bi-pencil-square"></i> Actions</th>
+                        <th><i data-lucide="hash"></i> Code</th>
+                        <th><i data-lucide="flag"></i> Status Name</th>
+                        <th><i data-lucide="edit"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var status in Model.StatusCodes)
                     {
                         <tr>
-                            <td>@status.Id</td>
+                            <td>@status.Code</td>
                             <td>@status.StatusName</td>
                             <td>
-                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                                <a href="#" class="btn btn-ghost"><i data-lucide="pencil"></i> Edit</a>
                             </td>
                         </tr>
                     }
@@ -45,7 +45,7 @@
         else
         {
             <div class="placeholder">
-                <i class="bi bi-flag" style="font-size: 3rem; opacity: 0.3;"></i>
+                <i data-lucide="flag" class="icon-lg icon-faded"></i>
                 <p>No status codes configured yet. Click "Add New Status Code" to get started.</p>
             </div>
         }
