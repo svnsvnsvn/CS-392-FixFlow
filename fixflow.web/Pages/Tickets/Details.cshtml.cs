@@ -89,7 +89,7 @@ namespace fixflow.web.Pages.Tickets
 
             var statusCodes = await _context.FfStatusCodes
                 .AsNoTracking()
-                .ToDictionaryAsync(code => code.Code, code => code.StatusName);
+                .ToDictionaryAsync(code => code.Id, code => code.StatusName);
 
             var createdDate = flows.Select(flow => flow.TimeStamp).FirstOrDefault();
             var lastFlow = flows.LastOrDefault();
@@ -123,7 +123,7 @@ namespace fixflow.web.Pages.Tickets
                     : null
             };
 
-            PublicComments = await _context.FfExternalNotes
+            PublicComments = await _context.FfExternalNotess
                 .Where(note => note.TicketId == ticket.TicketId)
                 .OrderByDescending(note => note.TimeStamp)
                 .AsNoTracking()
@@ -137,7 +137,7 @@ namespace fixflow.web.Pages.Tickets
                 })
                 .ToListAsync();
 
-            InternalNotes = await _context.FfInternalNotes
+            InternalNotes = await _context.FfInternalNotess
                 .Where(note => note.TicketId == ticket.TicketId)
                 .OrderByDescending(note => note.TimeStamp)
                 .AsNoTracking()
@@ -302,7 +302,7 @@ namespace fixflow.web.Pages.Tickets
                 userRole,
                 ticket.TicketId,
                 SelectedTechnicianId,
-                assignedStatus.Code
+                assignedStatus.Id
             );
 
             if (!result.Success)
@@ -319,35 +319,36 @@ namespace fixflow.web.Pages.Tickets
 
         // ViewModels
         public class TicketDetailViewModel
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public string Priority { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public string Building { get; set; } = string.Empty;
-        public string RoomNumber { get; set; } = string.Empty;
-        public string SubmittedBy { get; set; } = string.Empty;
-        public string? AssignedTo { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? DueDate { get; set; }
-        public DateTime? CompletedDate { get; set; }
-    }
+        {
+            public string Id { get; set; } = string.Empty;
+            public string Title { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public string Status { get; set; } = string.Empty;
+            public string Priority { get; set; } = string.Empty;
+            public string Category { get; set; } = string.Empty;
+            public string Building { get; set; } = string.Empty;
+            public string RoomNumber { get; set; } = string.Empty;
+            public string SubmittedBy { get; set; } = string.Empty;
+            public string? AssignedTo { get; set; }
+            public DateTime CreatedDate { get; set; }
+            public DateTime? DueDate { get; set; }
+            public DateTime? CompletedDate { get; set; }
+        }
 
-    public class CommentViewModel
-    {
-        public string AuthorName { get; set; } = string.Empty;
-        public string AuthorRole { get; set; } = string.Empty;
-        public string Text { get; set; } = string.Empty;
-        public DateTime CreatedDate { get; set; }
-        public bool IsInternal { get; set; }
-    }
+        public class CommentViewModel
+        {
+            public string AuthorName { get; set; } = string.Empty;
+            public string AuthorRole { get; set; } = string.Empty;
+            public string Text { get; set; } = string.Empty;
+            public DateTime CreatedDate { get; set; }
+            public bool IsInternal { get; set; }
+        }
 
-    public class ActivityViewModel
-    {
-        public string Action { get; set; } = string.Empty;
-        public string PerformedBy { get; set; } = string.Empty;
-        public DateTime Timestamp { get; set; }
+        public class ActivityViewModel
+        {
+            public string Action { get; set; } = string.Empty;
+            public string PerformedBy { get; set; } = string.Empty;
+            public DateTime Timestamp { get; set; }
+        }
     }
 }

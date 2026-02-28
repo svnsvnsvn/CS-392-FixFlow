@@ -106,7 +106,7 @@ namespace fixflow.web.Pages.Tickets
                 TicketTroubleType = Input.TicketTypeCode,
                 PriorityCode = 2, // Default to Normal priority (you may want to make this configurable)
                 TicketPriority = 2, // Same as PriorityCode
-                TicketStatus = submittedStatus.Code,
+                TicketStatus = submittedStatus.Id,
                 TicketSubject = $"Ticket for Unit {Input.Unit}", // Generate from description or make it a field
                 TicketDescription = Input.Description
             };
@@ -126,7 +126,7 @@ namespace fixflow.web.Pages.Tickets
 
         private async Task LoadDropdownData()
         {
-            Buildings = await _context.FfBuildingDirectories
+            Buildings = await _context.FfBuildingDirectorys
                 .Where(b => b.LocationName != "Unassigned")
                 .OrderBy(b => b.LocationName)
                 .Select(b => new SelectListItem
@@ -136,11 +136,11 @@ namespace fixflow.web.Pages.Tickets
                 })
                 .ToListAsync();
 
-            TicketTypes = await _context.FfTicketTypes
+            TicketTypes = await _context.FfTicketTypess
                 .OrderBy(t => t.TypeName)
                 .Select(t => new SelectListItem
                 {
-                    Value = t.Code.ToString(),
+                    Value = t.Id.ToString(),
                     Text = t.TypeName
                 })
                 .ToListAsync();

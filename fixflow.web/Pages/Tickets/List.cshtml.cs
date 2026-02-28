@@ -23,7 +23,7 @@ namespace fixflow.web.Pages.Tickets
         }
 
         public IList<FfTicketRegister> Tickets { get; set; } = default!;
-        public Dictionary<Guid, string> TicketAssignees { get; set} = new();
+        public Dictionary<Guid, string> TicketAssignees { get; set;  } = new();
 
         public async Task OnGetAsync()
         {
@@ -94,7 +94,7 @@ namespace fixflow.web.Pages.Tickets
                 userRole,
                 ticketId,
                 user.Id, // Assign to self
-                assignedStatus.Code
+                assignedStatus.Id
             );
 
             if (!result.Success)

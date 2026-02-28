@@ -214,7 +214,7 @@ namespace fixflow.web.Pages
                 })
                 .ToList();
 
-            var statusLookup = statusCodes.ToDictionary(code => code.Code, code => code.StatusName);
+            var statusLookup = statusCodes.ToDictionary(code => code.Id, code => code.StatusName);
 
             RecentActivity = flows
                 .OrderByDescending(flow => flow.TimeStamp)

@@ -1,3 +1,5 @@
+@using fixflow.web.Data 
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<AppUser> SignInManager
 @{
     var signedIn = SignInManager.IsSignedIn(User);
