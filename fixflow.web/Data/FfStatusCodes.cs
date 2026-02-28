@@ -2,7 +2,8 @@
 {
     public class FfStatusCodes
     {
-        public int Code { get; set; }
+        public int Id { get; set; }
+        public int StatusCode { get; set; } = 0;
         public string StatusName { get; set; } = string.Empty;
     }
 }

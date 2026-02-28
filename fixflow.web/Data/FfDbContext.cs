@@ -14,19 +14,15 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
     // Data tables
     public DbSet<FfUserProfile> FfUserProfiles { get; set; } = default!;
-    public DbSet<FfBuildingDirectory> FfBuildingDirectories { get; set; } = default!;
-    public DbSet<FfExternalNotes> FfExternalNotes { get; set; } = default!;
-    public DbSet<FfInternalNotes> FfInternalNotes { get; set; } = default!;
-    public DbSet<FfPriorityCodes> FfPriorityCodes { get; set; } = default!;
+    public DbSet<FfBuildingDirectory> FfBuildingDirectorys { get; set; } = default!;
+    public DbSet<FfExternalNotes> FfExternalNotess { get; set; } = default!;
+    public DbSet<FfInternalNotes> FfInternalNotess { get; set; } = default!;
+    public DbSet<FfPriorityCodes> FfPriorityCodess { get; set; } = default!;
     public DbSet<FfStatusCodes> FfStatusCodes { get; set; } = default!;
     public DbSet<FfTicketFlow> FfTicketFlows { get; set; } = default!;
     public DbSet<FfTicketRegister> FfTicketRegisters { get; set; } = default!;
-<<<<<<< HEAD
     public DbSet<FfTicketTypes> FfTicketTypess { get; set; } = default!;
     public DbSet<FfTicketShortCodeConstructor> FfTicketConstructoror { get; set; } = default!;
-=======
-    public DbSet<FfTicketTypes> FfTicketTypes { get; set; } = default!;
->>>>>>> origin/ZZ-development/dashboard-refresh
 
     protected override void OnModelCreating(ModelBuilder builder)       
     {
@@ -67,9 +63,6 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
 
         // *** FfBuildingDirectory ***
-        builder.Entity<FfBuildingDirectory>()
-            .ToTable("FfBuildingDirectorys");           // Map to existing table name
-
         builder.Entity<FfBuildingDirectory>()            // Primary Key
             .HasKey(b => b.LocationCode);
 
@@ -102,45 +95,36 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
 
         // *** FfTicketTypes ***
-        builder.Entity<FfTicketTypes>()
-            .ToTable("FfTicketTypess");                 // Map to existing table name
-
         builder.Entity<FfTicketTypes>()                   // Primary Key
-            .HasKey(c => c.Code);
+            .HasKey(c => c.Id);
 
         builder.Entity<FfTicketTypes>()                  // Ensure Code is incrementing.
-            .Property(c => c.Code)
+            .Property(c => c.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfStatusCodes ***
         builder.Entity<FfStatusCodes>()                   // Primary Key
-            .HasKey(d => d.Code);
+            .HasKey(d => d.Id);
 
         builder.Entity<FfStatusCodes>()                  // Ensure Code is incrementing.
-            .Property(d => d.Code)
+            .Property(d => d.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfPriorityCodes ***
-        builder.Entity<FfPriorityCodes>()
-            .ToTable("FfPriorityCodess");                // Map to existing table name
-
         builder.Entity<FfPriorityCodes>()                   // Primary Key
-            .HasKey(e => e.Code);
+            .HasKey(e => e.Id);
 
         builder.Entity<FfPriorityCodes>()                  // Ensure Code is incrementing.
-            .Property(e => e.Code)
+            .Property(e => e.Id)
             .UseIdentityColumn();
 
 
 
         // *** FfInternalNotes ***
-        builder.Entity<FfInternalNotes>()
-            .ToTable("FfInternalNotess");                // Map to existing table name
-
         builder.Entity<FfInternalNotes>()                   // Primary Key
             .HasKey(f => f.INoteId);
 
@@ -157,9 +141,6 @@ public class FfDbContext : IdentityDbContext<AppUser>
 
 
         // *** FfExternalNotes ***
-        builder.Entity<FfExternalNotes>()
-            .ToTable("FfExternalNotess");                // Map to existing table name
-
         builder.Entity<FfExternalNotes>()                   // Primary Key
             .HasKey(g => g.XNoteId);
 

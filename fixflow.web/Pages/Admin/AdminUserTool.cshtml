@@ -3,42 +3,28 @@
 @{
     ViewData["Title"] = "Administrator Tools";  
 }
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" />
+}
+
 <script src="~/js/userManager.js"></script>
 
-<style>
-    /* Admin User Management Styling */
-    .admin-shell {
-        max-width: 100%;
-    }
-
-    .admin-table-wrap {
-        overflow-x: auto;
-        background: white;
-        border: 1px solid var(--line);
-        border-radius: 0;
-        box-shadow: var(--shadow);
-    }
-
-    .admin-table {
-        width: 100%;
-        min-width: 900px;
-    }
-
-    .admin-table thead {
-        background: var(--bg-2);
-        position: sticky;
-        top: 0;
-    }
-
-    .admin-table th {
-        padding: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-
-        @section Styles {
-            <link rel="stylesheet" href="~/css/admin.css" />
-        }
+<div class="admin-shell">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr align="center">
+                    <th>User Name</th>
+                    <th>Email</th>
+                    <th>Pending</th>
+                    <th>Resident</th>
+                    <th>Employee</th>
+                    <th>Manager</th>
+                    <th>Admin</th>
+                    <th>Locked Out</th>
+                    <th>Password</th>
+                    <th>Apply</th>
                 </tr>
                 <tr class="filter-row" align="center">
                     <th><input type="checkbox" id="filter-Pending" name="filter-Pending" value="Show" checked></th>
@@ -78,10 +64,10 @@
                             <input type="checkbox" id="lcko-@user.Id" name="lcko-@user.Id" value="Lockedout" @(user.LockoutEnabled ? "checked" : "")>
                         </td>
                         <td align="center">
-                            <button type="button" id="pRst-@user.Id"><i data-lucide="refresh-cw"></i> Reset</button>
+                            <button type="button" id="pRst-@user.Id"><i class="bi bi-arrow-repeat"></i> Reset</button>
                         </td>
                         <td align="center">
-                            <button type="button" class="btn-ghost u-hidden" id="aply-@user.Id"><i data-lucide="check"></i> Apply</button>
+                            <button type="button" class="btn-ghost u-hidden" id="aply-@user.Id"><i class="bi bi-check"></i> Apply</button>
                         </td>
                     </tr>
                 }

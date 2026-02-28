@@ -35,18 +35,24 @@
 
 .admin-table td {
     padding: 12px;
+    border-bottom: 1px solid var(--line);
 }
 
 .admin-table tbody tr:hover {
     background: var(--bg-2);
 }
 
-.filter-row th {
-    padding: 8px;
-    background: var(--surface);
+.admin-table .filter-row {
+    background: var(--bg-1);
 }
 
-.filter-row input[type="checkbox"] {
+.admin-table .filter-row th {
+    padding: 8px;
+    background: var(--surface);
+    font-weight: normal;
+}
+
+.admin-table.filter-row input[type="checkbox"] {
     cursor: pointer;
 }
 
@@ -58,5 +64,23 @@
 }
 
 .admin-table button {
+    padding: 6px 12px;
     font-size: 0.875rem;
+    border: 1px solid var(--line);
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-table button:hover {
+    background: var(--bg-1);
+}
+
+.admin-table button i {
+    margin-right: 4px;
+}
+
+.u-hidden {
+    display: none;
 }

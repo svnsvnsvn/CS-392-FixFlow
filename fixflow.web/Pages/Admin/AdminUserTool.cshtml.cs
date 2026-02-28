@@ -7,21 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using fixflow.web.Data;
-<<<<<<< HEAD
 using fixflow.web.Domain.Enums;
-=======
-using fixflow.web.Domain.Constants;
->>>>>>> origin/ZZ-development/dashboard-refresh
-
 
 namespace fixflow.web.Pages.Admin
 
 {
-<<<<<<< HEAD
         [Authorize(Roles = nameof(RoleTypes.Admin))] // Restrict access to only admin users
-=======
-        [Authorize(Roles = RoleNames.Admin)] // Restrict access to only admin users
->>>>>>> origin/ZZ-development/dashboard-refresh
         public class AdminUserToolModel : PageModel
         {
             private readonly UserManager<AppUser> _userManager;
@@ -31,6 +22,7 @@ namespace fixflow.web.Pages.Admin
             {
                 _userManager = userManager;
                 _roleManager = roleManager;
+                Users = new List<AppUser>();
             }
 
             public async Task<string> GetUserRoleAsync(AppUser user)
@@ -44,34 +36,16 @@ namespace fixflow.web.Pages.Admin
                 using var reader = new StreamReader(Request.Body);
                 var body = await reader.ReadToEndAsync();
                 var data = JsonSerializer.Deserialize<DataMule>(body);
+                if (data == null)
+                {
+                    return new JsonResult(new { success = false, reason = "Invalid request data." })
+                    {
+                        StatusCode = 400
+                    };
+                }
                 bool changedPassword = false;
                 bool changedLockout = false;
                 bool changedRole = false;
-
-                if (data == null || string.IsNullOrWhiteSpace(data.UserID))
-                {
-                    return new JsonResult(new { success = false, reason = "Invalid request payload." })
-                    {
-                        StatusCode = 400
-                    };
-                }
-
-                var allowedRoles = new HashSet<string>
-                {
-                    RoleNames.Admin,
-                    RoleNames.Manager,
-                    RoleNames.Employee,
-                    RoleNames.Resident,
-                    RoleNames.Pending
-                };
-
-                if (!string.IsNullOrWhiteSpace(data.NewRole) && !allowedRoles.Contains(data.NewRole))
-                {
-                    return new JsonResult(new { success = false, reason = "Invalid role." })
-                    {
-                        StatusCode = 400
-                    };
-                }
 
                 //Write to DB here using data.
                 var userToModify = await _userManager.FindByIdAsync(data.UserID);     // Find user in DB
@@ -138,12 +112,12 @@ namespace fixflow.web.Pages.Admin
             }
             else  // 1 or 0 roles currently assigned
             {
-                if ((userToModifyRole == null) && (data.NewRole == RoleNames.Pending))
+                if ((userToModifyRole == null) && (data.NewRole == "Pending"))
                 {
                     changeRole = false;
                 }
                 
-                if (userToModifyRole.FirstOrDefault() == data.NewRole)
+                if (userToModifyRole != null && userToModifyRole.FirstOrDefault() == data.NewRole)
                 {
                     changeRole = false;
                 }
@@ -151,9 +125,12 @@ namespace fixflow.web.Pages.Admin
             if (changeRole)     // If role was not identical to current, or there were more than one roles, then remove all roles and add new role only
             {
                 // Remove all roles found
-                await _userManager.RemoveFromRolesAsync(userToModify, userToModifyRole);
+                if (userToModifyRole?.Count() > 0)
+                {
+                    await _userManager.RemoveFromRolesAsync(userToModify, userToModifyRole);
+                }
                 // Add new role received
-                if (data.NewRole != RoleNames.Pending)
+                if (data.NewRole != "Pending")
                 {
                     await _userManager.AddToRoleAsync(userToModify, data.NewRole);
                     changedRole = true;
