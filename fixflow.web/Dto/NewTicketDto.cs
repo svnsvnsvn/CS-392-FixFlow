@@ -4,7 +4,6 @@ namespace fixflow.web.Dto
 {
     public class NewTicketDto
     {
-        public string TicketShortCode { get; set; } = string.Empty;
         public string RequestedBy { get; set; } = string.Empty;
         public int Location { get; set; }
         public int Unit { get; set; }

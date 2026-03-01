@@ -109,7 +109,6 @@ namespace fixflow.web.Pages.Tickets
             // Map to the DTO that the real backend expects
             var newTicketDto = new NewTicketDto
             {
-                TicketShortCode = null, // Let backend generate
                 RequestedBy = string.IsNullOrEmpty(Input.ResidentId) ? null : Input.ResidentId,
                 Location = Input.LocationCode,
                 Unit = Input.Unit,

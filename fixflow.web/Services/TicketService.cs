@@ -40,12 +40,15 @@ namespace fixflow.web.Services
 
                 // Validate new ticket info and create record
                 var newTicket = new FfTicketRegister();
-                newTicket.TicketId = new Guid();
+                newTicket.TicketId = Guid.NewGuid();
 
-                if (_newTicketData.TicketShortCode == null)
+                var result = await GetNextShortCode();
+                if ((result == null) || (!result.Success))
                 {
-                    // ******************* Generate a ticket shortcode ***************
+                    return ServiceResult<Guid>.Fail("Could not create new short code");
                 }
+                newTicket.TicketShortCode = result.Data;
+                   
 
                 // Store requestor who called this as creator of ticket
                 newTicket.EnteredBy = _requestorId;
@@ -126,7 +129,7 @@ namespace fixflow.web.Services
 
                 newTicketFlow.TicketId = newTicket.TicketId;
                 newTicketFlow.NewTicketStatus = newTicket.TicketStatus;
-                newTicketFlow.NewAssignee = null;
+                newTicketFlow.NewAssignee = _requestorId;
                 newTicketFlow.TimeStamp = DateTime.UtcNow;
 
 
@@ -388,6 +391,30 @@ namespace fixflow.web.Services
                 return ServiceResult<string>.Fail(ex.Message);
             }
 
+        }
+
+        public async Task<ServiceResult<string>> GetNextShortCode()
+        {
+            try
+            {
+                var ticketSeriesData = await _db.FfTicketConstructoror.SingleAsync(a => a.SeriesIsActive == true);
+
+                string newShortCode = ticketSeriesData.TicketPrefix +
+                    "-" + ticketSeriesData.TicketSeries.ToString() +
+                    "-" + (ticketSeriesData.LastTicketUsed + 1).ToString();
+
+                ticketSeriesData.LastTicketUsed++;
+
+                await _db.SaveChangesAsync();
+
+                return ServiceResult<string>.Ok(newShortCode);
+
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<string>.Fail(ex.Message);
+            }
         }
     }
 }
