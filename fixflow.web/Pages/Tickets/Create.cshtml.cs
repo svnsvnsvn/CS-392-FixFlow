@@ -126,20 +126,32 @@ namespace fixflow.web.Pages.Tickets
 
         private async Task LoadDropdownData()
         {
-            Buildings = await _context.FfBuildingDirectorys
-                .Where(b => b.LocationName != "Unassigned")
-                .OrderBy(b => b.LocationName)
-                .Select(b => new SelectListItem
-                {
-                    Value = b.LocationCode.ToString(),
-                    Text = b.LocationName
-                })
-                .ToListAsync();
-
-            var result = await _ticketService.GetTicketTypes();
-            if (result.Success)
+            var buildingResult = await _ticketService.GetBuildings();
+            if ((buildingResult.Success)&&(buildingResult.Data != null))
             {
-                TicketTypes = result.Data.Select(t => new SelectListItem 
+                Buildings = await _context.FfBuildingDirectorys
+                    .Where(b => b.LocationName != "Unassigned")
+                    .OrderBy(b => b.LocationName)
+                    .Select(b => new SelectListItem
+                    {
+                        Value = b.LocationCode.ToString(),
+                        Text = b.LocationName + " (#" + b.BuildingNumber + ")"
+                    })
+                    .ToListAsync();
+            }
+            else
+            {
+                TicketTypes.Add(new SelectListItem
+                {
+                    Value = "X",
+                    Text = buildingResult.Error
+                });
+            }
+
+            var ticketTypeResult = await _ticketService.GetTicketTypes();
+            if ((ticketTypeResult.Success) && (ticketTypeResult.Data != null))
+            {
+                TicketTypes = ticketTypeResult.Data.Select(t => new SelectListItem 
                 { 
                     Value = t.Id.ToString(),
                     Text = t.TypeName
@@ -150,7 +162,7 @@ namespace fixflow.web.Pages.Tickets
                 TicketTypes.Add(new SelectListItem
                 {
                     Value = "X",
-                    Text = "No Issue Types found."
+                    Text = ticketTypeResult.Error
                 });
             }
 

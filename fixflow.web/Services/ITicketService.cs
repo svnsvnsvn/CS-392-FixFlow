@@ -10,6 +10,7 @@ namespace fixflow.web.Services
         Task<ServiceResult<bool>> UpdateTicket(string _requestorId, RoleTypes _requestorRole, UpdateTicketDto _updateTicketData);
         Task<ServiceResult<long>> ReassignTicket(string _requestorId, RoleTypes _requestorRole, Guid _ticketIdToUpdate, string _newAssigneeId, int _newStatus);
         Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypes();
+        Task<ServiceResult<List<BuildingDto>>> GetBuildings();
 
     }
 }

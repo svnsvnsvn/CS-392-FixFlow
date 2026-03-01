@@ -303,5 +303,38 @@ namespace fixflow.web.Services
                 return ServiceResult<List<TicketTypeDto>>.Fail(ex.Message);
             }
         }
+
+        public async Task<ServiceResult<List<BuildingDto>>> GetBuildings()
+        {
+            try
+            {
+                var buildingOptions = await _db.FfBuildingDirectorys
+                    .Where(a => a.LocationName != "Unassigned")
+                    .OrderBy(a => a.LocationCode)
+                    .Select(a => new BuildingDto
+                    {
+                        LocationCode = a.LocationCode,
+                        LocationName = a.LocationName,
+                        ComplexName = a.ComplexName,
+                        BuildingNumber = a.BuildingNumber,
+                        NumUnits = a.NumUnits,
+                        LocationLat = a.LocationLat,
+                        LocationLon = a.LocationLon
+                    })
+                    .ToListAsync();
+
+                if (buildingOptions == null || buildingOptions.Count == 0)
+                {
+                    return ServiceResult<List<BuildingDto>>.Fail("No Buildings Defined");
+                }
+                
+                return ServiceResult<List<BuildingDto>>.Ok(buildingOptions);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<BuildingDto>>.Fail(ex.Message);
+            }
+        }
     }
 }

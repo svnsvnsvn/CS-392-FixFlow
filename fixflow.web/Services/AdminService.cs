@@ -325,7 +325,7 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> UpdateBuilding(string _requestorId, RoleTypes _requestorRole, UpdateBuildingDto _updatedBuildingData)
+        public async Task<ServiceResult<int>> UpdateBuilding(string _requestorId, RoleTypes _requestorRole, BuildingDto _updatedBuildingData)
         {
             try
             {

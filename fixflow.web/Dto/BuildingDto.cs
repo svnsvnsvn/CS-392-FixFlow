@@ -1,6 +1,6 @@
 ﻿namespace fixflow.web.Dto
 {
-    public class UpdateBuildingDto
+    public class BuildingDto
     {
         public int LocationCode { get; set; }
         public string? LocationName { get; set; } = string.Empty;
