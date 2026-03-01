@@ -1,6 +1,6 @@
 ﻿namespace fixflow.web.Dto
 {
-    public class UpdateStatusCodeDto
+    public class StatusCodeDto
     {
         public int Id { get; set; }
         public int? StatusCode { get; set; } = 0;

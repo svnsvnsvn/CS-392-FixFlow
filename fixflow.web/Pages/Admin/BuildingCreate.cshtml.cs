@@ -1,5 +1,4 @@
 using fixflow.web.Data;
-using fixflow.web.Domain.Constants;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
 using fixflow.web.Services;
@@ -51,13 +50,13 @@ namespace fixflow.web.Pages.Admin
             newBuilding.LocationLon = Input.LocationLon;
 
             // Determine user role
-            RoleTypes userRole = RoleTypes.Resident;
-            if (User.IsInRole(RoleNames.Admin))
-                userRole = RoleTypes.Admin;
-            else if (User.IsInRole(RoleNames.Manager))
-                userRole = RoleTypes.Manager;
-            else if (User.IsInRole(RoleNames.Employee))
-                userRole = RoleTypes.Employee;
+            // Get users role
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles == null)
+            {
+                return Page();
+            }
+            RoleTypes userRole = Enum.Parse<RoleTypes>(roles.FirstOrDefault());
 
             var result = await _adminService.AddBuilding(user.Id, userRole, newBuilding);
             if (!result.Success)

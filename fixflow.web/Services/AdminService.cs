@@ -242,7 +242,7 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, UpdateStatusCodeDto _updatedStatusData)
+        public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, StatusCodeDto _updatedStatusData)
         {
             try
             {

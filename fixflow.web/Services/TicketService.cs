@@ -97,7 +97,7 @@ namespace fixflow.web.Services
                 {
                     return ServiceResult<Guid>.Fail("Invalid priority code");
                 }
-                newTicket.TicketPriority = _newTicketData.PriorityCode;
+                newTicket.TicketPriority = _newTicketData.TicketPriority;
 
                 // Validate status code
                 bool validStatusCode = await _db.FfPriorityCodess.AnyAsync(u => u.PriorityCode == _newTicketData.TicketPriority);
@@ -335,6 +335,59 @@ namespace fixflow.web.Services
             {
                 return ServiceResult<List<BuildingDto>>.Fail(ex.Message);
             }
+        }
+
+        public async Task<ServiceResult<List<StatusCodeDto>>> GetStatusCodeList()
+        {
+            try
+            {
+                var statusCodeOptions = await _db.FfStatusCodes
+                    .OrderBy(a => a.StatusCode)
+                    .Select(a => new StatusCodeDto
+                    {
+                        StatusCode = a.StatusCode,
+                        StatusName = a.StatusName
+                    })
+                    .ToListAsync();
+
+                if (statusCodeOptions == null || statusCodeOptions.Count == 0)
+                {
+                    return ServiceResult<List<StatusCodeDto>>.Fail("No Status Codes Defined");
+                }
+
+                return ServiceResult<List<StatusCodeDto>>.Ok(statusCodeOptions);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<StatusCodeDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<int>> GetStatusCode(string _StatusName)
+        {
+            try
+            {
+                var result = await _db.FfStatusCodes.SingleAsync(a => a.StatusName == _StatusName);
+                return ServiceResult<int>.Ok(result.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        
+        public async Task<ServiceResult<string>> GetStatusCode(int _StatusCode)
+        {
+            try
+            {
+                var result = await _db.FfStatusCodes.SingleAsync(a => a.StatusCode == _StatusCode);
+                return ServiceResult<string>.Ok(result.StatusName);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<string>.Fail(ex.Message);
+            }
+
         }
     }
 }

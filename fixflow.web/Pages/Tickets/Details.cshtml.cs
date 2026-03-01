@@ -1,5 +1,4 @@
 using fixflow.web.Data;
-using fixflow.web.Domain.Constants;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
 using Microsoft.AspNetCore.Identity;
@@ -37,15 +36,20 @@ namespace fixflow.web.Pages.Tickets
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            // Determine user role
-            if (User.IsInRole(RoleNames.Admin))
-                UserRole = "Admin";
-            else if (User.IsInRole(RoleNames.Manager))
-                UserRole = "Manager";
-            else if (User.IsInRole(RoleNames.Employee))
-                UserRole = "Technician";
-            else
-                UserRole = "Client";
+            // Get logged in user data
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Page();
+            }
+
+            // Get users role
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles == null)
+            {
+                return Page();
+            }
+            RoleTypes userRole = Enum.Parse<RoleTypes>(roles.FirstOrDefault());
 
             // Try to parse as GUID first
             FfTicketRegister? ticket = null;
@@ -109,7 +113,6 @@ namespace fixflow.web.Pages.Tickets
                     : ticket.TicketShortCode,
                 Title = ticket.TicketType?.TypeName ?? "Maintenance request",
                 Description = "Details will appear once the request is fully documented.",
-                Status = ticket.StatusCode?.StatusName ?? TicketStatusNames.Submitted,
                 Priority = ticket.PriorityCode?.PriorityName ?? "Normal",
                 Category = ticket.TicketType?.TypeName ?? "General",
                 Building = ticket.Building?.LocationName ?? "Unknown building",
@@ -172,7 +175,7 @@ namespace fixflow.web.Pages.Tickets
             // Load available technicians for assignment (only for managers)
             if (UserRole == "Manager" || UserRole == "Admin")
             {
-                var technicians = await _userManager.GetUsersInRoleAsync(RoleNames.Employee);
+                var technicians = await _userManager.GetUsersInRoleAsync(RoleTypes.Employee.ToString());
                 var techniciansWithProfiles = await _context.FfUserProfiles
                     .Where(p => technicians.Select(t => t.Id).Contains(p.FfUserId))
                     .ToListAsync();
@@ -194,7 +197,7 @@ namespace fixflow.web.Pages.Tickets
 
         private static bool TicketStatusIsCompleted(string? statusName)
         {
-            return string.Equals(statusName, TicketStatusNames.Completed, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(statusName, "Completed", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<IActionResult> OnPostAddCommentAsync(string ticketId, string commentText)
@@ -283,12 +286,14 @@ namespace fixflow.web.Pages.Tickets
 
             // Determine user role
             RoleTypes userRole = RoleTypes.Manager;
-            if (User.IsInRole(RoleNames.Admin))
+            if (User.IsInRole(RoleTypes.Admin.ToString()))
                 userRole = RoleTypes.Admin;
 
             // Get "Assigned" status code
+            var assignedCode = _ticketService.GetStatusCode("Assigned").Result.Data;
+            
             var assignedStatus = await _context.FfStatusCodes
-                .FirstOrDefaultAsync(s => s.StatusName == TicketStatusNames.Assigned);
+                .FirstOrDefaultAsync(s => s.StatusCode == assignedCode);
 
             if (assignedStatus == null)
             {
