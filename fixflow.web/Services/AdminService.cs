@@ -152,6 +152,22 @@ namespace fixflow.web.Services
                     return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
+                // Guard possible NULL values
+                if (_newBuildingData.NumUnits == null)
+                {
+                    _newBuildingData.NumUnits = 0;
+                }
+                if (_newBuildingData.LocationLat == null)
+                {
+                    _newBuildingData.LocationLat = 0;
+                }
+                if (_newBuildingData.LocationLon == null)
+                {
+                    _newBuildingData.LocationLon = 0;
+                }
+
+
+
                 var newBuilding = new FfBuildingDirectory
                 {
                     LocationName = _newBuildingData.LocationName,

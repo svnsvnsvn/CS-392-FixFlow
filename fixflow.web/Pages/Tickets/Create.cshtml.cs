@@ -141,7 +141,7 @@ namespace fixflow.web.Pages.Tickets
             }
             else
             {
-                TicketTypes.Add(new SelectListItem
+                Buildings.Add(new SelectListItem
                 {
                     Value = "X",
                     Text = buildingResult.Error
