@@ -278,7 +278,7 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, UpdateTicketTypeDto _updatedTicketData)
+        public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, TicketTypeDto _updatedTicketData)
         {
             try
             {

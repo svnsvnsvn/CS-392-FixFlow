@@ -3,6 +3,7 @@ using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace fixflow.web.Services
 {
@@ -273,6 +274,33 @@ namespace fixflow.web.Services
             catch (Exception ex)
             {
                 return ServiceResult<long>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypes()
+        {
+            try
+            {
+                var ticketTypes = await _db.FfTicketTypess
+                    .OrderBy(a => a.Id)
+                    .Select(a => new TicketTypeDto
+                    {
+                        Id = a.Id,
+                        TypeName = a.TypeName
+                    })
+                    .ToListAsync();
+
+                if (ticketTypes == null || ticketTypes.Count == 0)
+                {
+                    return ServiceResult<List<TicketTypeDto>>.Fail("No Ticket Types Defined");
+                }
+                
+                return ServiceResult<List<TicketTypeDto>>.Ok(ticketTypes);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<TicketTypeDto>>.Fail(ex.Message);
             }
         }
     }

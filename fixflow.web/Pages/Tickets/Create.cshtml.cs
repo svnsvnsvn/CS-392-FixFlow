@@ -136,14 +136,24 @@ namespace fixflow.web.Pages.Tickets
                 })
                 .ToListAsync();
 
-            TicketTypes = await _context.FfTicketTypess
-                .OrderBy(t => t.TypeName)
-                .Select(t => new SelectListItem
-                {
+            var result = await _ticketService.GetTicketTypes();
+            if (result.Success)
+            {
+                TicketTypes = result.Data.Select(t => new SelectListItem 
+                { 
                     Value = t.Id.ToString(),
                     Text = t.TypeName
-                })
-                .ToListAsync();
+                }).ToList();
+            }
+            else
+            {
+                TicketTypes.Add(new SelectListItem
+                {
+                    Value = "X",
+                    Text = "No Issue Types found."
+                });
+            }
+
 
             // Load residents for staff to select
             if (IsStaff)
