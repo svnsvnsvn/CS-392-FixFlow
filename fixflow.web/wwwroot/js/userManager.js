@@ -7,6 +7,10 @@ let userIDs = []        // EMpty array for userID list
 
 document.addEventListener('DOMContentLoaded', function ()
 {
+    if (!document.querySelector('.admin-table')) {
+        return;
+    }
+
     // Create list of all user ID's
     let inputItems = document.querySelectorAll('tr[id^="row-"]');   // Get all table rows with an id that starts with "row-"
  
@@ -15,8 +19,6 @@ document.addEventListener('DOMContentLoaded', function ()
     {
         userIDs.push(inputItems[i].getAttribute("id").slice(4));
     }
-    
-    console.log(userIDs);
 
     // Add listeners & set initial visibility
 
@@ -31,19 +33,28 @@ document.addEventListener('DOMContentLoaded', function ()
     for (let i = 0; i < userIDs.length; i++)
     {
         // Add Listeners to user access controls
-        document.getElementById("role-" + userIDs[i] + "-P").addEventListener('click', function () { rowChange(userIDs[i]) });
-        document.getElementById("role-" + userIDs[i] + "-R").addEventListener('click', function () { rowChange(userIDs[i]) });
-        document.getElementById("role-" + userIDs[i] + "-E").addEventListener('click', function () { rowChange(userIDs[i]) });
-        document.getElementById("role-" + userIDs[i] + "-M").addEventListener('click', function () { rowChange(userIDs[i]) });
-        document.getElementById("role-" + userIDs[i] + "-A").addEventListener('click', function () { rowChange(userIDs[i]) });
-        document.getElementById("lcko-" + userIDs[i]).addEventListener('click', function () { rowChange(userIDs[i]) });
+        const pendingRadio = document.getElementById("role-" + userIDs[i] + "-P");
+        const residentRadio = document.getElementById("role-" + userIDs[i] + "-R");
+        const employeeRadio = document.getElementById("role-" + userIDs[i] + "-E");
+        const managerRadio = document.getElementById("role-" + userIDs[i] + "-M");
+        const adminRadio = document.getElementById("role-" + userIDs[i] + "-A");
+        const lockCheckbox = document.getElementById("lcko-" + userIDs[i]);
+
+        pendingRadio?.addEventListener('click', function () { rowChange(userIDs[i]) });
+        residentRadio?.addEventListener('click', function () { rowChange(userIDs[i]) });
+        employeeRadio?.addEventListener('click', function () { rowChange(userIDs[i]) });
+        managerRadio?.addEventListener('click', function () { rowChange(userIDs[i]) });
+        adminRadio?.addEventListener('click', function () { rowChange(userIDs[i]) });
+        lockCheckbox?.addEventListener('click', function () { rowChange(userIDs[i]) });
      
         // Add listeners to user password reset buttons
-        document.getElementById("pRst-" + userIDs[i]).addEventListener('click', function () { updateRecord(userIDs[i], true, false, document.querySelector('input[name="role-' + userIDs[i] + '"]:checked').value) });
+        document.getElementById("pRst-" + userIDs[i])?.addEventListener('click', function () { updateRecord(userIDs[i], true, false, document.querySelector('input[name="role-' + userIDs[i] + '"]:checked').value) });
 
         // Add listeners to apply buttons and make invisible
-        document.getElementById("aply-" + userIDs[i]).addEventListener('click', function () { updateRecord(userIDs[i], false, document.querySelector('input[name="lcko-' + userIDs[i] + '"]').checked, document.querySelector('input[name="role-' + userIDs[i] + '"]:checked').value) });
+        document.getElementById("aply-" + userIDs[i])?.addEventListener('click', function () { updateRecord(userIDs[i], false, document.querySelector('input[name="lcko-' + userIDs[i] + '"]').checked, document.querySelector('input[name="role-' + userIDs[i] + '"]:checked').value) });
     }
+
+    updateVisibility();
 })
 
 
@@ -53,11 +64,11 @@ function updateVisibility()
 // Visibility will be update row by row based on checkbox values.
 {
     // Get filtermask
-    pending = document.getElementById("filter-Pending").checked;
-    clerk = document.getElementById("filter-Resident").checked;
-    employee = document.getElementById("filter-Employee").checked;
-    manager = document.getElementById("filter-Manager").checked;
-    admin = document.getElementById("filter-Admin").checked;
+    const pending = document.getElementById("filter-Pending")?.checked ?? true;
+    const resident = document.getElementById("filter-Resident")?.checked ?? true;
+    const employee = document.getElementById("filter-Employee")?.checked ?? true;
+    const manager = document.getElementById("filter-Manager")?.checked ?? true;
+    const admin = document.getElementById("filter-Admin")?.checked ?? true;
 
 
     // Iterate each user and apply visibility based on their current role and the boolean filtermask
@@ -66,27 +77,32 @@ function updateVisibility()
         {   
             case "Pending":
                 {
-                    document.getElementById("row-" + userIDs[i]).style.visibility = pending ? "visible" : "collapse";
+                    document.getElementById("row-" + userIDs[i]).style.display = pending ? "table-row" : "none";
                     break;
                 }
             case "Resident":
                 {
-                    document.getElementById("row-" + userIDs[i]).style.visibility = clerk ? "visible" : "collapse";
+                    document.getElementById("row-" + userIDs[i]).style.display = resident ? "table-row" : "none";
                     break;
                 }
             case "Employee":
                 {
-                    document.getElementById("row-" + userIDs[i]).style.visibility = employee ? "visible" : "collapse";
+                    document.getElementById("row-" + userIDs[i]).style.display = employee ? "table-row" : "none";
                     break;
                 }
             case "Manager":
                 {
-                    document.getElementById("row-" + userIDs[i]).style.visibility = manager ? "visible" : "collapse";
+                    document.getElementById("row-" + userIDs[i]).style.display = manager ? "table-row" : "none";
                     break;
                 }
             case "Admin":
                 {
-                    document.getElementById("row-" + userIDs[i]).style.visibility = admin ? "visible" : "collapse";
+                    document.getElementById("row-" + userIDs[i]).style.display = admin ? "table-row" : "none";
+                    break;
+                }
+            default:
+                {
+                    document.getElementById("row-" + userIDs[i]).style.display = pending ? "table-row" : "none";
                     break;
                 }
         }
@@ -100,7 +116,7 @@ function rowChange(userID)
 {
     document.getElementById("row-" + userID).style.backgroundColor = "lightgray";
     document.getElementById("row-" + userID).style.fontWeight = "Bold";
-    document.getElementById("aply-" + userID).style.visibility = "visible";
+    document.getElementById("aply-" + userID).classList.remove("u-hidden");
 }
 
 function rowChangeSuccess(userID)
@@ -110,7 +126,7 @@ function rowChangeSuccess(userID)
 {
     document.getElementById("row-" + userID).style.backgroundColor = "lightgreen";
     document.getElementById("row-" + userID).style.fontWeight = "Normal"
-    document.getElementById("aply-" + userID).style.visibility = "hidden";
+    document.getElementById("aply-" + userID).classList.add("u-hidden");
 }
 
 function rowChangeFail(userID)
@@ -120,7 +136,7 @@ function rowChangeFail(userID)
 {
     document.getElementById("row-" + userID).style.backgroundColor = "Orangered";
     document.getElementById("row-" + userID).style.fontWeight = "Bold";
-    document.getElementById("aply-" + userID).style.visibility = "visible";
+    document.getElementById("aply-" + userID).classList.remove("u-hidden");
 }
 
 async function updateRecord(userID, resetPswd, lockAccount, newRole)

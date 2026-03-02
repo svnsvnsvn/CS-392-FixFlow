@@ -139,30 +139,30 @@
                     <div class="panel-body">
                         <div class="filter-bar">
                             <div class="filter-group">
-                                <input class="filter-input" type="search" placeholder="Search tickets" aria-label="Search tickets" />
-                                <select class="filter-select" aria-label="Filter by status">
-                                    <option selected>All statuses</option>
-                                    <option>Submitted</option>
-                                    <option>In Progress</option>
-                                    <option>Assigned</option>
-                                    <option>Completed</option>
+                                <input class="filter-input" id="ticketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                                <select class="filter-select" id="ticketStatusFilter" aria-label="Filter by status">
+                                    <option value="all" selected>All statuses</option>
+                                    <option value="submitted">Submitted</option>
+                                    <option value="in progress">In Progress</option>
+                                    <option value="assigned">Assigned</option>
+                                    <option value="completed">Completed</option>
                                 </select>
-                                <select class="filter-select" aria-label="Filter by priority">
-                                    <option selected>All priorities</option>
-                                    <option>High</option>
-                                    <option>Medium</option>
-                                    <option>Low</option>
+                                <select class="filter-select" id="ticketPriorityFilter" aria-label="Filter by priority">
+                                    <option value="all" selected>All priorities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
                                 </select>
-                                <select class="filter-select" aria-label="Sort tickets">
-                                    <option selected>Sort: last updated</option>
-                                    <option>Sort: newest</option>
-                                    <option>Sort: oldest</option>
-                                    <option>Sort: priority</option>
+                                <select class="filter-select" id="ticketSort" aria-label="Sort tickets">
+                                    <option value="last-updated" selected>Sort: last updated</option>
+                                    <option value="newest">Sort: newest</option>
+                                    <option value="oldest">Sort: oldest</option>
+                                    <option value="priority">Sort: priority</option>
                                 </select>
                             </div>
                             <div class="filter-spacer"></div>
                             <div class="filter-group">
-                                <button class="btn btn-ghost" type="button">Clear filters</button>
+                                <button class="btn btn-ghost" type="button" id="ticketClearFilters">Clear filters</button>
                             </div>
                         </div>
 
@@ -192,7 +192,14 @@
                                     <tbody>
                                         @foreach (var ticket in Model.RecentTickets)
                                         {
-                                            <tr>
+                                            <tr class="ticket-row"
+                                                data-ticket-id="@ticket.Id"
+                                                data-title="@ticket.Title"
+                                                data-category="@ticket.Category"
+                                                data-priority="@ticket.Priority.ToLower()"
+                                                data-status="@ticket.Status.ToLower()"
+                                                data-created="@ticket.CreatedDate.Ticks"
+                                                data-submitted-by="@ticket.SubmittedBy">
                                                 <td><span class="ticket-id">#@ticket.Id</span></td>
                                                 <td>@ticket.Title</td>
                                                 <td>@ticket.Category</td>
@@ -331,4 +338,96 @@
             updateAppointments(firstDate);
         }
     }
+
+    const ticketSearch = document.getElementById("ticketSearch");
+    const ticketStatusFilter = document.getElementById("ticketStatusFilter");
+    const ticketPriorityFilter = document.getElementById("ticketPriorityFilter");
+    const ticketSort = document.getElementById("ticketSort");
+    const ticketClearFilters = document.getElementById("ticketClearFilters");
+    const ticketsTableBody = document.querySelector(".panel-tickets tbody");
+    const ticketRows = ticketsTableBody ? Array.from(ticketsTableBody.querySelectorAll(".ticket-row")) : [];
+
+    const priorityWeight = {
+        high: 3,
+        medium: 2,
+        low: 1
+    };
+
+    const applyTicketFilters = () => {
+        if (!ticketRows.length) {
+            return;
+        }
+
+        const searchValue = (ticketSearch?.value ?? "").trim().toLowerCase();
+        const statusValue = ticketStatusFilter?.value ?? "all";
+        const priorityValue = ticketPriorityFilter?.value ?? "all";
+        const sortValue = ticketSort?.value ?? "last-updated";
+
+        ticketRows.forEach((row) => {
+            const rowStatus = (row.getAttribute("data-status") ?? "").toLowerCase();
+            const rowPriority = (row.getAttribute("data-priority") ?? "").toLowerCase();
+            const searchable = [
+                row.getAttribute("data-ticket-id") ?? "",
+                row.getAttribute("data-title") ?? "",
+                row.getAttribute("data-category") ?? "",
+                row.getAttribute("data-status") ?? "",
+                row.getAttribute("data-priority") ?? "",
+                row.getAttribute("data-submitted-by") ?? ""
+            ].join(" ").toLowerCase();
+
+            const matchesSearch = !searchValue || searchable.includes(searchValue);
+            const matchesStatus = statusValue === "all" || rowStatus === statusValue;
+            const matchesPriority = priorityValue === "all" || rowPriority === priorityValue;
+
+            row.style.display = matchesSearch && matchesStatus && matchesPriority ? "table-row" : "none";
+        });
+
+        const sortedRows = [...ticketRows].sort((left, right) => {
+            const leftCreated = Number(left.getAttribute("data-created") ?? 0);
+            const rightCreated = Number(right.getAttribute("data-created") ?? 0);
+
+            switch (sortValue) {
+                case "newest":
+                case "last-updated":
+                    return rightCreated - leftCreated;
+                case "oldest":
+                    return leftCreated - rightCreated;
+                case "priority": {
+                    const leftPriority = priorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+                    const rightPriority = priorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+                    if (rightPriority !== leftPriority) {
+                        return rightPriority - leftPriority;
+                    }
+                    return rightCreated - leftCreated;
+                }
+                default:
+                    return 0;
+            }
+        });
+
+        sortedRows.forEach((row) => ticketsTableBody?.appendChild(row));
+    };
+
+    ticketSearch?.addEventListener("input", applyTicketFilters);
+    ticketStatusFilter?.addEventListener("change", applyTicketFilters);
+    ticketPriorityFilter?.addEventListener("change", applyTicketFilters);
+    ticketSort?.addEventListener("change", applyTicketFilters);
+
+    ticketClearFilters?.addEventListener("click", () => {
+        if (ticketSearch) {
+            ticketSearch.value = "";
+        }
+        if (ticketStatusFilter) {
+            ticketStatusFilter.value = "all";
+        }
+        if (ticketPriorityFilter) {
+            ticketPriorityFilter.value = "all";
+        }
+        if (ticketSort) {
+            ticketSort.value = "last-updated";
+        }
+        applyTicketFilters();
+    });
+
+    applyTicketFilters();
 </script>

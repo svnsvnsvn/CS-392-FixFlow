@@ -27,11 +27,16 @@
                     <th>Apply</th>
                 </tr>
                 <tr class="filter-row" align="center">
+                    <th></th>
+                    <th></th>
                     <th><input type="checkbox" id="filter-Pending" name="filter-Pending" value="Show" checked></th>
-                    <th><input type="checkbox" id="filter-Clerk" name="filter-Resident" value="Show" checked></th>
+                    <th><input type="checkbox" id="filter-Resident" name="filter-Resident" value="Show" checked></th>
                     <th><input type="checkbox" id="filter-Employee" name="filter-Employee" value="Show" checked></th>
                     <th><input type="checkbox" id="filter-Manager" name="filter-Manager" value="Show" checked></th>
                     <th><input type="checkbox" id="filter-Admin" name="filter-Admin" value="Show" checked></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -49,7 +54,7 @@
                             <input type="radio" id="role-@user.Id-P" name="role-@user.Id" value="Pending" @(userRole == "Pending" ? "checked" : "")>
                         </td>
                         <td align="center">
-                            <input type="radio" id="role-@user.Id-C" name="role-@user.Id" value="Clerk" @(userRole == "Resident" ? "checked" : "")>
+                            <input type="radio" id="role-@user.Id-R" name="role-@user.Id" value="Resident" @(userRole == "Resident" ? "checked" : "")>
                         </td>
                         <td align="center">
                             <input type="radio" id="role-@user.Id-E" name="role-@user.Id" value="Employee" @(userRole == "Employee" ? "checked" : "")>

@@ -29,30 +29,30 @@
             <div class="card">
                 <div class="filter-bar">
                     <div class="filter-group">
-                        <input class="filter-input" type="search" placeholder="Search tickets" aria-label="Search tickets" />
-                        <select class="filter-select" aria-label="Filter by status">
-                            <option selected>All statuses</option>
-                            <option>Submitted</option>
-                            <option>In Progress</option>
-                            <option>Assigned</option>
-                            <option>Completed</option>
+                        <input class="filter-input" id="listTicketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                        <select class="filter-select" id="listTicketStatusFilter" aria-label="Filter by status">
+                            <option value="all" selected>All statuses</option>
+                            <option value="submitted">Submitted</option>
+                            <option value="in progress">In Progress</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="completed">Completed</option>
                         </select>
-                        <select class="filter-select" aria-label="Filter by priority">
-                            <option selected>All priorities</option>
-                            <option>High</option>
-                            <option>Medium</option>
-                            <option>Low</option>
+                        <select class="filter-select" id="listTicketPriorityFilter" aria-label="Filter by priority">
+                            <option value="all" selected>All priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
                         </select>
-                        <select class="filter-select" aria-label="Sort tickets">
-                            <option selected>Sort: last updated</option>
-                            <option>Sort: newest</option>
-                            <option>Sort: oldest</option>
-                            <option>Sort: priority</option>
+                        <select class="filter-select" id="listTicketSort" aria-label="Sort tickets">
+                            <option value="last-updated" selected>Sort: last updated</option>
+                            <option value="newest">Sort: newest</option>
+                            <option value="oldest">Sort: oldest</option>
+                            <option value="priority">Sort: priority</option>
                         </select>
                     </div>
                     <div class="filter-spacer"></div>
                     <div class="filter-group">
-                        <button class="btn btn-ghost" type="button">Clear filters</button>
+                        <button class="btn btn-ghost" type="button" id="listTicketClearFilters">Clear filters</button>
                     </div>
                 </div>
 
@@ -78,13 +78,29 @@
                                 {
                                     var statusClass = (ticket.StatusCode?.StatusName ?? "").ToLower().Replace(" ", "");
                                     var priorityClass = (ticket.PriorityCode?.PriorityName ?? "").ToLower();
+                                    var statusName = ticket.StatusCode?.StatusName ?? "-";
+                                    var priorityName = ticket.PriorityCode?.PriorityName ?? "-";
+                                    var ticketCode = string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode;
+                                    var ticketTypeName = ticket.TicketType?.TypeName ?? "-";
+                                    var locationName = ticket.Building?.LocationName ?? "-";
+                                    var requestedBy = ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}";
+                                    var assignedTo = Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-";
 
-                                    <tr>
-                                        <td><span class="ticket-id">@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)</span></td>
-                                        <td>@(ticket.TicketType?.TypeName ?? "-")</td>
+                                    <tr class="list-ticket-row"
+                                        data-ticket-id="@ticket.TicketId"
+                                        data-ticket-code="@ticketCode"
+                                        data-type="@ticketTypeName"
+                                        data-priority="@priorityName.ToLower()"
+                                        data-status="@statusName.ToLower()"
+                                        data-location="@locationName"
+                                        data-unit="@ticket.Unit"
+                                        data-requested-by="@requestedBy"
+                                        data-assigned-to="@assignedTo">
+                                        <td><span class="ticket-id">@ticketCode</span></td>
+                                        <td>@ticketTypeName</td>
                                         <td>
                                             <span class="priority-text @priorityClass">
-                                                @(ticket.PriorityCode?.PriorityName ?? "-")
+                                                @priorityName
                                             </span>
                                         </td>
                                         <td>
@@ -101,14 +117,14 @@
                                                     _ => "bi-circle-fill"
                                                 };
                                             }
-                                            <i class="status-icon bi @statusIconMap" title="@(ticket.StatusCode?.StatusName ?? "-")"></i>
+                                            <i class="status-icon bi @statusIconMap" title="@statusName"></i>
                                         </td>
-                                        <td>@(ticket.Building?.LocationName ?? "-")</td>
+                                        <td>@locationName</td>
                                         <td>@ticket.Unit</td>
-                                        <td>@(ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}")</td>
-                                        <td>@(Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-")</td>
+                                        <td>@requestedBy</td>
+                                        <td>@assignedTo</td>
                                         <td style="display: flex; gap: 0.5rem; align-items: center;">
-                                            <a href="/Tickets/Details/@(string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode)" class="btn btn-secondary btn-icon" aria-label="View ticket">
+                                            <a href="/Tickets/Details/@ticketCode" class="btn btn-secondary btn-icon" aria-label="View ticket">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                             @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
@@ -137,3 +153,100 @@
         </div>
     </main>
 </div>
+
+<script>
+    const listTicketSearch = document.getElementById("listTicketSearch");
+    const listTicketStatusFilter = document.getElementById("listTicketStatusFilter");
+    const listTicketPriorityFilter = document.getElementById("listTicketPriorityFilter");
+    const listTicketSort = document.getElementById("listTicketSort");
+    const listTicketClearFilters = document.getElementById("listTicketClearFilters");
+    const listTicketsTableBody = document.querySelector(".table-container tbody");
+    const listTicketRows = listTicketsTableBody ? Array.from(listTicketsTableBody.querySelectorAll(".list-ticket-row")) : [];
+
+    const listPriorityWeight = {
+        high: 3,
+        medium: 2,
+        low: 1
+    };
+
+    const applyListTicketFilters = () => {
+        if (!listTicketRows.length) {
+            return;
+        }
+
+        const searchValue = (listTicketSearch?.value ?? "").trim().toLowerCase();
+        const statusValue = listTicketStatusFilter?.value ?? "all";
+        const priorityValue = listTicketPriorityFilter?.value ?? "all";
+        const sortValue = listTicketSort?.value ?? "last-updated";
+
+        listTicketRows.forEach((row) => {
+            const rowStatus = (row.getAttribute("data-status") ?? "").toLowerCase();
+            const rowPriority = (row.getAttribute("data-priority") ?? "").toLowerCase();
+            const searchable = [
+                row.getAttribute("data-ticket-code") ?? "",
+                row.getAttribute("data-type") ?? "",
+                row.getAttribute("data-priority") ?? "",
+                row.getAttribute("data-status") ?? "",
+                row.getAttribute("data-location") ?? "",
+                row.getAttribute("data-unit") ?? "",
+                row.getAttribute("data-requested-by") ?? "",
+                row.getAttribute("data-assigned-to") ?? ""
+            ].join(" ").toLowerCase();
+
+            const matchesSearch = !searchValue || searchable.includes(searchValue);
+            const matchesStatus = statusValue === "all" || rowStatus === statusValue;
+            const matchesPriority = priorityValue === "all" || rowPriority === priorityValue;
+
+            row.style.display = matchesSearch && matchesStatus && matchesPriority ? "table-row" : "none";
+        });
+
+        const sortedRows = [...listTicketRows].sort((left, right) => {
+            const leftId = Number(left.getAttribute("data-ticket-id") ?? 0);
+            const rightId = Number(right.getAttribute("data-ticket-id") ?? 0);
+
+            switch (sortValue) {
+                case "newest":
+                case "last-updated":
+                    return rightId - leftId;
+                case "oldest":
+                    return leftId - rightId;
+                case "priority": {
+                    const leftPriority = listPriorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+                    const rightPriority = listPriorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+                    if (rightPriority !== leftPriority) {
+                        return rightPriority - leftPriority;
+                    }
+                    return rightId - leftId;
+                }
+                default:
+                    return 0;
+            }
+        });
+
+        sortedRows.forEach((row) => listTicketsTableBody?.appendChild(row));
+    };
+
+    listTicketSearch?.addEventListener("input", applyListTicketFilters);
+    listTicketStatusFilter?.addEventListener("change", applyListTicketFilters);
+    listTicketPriorityFilter?.addEventListener("change", applyListTicketFilters);
+    listTicketSort?.addEventListener("change", applyListTicketFilters);
+
+    listTicketClearFilters?.addEventListener("click", () => {
+        if (listTicketSearch) {
+            listTicketSearch.value = "";
+        }
+        if (listTicketStatusFilter) {
+            listTicketStatusFilter.value = "all";
+        }
+        if (listTicketPriorityFilter) {
+            listTicketPriorityFilter.value = "all";
+        }
+        if (listTicketSort) {
+            listTicketSort.value = "last-updated";
+        }
+
+        applyListTicketFilters();
+    });
+
+    applyListTicketFilters();
+</script>
