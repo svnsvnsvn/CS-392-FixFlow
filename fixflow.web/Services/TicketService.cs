@@ -399,9 +399,16 @@ namespace fixflow.web.Services
             {
                 var ticketSeriesData = await _db.FfTicketConstructoror.SingleAsync(a => a.SeriesIsActive == true);
 
+                string ticketNum = (ticketSeriesData.LastTicketUsed + 1).ToString();
+                int leadingZerosNeeded = 4 - ticketNum.Length;
+                for (int i = 0; i < leadingZerosNeeded; i++)
+                {
+                    ticketNum = "0" + ticketNum;
+                }
+
                 string newShortCode = ticketSeriesData.TicketPrefix +
                     "-" + ticketSeriesData.TicketSeries.ToString() +
-                    "-" + (ticketSeriesData.LastTicketUsed + 1).ToString();
+                    "-" + ticketNum;
 
                 ticketSeriesData.LastTicketUsed++;
 
