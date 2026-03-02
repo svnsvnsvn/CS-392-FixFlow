@@ -1,14 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
-using fixflow.web.Domain.Constants;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
 using fixflow.web.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace fixflow.web.Pages.Tickets
 {
@@ -35,15 +35,31 @@ namespace fixflow.web.Pages.Tickets
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Get logged in user data
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Page();
+            }
+
+            // Get users role
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles == null)
+            {
+                return Page();
+            }
+            RoleTypes userRole = Enum.Parse<RoleTypes>(roles.FirstOrDefault());
+
+
             // Check if user is staff (Manager, Technician, or Admin)
-            IsStaff = User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Employee) || User.IsInRole(RoleNames.Admin);
+            IsStaff = (userRole == RoleTypes.Manager || userRole == RoleTypes.Employee || userRole == RoleTypes.Admin);
+                        
 
             await LoadDropdownData();
 
             // Pre-populate location and unit from user profile if available (for residents only)
             if (!IsStaff)
             {
-                var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
                     var userProfile = await _context.FfUserProfiles
@@ -62,7 +78,22 @@ namespace fixflow.web.Pages.Tickets
 
         public async Task<IActionResult> OnPostAsync()
         {
-            IsStaff = User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Employee) || User.IsInRole(RoleNames.Admin);
+            // Get logged in user data
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Page();
+            }
+
+            // Get users role
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles == null)
+            {
+                return Page();
+            }
+            RoleTypes userRole = Enum.Parse<RoleTypes>(roles.FirstOrDefault());
+
+            IsStaff = (userRole == RoleTypes.Manager || userRole == RoleTypes.Employee || userRole == RoleTypes.Admin);
 
             if (!ModelState.IsValid)
             {
@@ -70,43 +101,20 @@ namespace fixflow.web.Pages.Tickets
                 return Page();
             }
 
-            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return RedirectToPage("/Account/Login");
             }
 
-            // Determine user role
-            RoleTypes userRole = RoleTypes.Resident;
-            if (User.IsInRole(RoleNames.Admin))
-                userRole = RoleTypes.Admin;
-            else if (User.IsInRole(RoleNames.Manager))
-                userRole = RoleTypes.Manager;
-            else if (User.IsInRole(RoleNames.Employee))
-                userRole = RoleTypes.Employee;
-
-            // Get default status code for "Submitted"
-            var submittedStatus = await _context.FfStatusCodes
-                .FirstOrDefaultAsync(s => s.StatusName == TicketStatusNames.Submitted);
-
-            if (submittedStatus == null)
-            {
-                ModelState.AddModelError(string.Empty, "System configuration error: Submitted status not found.");
-                await LoadDropdownData();
-                return Page();
-            }
-
             // Map to the DTO that the real backend expects
             var newTicketDto = new NewTicketDto
             {
-                TicketShortCode = null, // Let backend generate
                 RequestedBy = string.IsNullOrEmpty(Input.ResidentId) ? null : Input.ResidentId,
                 Location = Input.LocationCode,
                 Unit = Input.Unit,
                 TicketTroubleType = Input.TicketTypeCode,
-                PriorityCode = 2, // Default to Normal priority (you may want to make this configurable)
                 TicketPriority = 2, // Same as PriorityCode
-                TicketStatus = submittedStatus.Id,
+                TicketStatus = 1,
                 TicketSubject = $"Ticket for Unit {Input.Unit}", // Generate from description or make it a field
                 TicketDescription = Input.Description
             };

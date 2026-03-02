@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
-using fixflow.web.Domain.Constants;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
 
@@ -65,7 +64,7 @@ namespace fixflow.web.Pages.Tickets
         public async Task<IActionResult> OnPostPickUpTicketAsync(Guid ticketId)
         {
             // Verify user is a technician
-            if (!User.IsInRole(RoleNames.Employee))
+            if (!User.IsInRole(RoleTypes.Employee.ToString()))
             {
                 return Forbid();
             }
@@ -80,8 +79,10 @@ namespace fixflow.web.Pages.Tickets
             RoleTypes userRole = RoleTypes.Employee;
 
             // Get "Assigned" status code
+            var assignedCode = _ticketService.GetStatusCode("Assigned").Result.Data;
+
             var assignedStatus = await _context.FfStatusCodes
-                .FirstOrDefaultAsync(s => s.StatusName == TicketStatusNames.Assigned);
+                .FirstOrDefaultAsync(s => s.StatusCode == assignedCode);
 
             if (assignedStatus == null)
             {

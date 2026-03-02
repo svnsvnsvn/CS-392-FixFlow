@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Reflection.Emit;
 
 namespace fixflow.web.Data;
 
@@ -232,7 +233,10 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .HasIndex(c => c.TicketSeries)
             .IsUnique();
 
-
+        builder.Entity<FfTicketShortCodeConstructor>()                  // There can only be 1 active series.
+            .HasIndex(c => c.SeriesIsActive)
+            .IsUnique()
+            .HasFilter("\"IsActive\" = TRUE");
 
         //(short)(DateTime.Now.Year - 2000);        // 2 Digit date.  Yeah Y2K1 issue... but I'll be dead by then.
     }
