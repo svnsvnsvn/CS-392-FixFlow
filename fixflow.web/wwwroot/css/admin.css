@@ -2,6 +2,9 @@
 
 .admin-shell {
     max-width: 100%;
+    max-width: 1400px; /* Add max width */
+    margin: 40px auto 0 auto; /* Center it with top margin */
+    padding: 0 2rem 2rem 2rem;
 }
 
 .admin-table-wrap {
@@ -31,11 +34,20 @@
     letter-spacing: 0.05em;
     color: var(--muted);
     border-bottom: 2px solid var(--line);
+    text-align: center;
+    vertical-align: middle;
 }
 
 .admin-table td {
     padding: 12px;
     border-bottom: 1px solid var(--line);
+    text-align: center; 
+    vertical-align: middle;
+}
+
+.admin-table td:first-child,
+.admin-table td:nth-child(2) {
+    text-align: left;
 }
 
 .admin-table tbody tr:hover {
@@ -59,8 +71,10 @@
 .admin-table input[type="radio"],
 .admin-table input[type="checkbox"] {
     cursor: pointer;
-    width: 18px;
-    height: 18px;
+    width: 20px; /* Increased from 18px */
+    height: 20px; /* Increased from 18px */
+    margin: 0 auto; /* Center the checkbox */
+    display: block;
 }
 
 .admin-table button {

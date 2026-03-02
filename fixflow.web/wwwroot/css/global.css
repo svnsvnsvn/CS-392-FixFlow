@@ -151,17 +151,25 @@ button .bi,
     display: flex;
     flex-direction: column;
     gap: 18px;
+    padding: 2rem;
+    padding-top: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    margin-top: 2rem;
 }
 
 .page-header {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    margin-bottom: 1.5rem;
+    padding-top: 0;
 }
 
 .page-title {
-    margin: 0;
-    font-size: 28px;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    padding-top: 0;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -505,14 +513,15 @@ a:focus-visible {
 }
 
 .btn-secondary {
-    background: #ffffff;
-    color: var(--accent-3);
+    background: transparent;
+    color: var(--text);
     border: 1px solid var(--line);
     box-shadow: none;
 }
 
 .btn-secondary:hover {
-    background: var(--bg-2);
+    background: transparent;
+    color: var(--accent);
 }
 
 .btn-ghost {
@@ -978,4 +987,76 @@ label {
     .form-grid {
         grid-template-columns: 1fr;
     }
+}
+/* Tighter spacing for admin pages */
+.page-shell {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    margin: 0;
+    opacity: 0.7;
+    font-size: 0.95rem;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.card {
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.card table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.card table th,
+.card table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.card table th {
+    background: var(--bg-subtle, #f8f9fa);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card table tbody tr:hover {
+    background: var(--bg-subtle, #f8f9fa);
+}
+
+.card table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Fix admin page top spacing */
+body.layoutless {
+    padding-top: 2rem;
+}
+
+main.page--full {
+    padding-top: 2rem;
 }
