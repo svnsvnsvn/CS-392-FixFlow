@@ -2,6 +2,7 @@
 using fixflow.web.Dto;
 using fixflow.web.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace fixflow.web.Services
 {
@@ -36,11 +37,17 @@ namespace fixflow.web.Services
                     return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
+                int newPriorityCodeValue = await _db.FfPriorityCodess
+                        .Select(p => (int?)p.PriorityCode)
+                        .MaxAsync() ?? 0;
+                newPriorityCodeValue++;
+
                 var newPriorityCode = new FfPriorityCodes
                 {
                     PriorityName = _newPriorityData.PriorityName,
-                    PriorityCode = _newPriorityData.PriorityCode
+                    PriorityCode = newPriorityCodeValue
                 };
+                
 
                 _db.FfPriorityCodess.Add(newPriorityCode);
                 await _db.SaveChangesAsync();
@@ -50,6 +57,209 @@ namespace fixflow.web.Services
             catch (Exception ex)
             {
                 return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<int>> IncrementPriorityCode(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<int>.Fail("Invalid priority code.");
+                }
+
+                
+                // Begin transaction to wrap two possible priority code changes.
+                using var userCreationTransaction = await _db.Database.BeginTransactionAsync();
+                
+                var existingRecord = await _db.FfPriorityCodess.FindAsync(_Id);
+                if (existingRecord == null)
+                {
+                    return ServiceResult<int>.Fail("Priority ID not found.");
+                }
+
+                try
+                    {
+
+                    // See if a higher code exists, if so decrement it
+                    bool exists = await _db.FfPriorityCodess.AnyAsync(p => p.PriorityCode == (existingRecord.PriorityCode + 1));
+                    if (exists)
+                    {
+                        var existingRecordNext = await _db.FfPriorityCodess.FirstOrDefaultAsync(p => p.PriorityCode == (existingRecord.PriorityCode + 1));
+                        existingRecordNext.PriorityCode--;
+                    }
+                    // Increment code
+                    existingRecord.PriorityCode++;
+
+                    // Flip polarity temporarily, to prevent circular reference in Db
+                    existingRecord.PriorityCode *= -1;
+                    
+                    // Write records
+                    await _db.SaveChangesAsync();
+                    
+                    // Flip back
+                    existingRecord.PriorityCode *= -1;
+                    await _db.SaveChangesAsync();
+                    await userCreationTransaction.CommitAsync();
+                }
+                catch
+                {
+                    await userCreationTransaction.RollbackAsync();          // Stop db writes if something failed. Prevent half transactions.
+                    throw;
+                }
+
+                return ServiceResult<int>.Ok(existingRecord.Id);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<int>> DecrementPriorityCode(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<int>.Fail("Invalid priority code.");
+                }
+
+
+                // Begin transaction to wrap two possible priority code changes.
+                using var userCreationTransaction = await _db.Database.BeginTransactionAsync();
+
+                var existingRecord = await _db.FfPriorityCodess.FindAsync(_Id);
+                if (existingRecord == null)
+                {
+                    return ServiceResult<int>.Fail("Priority ID not found.");
+                }
+
+                if (existingRecord.PriorityCode < 1)
+                {
+                    return ServiceResult<int>.Fail("Can not decrement Priority Code further.");
+                }
+
+                try
+                {
+
+                    // See if a lower code exists, if so increment it
+                    bool exists = await _db.FfPriorityCodess.AnyAsync(p => p.PriorityCode == (existingRecord.PriorityCode - 1));
+                    if (exists)
+                    {
+                        var existingRecordNext = await _db.FfPriorityCodess.FirstOrDefaultAsync(p => p.PriorityCode == (existingRecord.PriorityCode - 1));
+                        existingRecordNext.PriorityCode++;
+                    }
+                    // Increment code
+                    existingRecord.PriorityCode--;
+
+                    // Flip polarity temporarily, to prevent circular reference in Db
+                    existingRecord.PriorityCode *= -1;
+
+                    // Write records
+                    await _db.SaveChangesAsync();
+
+                    // Flip back
+                    existingRecord.PriorityCode *= -1;
+                    await _db.SaveChangesAsync();
+
+                    await userCreationTransaction.CommitAsync();
+                }
+                catch
+                {
+                    await userCreationTransaction.RollbackAsync();          // Stop db writes if something failed. Prevent half transactions.
+                    throw;
+                }
+
+                return ServiceResult<int>.Ok(existingRecord.Id);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<bool>> DeletePriorityCode(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<bool>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<bool>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<bool>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<bool>.Fail("Invalid priority code.");
+                }
+
+
+                try
+                {
+                    var existingRecord = await _db.FfPriorityCodess.FindAsync(_Id);
+                    if (existingRecord == null)
+                    {
+                        return ServiceResult<bool>.Fail("Priority ID not found.");
+                    }
+
+                    _db.FfPriorityCodess.Remove(existingRecord);
+                    // Write records
+                    await _db.SaveChangesAsync();
+                }
+                catch
+                {
+                    throw;
+                }
+
+                return ServiceResult<bool>.Ok(true);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<bool>.Fail(ex.Message);
             }
         }
 
@@ -188,60 +398,7 @@ namespace fixflow.web.Services
                 return ServiceResult<int>.Fail(ex.Message);
             }
         }
-
-        public async Task<ServiceResult<int>> UpdatePriorityCode(string _requestorId, RoleTypes _requestorRole, UpdatePriorityCodeDto _updatedPriorityData)
-        {
-            try
-            {
-                // Validate requestor inputs
-                if (_requestorId == null)
-                {
-                    return ServiceResult<int>.Fail("Invalid requestor Id.");
-                }
-
-                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
-                {
-                    return ServiceResult<int>.Fail("Invalid role.");
-                }
-
-                if (_requestorRole != RoleTypes.Admin)
-                {
-                    return ServiceResult<int>.Fail("Insufficient privileges.");
-                }
-
-                if ((_updatedPriorityData.PriorityCode != null) && (_updatedPriorityData.PriorityCode < 0))  // If not null, new value is negative and not valid
-                {
-                    return ServiceResult<int>.Fail("Invalid priority code.");
-                }
-
-
-                var existingRecord = await _db.FfPriorityCodess.FindAsync(_updatedPriorityData.Id);
-                if (existingRecord != null)
-                {
-                    if (_updatedPriorityData.PriorityCode != null)        // New value is not null
-                    {
-                        existingRecord.PriorityCode = (int)_updatedPriorityData.PriorityCode;
-                    }
-
-                    if (_updatedPriorityData.PriorityName != null)
-                    {
-                        existingRecord.PriorityName = _updatedPriorityData.PriorityName;
-                    }
-                    await _db.SaveChangesAsync();
-
-                    return ServiceResult<int>.Ok(existingRecord.Id);
-                }
-                else
-                {
-                    return ServiceResult<int>.Fail("Priority ID not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<int>.Fail(ex.Message);
-            }
-        }
-
+                
         public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, StatusCodeDto _updatedStatusData)
         {
             try

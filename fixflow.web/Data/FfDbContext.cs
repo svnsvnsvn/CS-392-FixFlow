@@ -113,7 +113,9 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .Property(d => d.Id)
             .UseIdentityColumn();
 
-
+        builder.Entity<FfStatusCodes>()                   // Ensure status code is unique
+            .HasIndex(x => x.StatusCode)
+            .IsUnique();
 
         // *** FfPriorityCodes ***
         builder.Entity<FfPriorityCodes>()                   // Primary Key
@@ -123,6 +125,9 @@ public class FfDbContext : IdentityDbContext<AppUser>
             .Property(e => e.Id)
             .UseIdentityColumn();
 
+        builder.Entity<FfPriorityCodes>()                   // Esnure priority code is unique
+            .HasIndex(x => x.PriorityCode)
+            .IsUnique();
 
 
         // *** FfInternalNotes ***
@@ -236,7 +241,7 @@ public class FfDbContext : IdentityDbContext<AppUser>
         builder.Entity<FfTicketShortCodeConstructor>()                  // There can only be 1 active series.
             .HasIndex(c => c.SeriesIsActive)
             .IsUnique()
-            .HasFilter("\"IsActive\" = TRUE");
+            .HasFilter("\"SeriesIsActive\" = TRUE");
 
         //(short)(DateTime.Now.Year - 2000);        // 2 Digit date.  Yeah Y2K1 issue... but I'll be dead by then.
     }

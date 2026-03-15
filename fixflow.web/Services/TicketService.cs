@@ -279,7 +279,37 @@ namespace fixflow.web.Services
                 return ServiceResult<long>.Fail(ex.Message);
             }
         }
+        public async Task<ServiceResult<string>> GetNextShortCode()
+        {
+            try
+            {
+                var ticketSeriesData = await _db.FfTicketConstructoror.SingleAsync(a => a.SeriesIsActive == true);
 
+                string ticketNum = (ticketSeriesData.LastTicketUsed + 1).ToString();
+                int leadingZerosNeeded = 4 - ticketNum.Length;
+                for (int i = 0; i < leadingZerosNeeded; i++)
+                {
+                    ticketNum = "0" + ticketNum;
+                }
+
+                string newShortCode = ticketSeriesData.TicketPrefix +
+                    "-" + ticketSeriesData.TicketSeries.ToString() +
+                    "-" + ticketNum;
+
+                ticketSeriesData.LastTicketUsed++;
+
+                await _db.SaveChangesAsync();
+
+                return ServiceResult<string>.Ok(newShortCode);
+
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<string>.Fail(ex.Message);
+            }
+        }
+        
         public async Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypes()
         {
             try
@@ -306,7 +336,6 @@ namespace fixflow.web.Services
                 return ServiceResult<List<TicketTypeDto>>.Fail(ex.Message);
             }
         }
-
         public async Task<ServiceResult<List<BuildingDto>>> GetBuildings()
         {
             try
@@ -339,7 +368,6 @@ namespace fixflow.web.Services
                 return ServiceResult<List<BuildingDto>>.Fail(ex.Message);
             }
         }
-
         public async Task<ServiceResult<List<StatusCodeDto>>> GetStatusCodeList()
         {
             try
@@ -378,7 +406,6 @@ namespace fixflow.web.Services
                 return ServiceResult<int>.Fail(ex.Message);
             }
         }
-        
         public async Task<ServiceResult<string>> GetStatusCode(int _StatusCode)
         {
             try
@@ -390,38 +417,67 @@ namespace fixflow.web.Services
             {
                 return ServiceResult<string>.Fail(ex.Message);
             }
-
         }
-
-        public async Task<ServiceResult<string>> GetNextShortCode()
+        public async Task<ServiceResult<StatusCodeDto>> GetStatusCodeFromId(int _Id)
         {
             try
             {
-                var ticketSeriesData = await _db.FfTicketConstructoror.SingleAsync(a => a.SeriesIsActive == true);
+                var result = await _db.FfStatusCodes.SingleAsync(a => a.Id == _Id);
+                StatusCodeDto returnCode = new StatusCodeDto();
+                returnCode.Id = result.Id;
+                returnCode.StatusCode = result.StatusCode;
+                returnCode.StatusName = result.StatusName;
 
-                string ticketNum = (ticketSeriesData.LastTicketUsed + 1).ToString();
-                int leadingZerosNeeded = 4 - ticketNum.Length;
-                for (int i = 0; i < leadingZerosNeeded; i++)
-                {
-                    ticketNum = "0" + ticketNum;
-                }
+                return ServiceResult<StatusCodeDto>.Ok(returnCode);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<StatusCodeDto>.Fail(ex.Message);
+            }
 
-                string newShortCode = ticketSeriesData.TicketPrefix +
-                    "-" + ticketSeriesData.TicketSeries.ToString() +
-                    "-" + ticketNum;
+        }
 
-                ticketSeriesData.LastTicketUsed++;
-
-                await _db.SaveChangesAsync();
-
-                return ServiceResult<string>.Ok(newShortCode);
-
-
+        public async Task<ServiceResult<int>> GetPriorityCode(string _PriorityName)
+        {
+            try
+            {
+                var result = await _db.FfPriorityCodess.SingleAsync(a => a.PriorityName == _PriorityName);
+                return ServiceResult<int>.Ok(result.PriorityCode);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<string>> GetPriorityCode(int _PriorityCode)
+        {
+            try
+            {
+                var result = await _db.FfPriorityCodess.SingleAsync(a => a.PriorityCode == _PriorityCode);
+                return ServiceResult<string>.Ok(result.PriorityName);
             }
             catch (Exception ex)
             {
                 return ServiceResult<string>.Fail(ex.Message);
             }
+        }
+        public async Task<ServiceResult<PriorityCodeDto>> GetPriorityCodeFromId(int _Id)
+        {
+            try
+            {
+                var result = await _db.FfPriorityCodess.SingleAsync(a => a.Id == _Id);
+                PriorityCodeDto returnCode = new PriorityCodeDto();
+                returnCode.Id = result.Id;
+                returnCode.PriorityCode = result.PriorityCode;
+                returnCode.PriorityName = result.PriorityName;
+
+                return ServiceResult<PriorityCodeDto>.Ok(returnCode);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<PriorityCodeDto>.Fail(ex.Message);
+            }
+
         }
     }
 }

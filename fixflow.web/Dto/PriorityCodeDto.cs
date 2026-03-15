@@ -1,6 +1,6 @@
 ﻿namespace fixflow.web.Dto
 {
-    public class UpdatePriorityCodeDto
+    public class PriorityCodeDto
     {
         public int Id { get; set; }
         public int? PriorityCode { get; set; } = 0;

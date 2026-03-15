@@ -15,5 +15,10 @@ namespace fixflow.web.Services
         Task<ServiceResult<List<StatusCodeDto>>> GetStatusCodeList();
         Task<ServiceResult<int>> GetStatusCode(string _StatusName);
         Task<ServiceResult<string>> GetStatusCode(int _StatusCode);
+        Task<ServiceResult<StatusCodeDto>> GetStatusCodeFromId(int _Id);
+        Task<ServiceResult<int>> GetPriorityCode(string _StatusName);
+        Task<ServiceResult<string>> GetPriorityCode(int _StatusCode);
+        Task<ServiceResult<PriorityCodeDto>> GetPriorityCodeFromId(int _Id);
+
     }
 }

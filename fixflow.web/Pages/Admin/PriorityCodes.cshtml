@@ -35,7 +35,21 @@
                             <td>@priority.PriorityCode</td>
                             <td>@priority.PriorityName</td>
                             <td>
-                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+@*                                 <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Up</a>
+                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Down</a>
+ *@                                <a asp-page-handler="IncreasePriority"
+                                   asp-route-id="@priority.Id">
+                                    Up
+                                </a>
+
+                                <a asp-page-handler="DecreasePriority"
+                                   asp-route-id="@priority.Id">
+                                    Down
+                                </a>
+                                <a asp-page-handler="DeletePriority"
+                                   asp-route-id="@priority.Id">
+                                    Delete
+                                </a>
                             </td>
                         </tr>
                     }
