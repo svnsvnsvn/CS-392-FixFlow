@@ -22,12 +22,10 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Pages\Admin\" />
     <Folder Include="Pages\Manager\" />
     <Folder Include="Pages\Tickets\" />
     <Folder Include="Pages\Resident\" />
     <Folder Include="Pages\Technician\" />
-    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>
