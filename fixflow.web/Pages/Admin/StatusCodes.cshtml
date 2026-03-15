@@ -35,7 +35,19 @@
                             <td>@status.StatusCode</td>
                             <td>@status.StatusName</td>
                             <td>
-                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                                <a asp-page-handler="IncreaseStatus"
+                                   asp-route-id="@status.Id">
+                                    Up
+                                </a>
+
+                                <a asp-page-handler="DecreaseStatus"
+                                   asp-route-id="@status.Id">
+                                    Down
+                                </a>
+                                <a asp-page-handler="DeleteStatus"
+                                   asp-route-id="@status.Id">
+                                    Delete
+                                </a>
                             </td>
                         </tr>
                     }

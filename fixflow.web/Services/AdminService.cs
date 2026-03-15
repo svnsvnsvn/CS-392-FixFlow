@@ -283,10 +283,15 @@ namespace fixflow.web.Services
                     return ServiceResult<int>.Fail("Insufficient privileges.");
                 }
 
+                int newStatusCodeValue = await _db.FfStatusCodes
+                        .Select(p => (int?)p.StatusCode)
+                        .MaxAsync() ?? 0;
+                newStatusCodeValue++;
+
                 var newStatusCode = new FfStatusCodes
                 {
                     StatusName = _newStatusData.StatusName,
-                    StatusCode = _newStatusData.StatusCode
+                    StatusCode = newStatusCodeValue
                 };
 
                 _db.FfStatusCodes.Add(newStatusCode);
@@ -299,6 +304,211 @@ namespace fixflow.web.Services
                 return ServiceResult<int>.Fail(ex.Message);
             }
         }
+        public async Task<ServiceResult<int>> IncrementStatusCode(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<int>.Fail("Invalid status code.");
+                }
+
+
+                // Begin transaction to wrap two possible priority code changes.
+                using var userCreationTransaction = await _db.Database.BeginTransactionAsync();
+
+                var existingRecord = await _db.FfStatusCodes.FindAsync(_Id);
+                if (existingRecord == null)
+                {
+                    return ServiceResult<int>.Fail("Status ID not found.");
+                }
+
+                try
+                {
+
+                    // See if a higher code exists, if so decrement it
+                    bool exists = await _db.FfStatusCodes.AnyAsync(p => p.StatusCode == (existingRecord.StatusCode + 1));
+                    if (exists)
+                    {
+                        var existingRecordNext = await _db.FfStatusCodes.FirstOrDefaultAsync(p => p.StatusCode == (existingRecord.StatusCode + 1));
+                        existingRecordNext.StatusCode--;
+                    }
+                    // Increment code
+                    existingRecord.StatusCode++;
+
+                    // Flip polarity temporarily, to prevent circular reference in Db
+                    existingRecord.StatusCode *= -1;
+
+                    // Write records
+                    await _db.SaveChangesAsync();
+
+                    // Flip back
+                    existingRecord.StatusCode *= -1;
+                    await _db.SaveChangesAsync();
+                    await userCreationTransaction.CommitAsync();
+                }
+                catch
+                {
+                    await userCreationTransaction.RollbackAsync();          // Stop db writes if something failed. Prevent half transactions.
+                    throw;
+                }
+
+                return ServiceResult<int>.Ok(existingRecord.Id);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<int>> DecrementStatusCode(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<int>.Fail("Invalid status code.");
+                }
+
+
+                // Begin transaction to wrap two possible priority code changes.
+                using var userCreationTransaction = await _db.Database.BeginTransactionAsync();
+
+                var existingRecord = await _db.FfStatusCodes.FindAsync(_Id);
+                if (existingRecord == null)
+                {
+                    return ServiceResult<int>.Fail("Status ID not found.");
+                }
+
+                if (existingRecord.StatusCode < 1)
+                {
+                    return ServiceResult<int>.Fail("Can not decrement Status Code further.");
+                }
+
+                try
+                {
+
+                    // See if a lower code exists, if so increment it
+                    bool exists = await _db.FfStatusCodes.AnyAsync(p => p.StatusCode == (existingRecord.StatusCode - 1));
+                    if (exists)
+                    {
+                        var existingRecordNext = await _db.FfStatusCodes.FirstOrDefaultAsync(p => p.StatusCode == (existingRecord.StatusCode - 1));
+                        existingRecordNext.StatusCode++;
+                    }
+                    // Increment code
+                    existingRecord.StatusCode--;
+
+                    // Flip polarity temporarily, to prevent circular reference in Db
+                    existingRecord.StatusCode *= -1;
+
+                    // Write records
+                    await _db.SaveChangesAsync();
+
+                    // Flip back
+                    existingRecord.StatusCode *= -1;
+                    await _db.SaveChangesAsync();
+
+                    await userCreationTransaction.CommitAsync();
+                }
+                catch
+                {
+                    await userCreationTransaction.RollbackAsync();          // Stop db writes if something failed. Prevent half transactions.
+                    throw;
+                }
+
+                return ServiceResult<int>.Ok(existingRecord.Id);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<bool>> DeleteStatusCode(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<bool>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<bool>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<bool>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<bool>.Fail("Invalid status code.");
+                }
+
+
+                try
+                {
+                    var existingRecord = await _db.FfStatusCodes.FindAsync(_Id);
+                    if (existingRecord == null)
+                    {
+                        return ServiceResult<bool>.Fail("Status ID not found.");
+                    }
+
+                    _db.FfStatusCodes.Remove(existingRecord);
+                    // Write records
+                    await _db.SaveChangesAsync();
+                }
+                catch
+                {
+                    throw;
+                }
+
+                return ServiceResult<bool>.Ok(true);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<bool>.Fail(ex.Message);
+            }
+        }
+
+
 
         public async Task<ServiceResult<int>> AddTicketType(string _requestorId, RoleTypes _requestorRole, NewTicketTypeDto _newTicketData)
         {
@@ -399,57 +609,6 @@ namespace fixflow.web.Services
             }
         }
                 
-        public async Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, StatusCodeDto _updatedStatusData)
-        {
-            try
-            {
-                // Validate requestor inputs
-                if (_requestorId == null)
-                {
-                    return ServiceResult<int>.Fail("Invalid requestor Id.");
-                }
-
-                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
-                {
-                    return ServiceResult<int>.Fail("Invalid role.");
-                }
-
-                if (_requestorRole != RoleTypes.Admin)
-                {
-                    return ServiceResult<int>.Fail("Insufficient privileges.");
-                }
-
-                if ((_updatedStatusData.StatusCode != null) && (_updatedStatusData.StatusCode < 0))  // If not null, new value is negative and not valid
-                {
-                    return ServiceResult<int>.Fail("Invalid status code.");
-                }
-
-                var existingRecord = await _db.FfStatusCodes.FindAsync(_updatedStatusData.Id);
-                if (existingRecord != null)
-                {
-                    if (_updatedStatusData.StatusCode != null)        // New value is not null
-                    {
-                        existingRecord.StatusCode = (int)_updatedStatusData.StatusCode;
-                    }
-
-                    if (_updatedStatusData.StatusName != null)
-                    {
-                        existingRecord.StatusName = _updatedStatusData.StatusName;
-                    }
-                    await _db.SaveChangesAsync();
-
-                    return ServiceResult<int>.Ok(existingRecord.Id);
-                }
-                else
-                {
-                    return ServiceResult<int>.Fail("Status ID not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<int>.Fail(ex.Message);
-            }
-        }
 
         public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, TicketTypeDto _updatedTicketData)
         {

@@ -12,9 +12,12 @@ public interface IAdminService
     Task<ServiceResult<bool>> DeletePriorityCode(string _requestorId, RoleTypes _requestorRole, int _Id);
 
     Task<ServiceResult<int>> AddStatusCode(string _requestorId, RoleTypes _requestorRole, NewStatusCodeDto _newStatusData);
+    Task<ServiceResult<int>> IncrementStatusCode(string _requestorId, RoleTypes _requestorRole, int _Id);
+    Task<ServiceResult<int>> DecrementStatusCode(string _requestorId, RoleTypes _requestorRole, int _Id);
+    Task<ServiceResult<bool>> DeleteStatusCode(string _requestorId, RoleTypes _requestorRole, int _Id);
+
     Task<ServiceResult<int>> AddTicketType(string _requestorId, RoleTypes _requestorRole, NewTicketTypeDto _newTicketData);
     Task<ServiceResult<int>> AddBuilding(string _requestorId, RoleTypes _requestorRole, NewBuildingDto _newBuildingData);
-    Task<ServiceResult<int>> UpdateStatusCode(string _requestorId, RoleTypes _requestorRole, StatusCodeDto _NewStatusData);
     Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, TicketTypeDto _NewTicketData);
     Task<ServiceResult<int>> UpdateBuilding(string _requestorId, RoleTypes _requestorRole, BuildingDto _newBuildingData);
 
