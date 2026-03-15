@@ -784,6 +784,7 @@ namespace fixflow.web.Services
             }
         }
 
+    
         public async Task<ServiceResult<bool>> ChangeUserRole(string _requestorId, RoleTypes _requestorRole, string _targetId, RoleTypes _targetUserNewRole)
         {
             try
@@ -843,5 +844,118 @@ namespace fixflow.web.Services
                 return ServiceResult<bool>.Fail(ex.Message);
             }
         }
+
+
+        public async Task<ServiceResult<List<UserListItemDto>>> SearchUsers(string _searchString)
+        {
+            try
+            {
+                if (_searchString.Length >= 3)
+                {
+                    _searchString = _searchString.ToLower();
+
+                    var terms = _searchString.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    var query = _db.FfUserProfiles.AsQueryable();
+
+                    foreach (var term in terms)
+                    {
+                        query = query.Where(p =>
+                            p.FName.ToLower().StartsWith(term) ||
+                            p.LName.ToLower().StartsWith(term));
+                    }
+
+                    // Find user profiles that meet query (First or Last name, first characters)
+                    var searchResults = await query
+                        .Take(10)
+                        .ToListAsync();
+
+                    // Extract ids from searchResults
+                    var searchIds = searchResults.Select(p => p.FfUserId).ToList();
+
+                    // Get roles for those Ids
+                    var roleByUserId = await (
+                        from ur in _db.UserRoles
+                        join r in _db.Roles on ur.RoleId equals r.Id
+                        where searchIds.Contains(ur.UserId)
+                        select new { ur.UserId, RoleName = r.Name }
+                    ).ToDictionaryAsync(x => x.UserId, x => x.RoleName);
+
+
+                    var finalResults = searchResults
+                        .OrderBy(p => p.LName)
+                        .ThenBy(p => p.FName)
+                        .Select(p => new UserListItemDto
+                        {
+                            UserId = p.FfUserId,
+                            FName = p.FName,
+                            LName = p.LName,
+                            Role = roleByUserId.TryGetValue(p.FfUserId, out var role) ? role : null
+                        }).ToList();
+
+                    return ServiceResult<List<UserListItemDto>>.Ok(finalResults);
+                }
+                return ServiceResult<List<UserListItemDto>>.Fail("Query String < 3 characters.");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<UserListItemDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<UserSettingsListItemDTO>> GetUserSettings(string _requestorId, RoleTypes _requestorRole, string _targetUser)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<UserSettingsListItemDTO>.Fail("Invalid Requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<UserSettingsListItemDTO>.Fail("Invalid Role.");
+                }
+
+                // This function is for Admins only
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<UserSettingsListItemDTO>.Fail("Insufficient Privileges.");
+                }
+
+                // Find target employee
+                var targetUserSettings = await _userManager.FindByIdAsync(_targetUser);
+                if (targetUserSettings == null)
+                {
+                    return ServiceResult<UserSettingsListItemDTO>.Fail("User Id not found.");
+                }
+                var targetUserName = await _db.FfUserProfiles.FindAsync(_targetUser);
+                if (targetUserName == null)
+                {
+                    return ServiceResult<UserSettingsListItemDTO>.Fail("User Id not found.");
+                }
+                var targetUserRole = await _userManager.GetRolesAsync(targetUserSettings);
+                if (targetUserRole == null)
+                {
+                    return ServiceResult<UserSettingsListItemDTO>.Fail("User Id not found.");
+                }
+
+                UserSettingsListItemDTO returnData = new UserSettingsListItemDTO();
+                returnData.UserId = targetUserSettings.Id;
+                returnData.FName = targetUserName.FName;
+                returnData.LName = targetUserName.LName;
+                returnData.Role = targetUserRole[0];
+                returnData.ResetPassOnLogin = targetUserSettings.ResetPassOnLogin;
+
+                return ServiceResult<UserSettingsListItemDTO>.Ok(returnData);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<UserSettingsListItemDTO>.Fail("Employee Id not found.");
+            }
+        }
+
+
     }
 }
