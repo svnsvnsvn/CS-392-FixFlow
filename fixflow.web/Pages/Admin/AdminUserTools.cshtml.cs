@@ -70,7 +70,7 @@ namespace fixflow.web.Pages.Admin
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
 
-            if ((!string.IsNullOrEmpty(user.Id)) && (roles.Count == 0))
+            if ((!string.IsNullOrEmpty(user.Id)) && (roles.Count > 0))
             {
                 var result = await _adminService.ChangeUserRole(user.Id.ToString(), Enum.Parse<RoleTypes>(roles[0]), SelectedUserId, Enum.Parse<RoleTypes>(SelectedUserRole));
                 if (!result.Success)

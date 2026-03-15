@@ -30,7 +30,5 @@ function updateUserSettings(_data)
         document.querySelector(`input[name="SelectedUserRole"][value="${_data.role}"]`).checked = true;
     }
     
-    document.getElementById("LoginPassAllowed").checked = _data.loginPassAllowed;
-    document.getElementById("OIDCAllowed").checked = _data.oidcAllowed;
     document.getElementById("ResetPassOnLogin").checked = _data.resetPassOnLogin;
 }
