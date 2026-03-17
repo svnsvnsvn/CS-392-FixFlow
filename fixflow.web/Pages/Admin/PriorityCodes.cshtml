@@ -29,29 +29,39 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @{int i = 0;}
                     @foreach (var priority in Model.PriorityCodes)
                     {
                         <tr>
                             <td>@priority.PriorityCode</td>
                             <td>@priority.PriorityName</td>
                             <td>
-@*                                 <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Up</a>
-                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Down</a>
- *@                                <a asp-page-handler="IncreasePriority"
-                                   asp-route-id="@priority.Id">
-                                    Up
-                                </a>
-
-                                <a asp-page-handler="DecreasePriority"
-                                   asp-route-id="@priority.Id">
-                                    Down
-                                </a>
-                                <a asp-page-handler="DeletePriority"
-                                   asp-route-id="@priority.Id">
-                                    Delete
+                                @if (i == 0)
+                                {
+                                    <img src="~/icons/arrow-up-circle.svg" style="visibility:hidden" />
+                                }
+                                else
+                                {
+                                    <a asp-page-handler="Decreasepriority" asp-route-id="@priority.Id">
+                                        <img src="~/icons/arrow-up-circle.svg" />
+                                    </a>
+                                }
+                                @if (i == Model.PriorityCodes.Count() - 1)
+                                {
+                                    <img src="~/icons/arrow-down-circle.svg" style="visibility:hidden" />
+                                }
+                                else
+                                {
+                                    <a asp-page-handler="Increasepriority" asp-route-id="@priority.Id">
+                                        <img src="~/icons/arrow-down-circle.svg" />
+                                    </a>
+                                }
+                                <a asp-page-handler="Deletepriority" asp-route-id="@priority.Id">
+                                    <img src="~/icons/trash-2.svg" />
                                 </a>
                             </td>
                         </tr>
+                        i++;
                     }
                 </tbody>
             </table>

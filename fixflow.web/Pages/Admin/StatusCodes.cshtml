@@ -29,27 +29,36 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @{int i = 0;}
                     @foreach (var status in Model.StatusCodes)
                     {
                         <tr>
                             <td>@status.StatusCode</td>
                             <td>@status.StatusName</td>
                             <td>
-                                <a asp-page-handler="IncreaseStatus"
-                                   asp-route-id="@status.Id">
-                                    Up
-                                </a>
-
-                                <a asp-page-handler="DecreaseStatus"
-                                   asp-route-id="@status.Id">
-                                    Down
-                                </a>
-                                <a asp-page-handler="DeleteStatus"
-                                   asp-route-id="@status.Id">
-                                    Delete
-                                </a>
+                                @if (i == 0)
+                                {
+                                    <img src="~/icons/arrow-up-circle.svg" style="visibility:hidden" />
+                                }
+                                else
+                                {
+                                    <a asp-page-handler="DecreaseStatus"  asp-route-id="@status.Id">
+                                        <img src="~/icons/arrow-up-circle.svg" /></a>
+                                }
+                                @if (i == Model.StatusCodes.Count() - 1)
+                                {
+                                    <img src="~/icons/arrow-down-circle.svg" style="visibility:hidden"/>
+                                }
+                                else
+                                {
+                                    <a asp-page-handler="IncreaseStatus" asp-route-id="@status.Id">
+                                        <img src="~/icons/arrow-down-circle.svg" /></a>
+                                }
+                                <a asp-page-handler="DeleteStatus" asp-route-id="@status.Id">
+                                    <img src="~/icons/trash-2.svg" /></a>
                             </td>
                         </tr>
+                        i++;
                     }
                 </tbody>
             </table>
