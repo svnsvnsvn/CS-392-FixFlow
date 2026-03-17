@@ -35,7 +35,8 @@
                             <td>@ticketType.Id</td>
                             <td>@ticketType.TypeName</td>
                             <td>
-                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                                <a asp-page-handler="DeleteStatus" asp-route-id="@ticketType.Id">
+                                    <img src="~/icons/trash-2.svg" /></a>
                             </td>
                         </tr>
                     }

@@ -545,6 +545,105 @@ namespace fixflow.web.Services
                 return ServiceResult<int>.Fail(ex.Message);
             }
         }
+        public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, TicketTypeDto _updatedTicketData)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
+
+                var existingRecord = await _db.FfTicketTypess.FindAsync(_updatedTicketData.Id);
+                if (existingRecord != null)
+                {
+                    if (_updatedTicketData.TypeName != null)        // New value is not null
+                    {
+                        existingRecord.TypeName = _updatedTicketData.TypeName;
+                    }
+                    else   // Typename provided is null, delete record
+                    {
+                        _db.FfTicketTypess.Remove(existingRecord);
+                    }
+
+                    await _db.SaveChangesAsync();
+
+                    return ServiceResult<int>.Ok(1);
+                }
+                else
+                {
+                    return ServiceResult<int>.Fail("Status ID not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<int>> DeleteTicketType(string _requestorId, RoleTypes _requestorRole, int _Id)
+        {
+            try
+            {
+                // Validate requestor inputs
+                if (_requestorId == null)
+                {
+                    return ServiceResult<int>.Fail("Invalid requestor Id.");
+                }
+
+                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
+                {
+                    return ServiceResult<int>.Fail("Invalid role.");
+                }
+
+                if (_requestorRole != RoleTypes.Admin)
+                {
+                    return ServiceResult<int>.Fail("Insufficient privileges.");
+                }
+
+                if (_Id < 0)  // If not null, new value is negative and not valid
+                {
+                    return ServiceResult<int>.Fail("Invalid ticket type.");
+                }
+
+
+                try
+                {
+                    var existingRecord = await _db.FfTicketTypess.FindAsync(_Id);
+                    if (existingRecord == null)
+                    {
+                        return ServiceResult<int>.Fail("Ticket type ID not found.");
+                    }
+
+                    _db.FfTicketTypess.Remove(existingRecord);
+                    // Write records
+                    await _db.SaveChangesAsync();
+                }
+                catch
+                {
+                    throw;
+                }
+
+                return ServiceResult<int>.Ok(0);
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+
+
 
         public async Task<ServiceResult<int>> AddBuilding(string _requestorId, RoleTypes _requestorRole, NewBuildingDto _newBuildingData)
         {
@@ -602,54 +701,6 @@ namespace fixflow.web.Services
                 await _db.SaveChangesAsync();
 
                 return ServiceResult<int>.Ok(newBuilding.LocationCode);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<int>.Fail(ex.Message);
-            }
-        }
-                
-
-        public async Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, TicketTypeDto _updatedTicketData)
-        {
-            try
-            {
-                // Validate requestor inputs
-                if (_requestorId == null)
-                {
-                    return ServiceResult<int>.Fail("Invalid requestor Id.");
-                }
-
-                if (!Enum.IsDefined(typeof(RoleTypes), _requestorRole))
-                {
-                    return ServiceResult<int>.Fail("Invalid role.");
-                }
-
-                if (_requestorRole != RoleTypes.Admin)
-                {
-                    return ServiceResult<int>.Fail("Insufficient privileges.");
-                }
-
-                var existingRecord = await _db.FfTicketTypess.FindAsync(_updatedTicketData.Id);
-                if (existingRecord != null)
-                {
-                    if (_updatedTicketData.TypeName != null)        // New value is not null
-                    {
-                        existingRecord.TypeName = _updatedTicketData.TypeName;
-                    }
-                    else   // Typename provided is null, delete record
-                    {
-                        _db.FfTicketTypess.Remove(existingRecord);
-                    }
-
-                    await _db.SaveChangesAsync();
-
-                    return ServiceResult<int>.Ok(1);
-                }
-                else
-                {
-                    return ServiceResult<int>.Fail("Status ID not found.");
-                }
             }
             catch (Exception ex)
             {

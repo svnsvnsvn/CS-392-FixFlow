@@ -18,6 +18,8 @@ public interface IAdminService
 
     Task<ServiceResult<int>> AddTicketType(string _requestorId, RoleTypes _requestorRole, NewTicketTypeDto _newTicketData);
     Task<ServiceResult<int>> UpdateTicketType(string _requestorId, RoleTypes _requestorRole, TicketTypeDto _NewTicketData);
+    Task<ServiceResult<int>> DeleteTicketType(string _requestorId, RoleTypes _requestorRole, int _Id);
+
     Task<ServiceResult<int>> AddBuilding(string _requestorId, RoleTypes _requestorRole, NewBuildingDto _newBuildingData);
     Task<ServiceResult<int>> UpdateBuilding(string _requestorId, RoleTypes _requestorRole, BuildingDto _newBuildingData);
 
