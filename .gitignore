@@ -12,3 +12,5 @@ obj/
 # Docker stuff
 *.env
 /fixflow.web/appsettings.Development.json
+instructions.txt
+fixflow.web/UI_TODO.md

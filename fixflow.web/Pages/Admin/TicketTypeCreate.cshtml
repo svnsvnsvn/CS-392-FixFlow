@@ -2,25 +2,36 @@
 @model fixflow.web.Pages.Admin.TicketTypeCreateModel
 @{
     ViewData["Title"] = "Add Ticket Type";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "TicketTypes";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Add Ticket Type";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-folder"></i> Add Ticket Type</h1>
-        <p class="page-subtitle">Create a new category for maintenance requests.</p>
-    </div>
-
-    <div class="card">
-        <form method="post" class="form-stack">
-            <div class="form-group">
-                <label asp-for="Input.TypeName">Type Name</label>
-                <input asp-for="Input.TypeName" type="text" />
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Create a new category for maintenance requests.</p>
+                <a asp-page="./TicketTypes" class="btn btn-s">Back to Ticket Types</a>
             </div>
-
-            <div class="form-actions">
-                <button type="submit">Save Ticket Type</button>
-                <a class="btn btn-secondary" asp-page="./TicketTypes">Back to Ticket Types</a>
+            <div class="card mb20">
+                <div class="ch"><span class="ct">Type details</span></div>
+                <div class="cb">
+                    <form method="post">
+                        <div class="fg">
+                            <label class="flbl" asp-for="Input.TypeName">Type Name</label>
+                            <input class="finp" asp-for="Input.TypeName" type="text" />
+                        </div>
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p">Save Ticket Type</button>
+                            <a asp-page="./TicketTypes" class="btn btn-s">Cancel</a>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </main>
 </div>

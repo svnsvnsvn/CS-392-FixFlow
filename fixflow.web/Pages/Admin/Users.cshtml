@@ -1,57 +1,152 @@
-page
+@page
 @model fixflow.web.Pages.Admin.UsersModel
 @{
     ViewData["Title"] = "Manage Users";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "AdminUserTool";
+    ViewData["BreadcrumbPath"] = "People";
+    ViewData["BreadcrumbTitle"] = "Residents & Staff";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-people"></i> Manage Users</h1>
-        <p class="page-subtitle">View and manage system users</p>
-    </div>
-
-    <div class="toolbar">
-        <div></div>
-        <a asp-page="/Account/NewUser" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Add New User
-        </a>
-    </div>
-
-    <div class="card">
-        @if (Model.Users != null && Model.Users.Any())
-        {
-            <table>
-                <thead>
-                    <tr>
-                        <th><i class="bi bi-person"></i> Name</th>
-                        <th><i class="bi bi-envelope"></i> Email</th>
-                        <th><i class="bi bi-telephone"></i> Phone</th>
-                        <th><i class="bi bi-geo-alt"></i> Location</th>
-                        <th><i class="bi bi-pencil-square"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in Model.Users)
-                    {
-                        <tr>
-                            <td>@user.FName @user.LName</td>
-                            <td>@user.FfUser?.Email</td>
-                            <td>@user.FfUser?.PhoneNumber</td>
-                            <td>@user.Location</td>
-                            <td>
-                                <a href="#" class="btn btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="placeholder">
-                <i class="bi bi-people icon-lg icon-faded"></i>
-                <p>No users found. Click "Add New User" to get started.</p>
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <span></span>
+                <a asp-page="/Account/NewUser" class="btn btn-p"><i class="bi bi-person-plus" aria-hidden="true"></i> Invite User</a>
             </div>
-        }
-    </div>
+            <div class="stat-row">
+                <div class="sc">
+                    <div class="sc-lbl">Total users</div>
+                    <div class="sc-val">@Model.TotalUsers</div>
+                </div>
+                <div class="sc">
+                    <div class="sc-lbl">Residents</div>
+                    <div class="sc-val">@Model.ResidentCount</div>
+                </div>
+                <div class="sc">
+                    <div class="sc-lbl">Staff</div>
+                    <div class="sc-val">@Model.StaffCount</div>
+                </div>
+                <div class="sc">
+                    <div class="sc-lbl">Pending</div>
+                    <div class="sc-val">@Model.PendingCount</div>
+                </div>
+            </div>
+            <div class="fbar">
+                <div class="ts-wrap">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="text" class="fbar-inp" placeholder="Search users..." id="userSearch" />
+                </div>
+                <select class="fbar-sel" id="roleFilter" aria-label="Filter by role">
+                    <option value="">All roles</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Employee">Employee</option>
+                    <option value="Resident">Resident</option>
+                    <option value="Pending">Pending</option>
+                </select>
+                <select class="fbar-sel" id="buildingFilter" aria-label="Filter by building">
+                    <option value="">All buildings</option>
+                    @if (Model.UserRows != null)
+                    {
+                        foreach (var b in Model.UserRows.Select(r => r.BuildingDisplay).Where(s => !string.IsNullOrEmpty(s) && s != "-").Distinct().OrderBy(s => s))
+                        {
+                            <option value="@b">@b</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="tsec">
+                @if (Model.UserRows != null && Model.UserRows.Any())
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Unit</th>
+                                <th>Building</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.UserRows)
+                            {
+                                var p = row.Profile;
+                                var f = (p.FName ?? "").Trim();
+                                var l = (p.LName ?? "").Trim();
+                                var initials = (f.Length > 0 ? f[0].ToString() : "") + (l.Length > 0 ? l[0].ToString() : "");
+                                if (string.IsNullOrEmpty(initials)) { initials = "?"; } else { initials = initials.ToUpperInvariant(); }
+                                var unitDisplay = p.Unit > 0 ? p.Unit.ToString() : "—";
+                                <tr data-role="@row.RoleName" data-building="@row.BuildingDisplay" data-name="@((p.FName + " " + p.LName).ToLowerInvariant())" data-email="@(p.FfUser?.Email?.ToLowerInvariant() ?? "")">
+                                    <td>
+                                        <div class="user-cell user-cell-stack">
+                                            <span class="user-av" aria-hidden="true">@initials</span>
+                                            <div class="user-name">@p.FName @p.LName</div>
+                                            <div class="user-email">@(p.FfUser?.Email ?? "—")</div>
+                                        </div>
+                                    </td>
+                                    <td><span class="rb rb-@row.RoleName.ToLowerInvariant()">@row.RoleName</span></td>
+                                    <td>@unitDisplay</td>
+                                    <td>@row.BuildingDisplay</td>
+                                    <td>
+                                        @if (row.Status == "Active")
+                                        {
+                                            <span class="status-active">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pending">Pending</span>
+                                        }
+                                    </td>
+                                    <td>@row.Joined</td>
+                                    <td><a href="#" class="btn btn-s btn-sm">Edit</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty">
+                        <div class="empty-ico"><i class="bi bi-people" aria-hidden="true"></i></div>
+                        <div class="empty-t">No users found.</div>
+                        <a asp-page="/Account/NewUser" class="create-btn">Invite User</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
 </div>
+<script>
+    (function () {
+        var search = document.getElementById('userSearch');
+        var roleFilter = document.getElementById('roleFilter');
+        var buildingFilter = document.getElementById('buildingFilter');
+        var rows = document.querySelectorAll('.tsec tbody tr[data-role]');
+        function filter() {
+            var q = (search && search.value) ? search.value.trim().toLowerCase() : '';
+            var role = (roleFilter && roleFilter.value) ? roleFilter.value : '';
+            var building = (buildingFilter && buildingFilter.value) ? buildingFilter.value : '';
+            rows.forEach(function (tr) {
+                var show = true;
+                if (q) {
+                    var name = (tr.getAttribute('data-name') || '');
+                    var email = (tr.getAttribute('data-email') || '');
+                    if (name.indexOf(q) === -1 && email.indexOf(q) === -1) show = false;
+                }
+                if (show && role && tr.getAttribute('data-role') !== role) show = false;
+                if (show && building && tr.getAttribute('data-building') !== building) show = false;
+                tr.style.display = show ? '' : 'none';
+            });
+        }
+        if (search) search.addEventListener('input', filter);
+        if (roleFilter) roleFilter.addEventListener('change', filter);
+        if (buildingFilter) buildingFilter.addEventListener('change', filter);
+    })();
+</script>

@@ -42,6 +42,9 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
+// Custom 404 page for missing routes
+app.UseStatusCodePagesWithReExecute("/NotFound");
+
 // Apply migrations (for DB init and validation, then run seeder)
 using (var scope = app.Services.CreateScope())
 {
@@ -62,19 +65,19 @@ app.MapControllers();       // For APIs later
 
 app.MapGet("/", context =>
 {
-    context.Response.Redirect("/Dashboard");
+    context.Response.Redirect("/Account/Login");
     return Task.CompletedTask;
 });
 
 app.MapGet("/Index", context =>
 {
-    context.Response.Redirect("/Dashboard");
+    context.Response.Redirect("/Account/Login");
     return Task.CompletedTask;
 });
 
 app.MapGet("/Home", context =>
 {
-    context.Response.Redirect("/Dashboard");
+    context.Response.Redirect("/Account/Login");
     return Task.CompletedTask;
 });
 

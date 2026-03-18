@@ -2,47 +2,58 @@
 @model fixflow.web.Pages.Admin.BuildingCreateModel
 @{
     ViewData["Title"] = "Add Building";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Buildings";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Add Building";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-building"></i> Add Building</h1>
-        <p class="page-subtitle">Create a new building location for maintenance requests.</p>
-    </div>
-
-    <div class="card">
-        <form method="post" class="form-stack">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label asp-for="Input.LocationName">Location Name</label>
-                    <input asp-for="Input.LocationName" type="text" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.ComplexName">Complex Name</label>
-                    <input asp-for="Input.ComplexName" type="text" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.BuildingNumber">Building Number</label>
-                    <input asp-for="Input.BuildingNumber" type="number" min="0" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.NumUnits">Number of Units</label>
-                    <input asp-for="Input.NumUnits" type="number" min="0" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.LocationLat">Latitude</label>
-                    <input asp-for="Input.LocationLat" type="number" step="0.000001" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.LocationLon">Longitude</label>
-                    <input asp-for="Input.LocationLon" type="number" step="0.000001" />
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Create a new building location for maintenance requests.</p>
+                <a asp-page="./Buildings" class="btn btn-s">Back to Buildings</a>
+            </div>
+            <div class="card mb20">
+                <div class="ch"><span class="ct">Building details</span></div>
+                <div class="cb">
+                    <form method="post">
+                        <div class="fgrid">
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.LocationName">Location Name</label>
+                                <input class="finp" asp-for="Input.LocationName" type="text" />
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.ComplexName">Complex Name</label>
+                                <input class="finp" asp-for="Input.ComplexName" type="text" />
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.BuildingNumber">Building Number</label>
+                                <input class="finp" asp-for="Input.BuildingNumber" type="number" min="0" />
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.NumUnits">Number of Units</label>
+                                <input class="finp" asp-for="Input.NumUnits" type="number" min="0" />
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.LocationLat">Latitude</label>
+                                <input class="finp" asp-for="Input.LocationLat" type="number" step="0.000001" />
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.LocationLon">Longitude</label>
+                                <input class="finp" asp-for="Input.LocationLon" type="number" step="0.000001" />
+                            </div>
+                        </div>
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p">Save Building</button>
+                            <a asp-page="./Buildings" class="btn btn-s">Cancel</a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="form-actions">
-                <button type="submit">Save Building</button>
-                <a class="btn btn-secondary" asp-page="./Buildings">Back to Buildings</a>
-            </div>
-        </form>
-    </div>
+        </div>
+    </main>
 </div>

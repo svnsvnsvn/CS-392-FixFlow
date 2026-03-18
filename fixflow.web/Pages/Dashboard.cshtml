@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Dashboard - FixFlow";
     ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Tickets";
+    ViewData["BreadcrumbPath"] = "Operations";
+    ViewData["BreadcrumbTitle"] = "Overview";
+    ViewData["TopbarCreateUrl"] = "/Tickets/Create";
+    ViewData["TopbarSearch"] = true;
 }
 
 @section Styles {
@@ -12,422 +17,221 @@
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
 
-    <main class="app-main">
-        <div class="dashboard-shell">
-            <div class="content-header">
-                <h1 class="content-title">Dashboard</h1>
-                <div class="content-actions">
-                    <button type="button" class="btn btn-secondary" data-announcements-open>
-                        <i class="bi bi-megaphone"></i>
-                        Announcements
-                    </button>
-                    <a href="/Tickets/Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i>
-                        Create Ticket
-                    </a>
-                </div>
-            </div>
-            <div class="lead-panel">
-                <h2 class="lead-title">Welcome back, @Model.UserName!</h2>
-                <p class="lead-subtitle">@Model.WelcomeMessage</p>
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">@Model.WelcomeMessage</p>
+                <a href="/Tickets/Create" class="create-btn">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Create Ticket
+                </a>
             </div>
 
-            <!-- Stats (for Manager/Admin only) -->
             @if (Model.UserRole == "Manager" || Model.UserRole == "Admin")
             {
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-ticket-perforated"></i> Total Tickets</div>
-                        <div class="stat-value">@Model.TotalTickets</div>
+                <div class="stat-row ref-stat-row">
+                    <div class="sc">
+                        <div class="sc-lbl">Open Tickets</div>
+                        <div class="sc-val">@Model.TotalTickets</div>
+                        <div class="sc-sub">Active across all buildings</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-clock"></i> Pending</div>
-                        <div class="stat-value">@Model.PendingTickets</div>
+                    <div class="sc">
+                        <div class="sc-lbl">Pending</div>
+                        <div class="sc-val">@Model.PendingTickets</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-arrow-repeat"></i> In Progress</div>
-                        <div class="stat-value">@Model.InProgressTickets</div>
+                    <div class="sc">
+                        <div class="sc-lbl">In Progress</div>
+                        <div class="sc-val">@Model.InProgressTickets</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label"><i class="bi bi-check-circle"></i> Completed Today</div>
-                        <div class="stat-value">@Model.CompletedToday</div>
+                    <div class="sc ac">
+                        <div class="sc-lbl">Completed Today</div>
+                        <div class="sc-val">@Model.CompletedToday</div>
                     </div>
                 </div>
             }
 
-            <div class="dashboard-layout">
-                <section class="panel panel-span" id="schedule">
-                    <div class="panel-header">
-                        <div>
-                            <h3 class="panel-title">Weekly View</h3>
-                            <p class="panel-subtitle">Tap a day to reveal appointments.</p>
-                        </div>
-                        <div class="panel-actions">
-                            <div class="week-controls">
-                                <button class="week-button" type="button" id="weekPrev" aria-label="Previous week">
-                                    <i class="bi bi-chevron-left"></i>
-                                </button>
-                                <button class="week-button" type="button" id="weekNext" aria-label="Next week">
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="week-days" id="weekDays" data-week-start="@DateTime.Today.ToString("yyyy-MM-dd")">
-                            @for (var i = 0; i < 7; i++)
-                            {
-                                var day = DateTime.Today.AddDays(i);
-                                var isActive = i == 0;
-                                <button class="day-button @(isActive ? "active" : "")" type="button" data-date="@day.ToString("yyyy-MM-dd")">
-                                    <span class="day-label">@day.ToString("ddd")</span>
-                                    <span class="day-number">@day.Day</span>
-                                </button>
-                            }
-                        </div>
-                        <div class="list-stack" id="appointmentList">
-                            @foreach (var appointment in Model.UpcomingAppointments)
-                            {
-                                <div class="list-item" data-date="@appointment.When.ToString("yyyy-MM-dd")">
-                                    <div class="list-title">@appointment.Title</div>
-                                    <div class="list-meta">
-                                        <span>@appointment.When.ToString("MMM dd · h:mm tt")</span>
-                                        <span class="tag">@appointment.Status</span>
-                                        <span>@appointment.Category</span>
-                                    </div>
-                                </div>
-                            }
-                            <div class="appointment-empty" id="appointmentEmpty">No appointments scheduled for this day.</div>
-                        </div>
-                    </div>
-                </section>
+            <div class="ph">
+                <p class="ph-s">Top 10 most recently updated tickets.</p>
+                <a href="/Tickets/List" class="btn btn-s">View all</a>
+            </div>
 
-                <section class="panel panel-activity" id="activity">
-                    <div class="panel-header">
-                        <div>
-                            <h3 class="panel-title">Recent Activity</h3>
-                            <p class="panel-subtitle">Latest ticket updates across your queue.</p>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="list-stack">
-                            @foreach (var activity in Model.RecentActivity)
-                            {
-                                <div class="list-item">
-                                    <div class="list-title">@activity.Title</div>
-                                    <div class="list-meta">
-                                        <span>@activity.TimeStamp.ToString("MMM dd · h:mm tt")</span>
-                                        <span class="tag">@activity.Status</span>
-                                        <span>@activity.Meta</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </section>
+            <div class="fbar">
+                <div class="ts-wrap">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input class="fbar-inp" id="ticketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                </div>
+                <select class="fbar-sel" id="ticketStatusFilter" aria-label="Filter by status">
+                    <option value="all" selected>All statuses</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="in progress">In Progress</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select class="fbar-sel" id="ticketDateFilter" aria-label="Filter by date">
+                    <option value="all" selected>All dates</option>
+                    <option value="today">Today</option>
+                    <option value="7">Past 7 days</option>
+                    <option value="30">Past 30 days</option>
+                </select>
+                <select class="fbar-sel" id="ticketSort" aria-label="Sort tickets">
+                    <option value="last-updated" selected>Sort: last updated</option>
+                    <option value="newest">Sort: newest</option>
+                    <option value="oldest">Sort: oldest</option>
+                </select>
+                <button class="fbar-clear" type="button" id="ticketClearFilters">Clear filters</button>
+            </div>
 
-                <section class="panel panel-tickets" id="tickets">
-                    <div class="panel-header">
-                        <div>
-                            <h3 class="panel-title">@Model.TicketsSectionTitle Snapshot</h3>
-                            <p class="panel-subtitle">Top 10 most recently updated tickets.</p>
-                        </div>
-                        <div class="panel-actions">
-                            <a href="@Model.TicketsViewAllUrl" class="btn btn-secondary">View all</a>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="filter-bar">
-                            <div class="filter-group">
-                                <input class="filter-input" id="ticketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
-                                <select class="filter-select" id="ticketStatusFilter" aria-label="Filter by status">
-                                    <option value="all" selected>All statuses</option>
-                                    <option value="submitted">Submitted</option>
-                                    <option value="in progress">In Progress</option>
-                                    <option value="assigned">Assigned</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-                                <select class="filter-select" id="ticketPriorityFilter" aria-label="Filter by priority">
-                                    <option value="all" selected>All priorities</option>
-                                    <option value="high">High</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                </select>
-                                <select class="filter-select" id="ticketSort" aria-label="Sort tickets">
-                                    <option value="last-updated" selected>Sort: last updated</option>
-                                    <option value="newest">Sort: newest</option>
-                                    <option value="oldest">Sort: oldest</option>
-                                    <option value="priority">Sort: priority</option>
-                                </select>
-                            </div>
-                            <div class="filter-spacer"></div>
-                            <div class="filter-group">
-                                <button class="btn btn-ghost" type="button" id="ticketClearFilters">Clear filters</button>
-                            </div>
-                        </div>
-
-                        <div class="table-container">
-                            @if (Model.RecentTickets != null && Model.RecentTickets.Any())
+            <div class="tsec">
+                <div class="tsec-hd"></div>
+                @if (Model.RecentTickets != null && Model.RecentTickets.Any())
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-id">ID</th>
+                                <th>Issue</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                @if (Model.UserRole != "Client")
+                                {
+                                    <th>Submitted By</th>
+                                }
+                                @if (Model.UserRole == "Technician")
+                                {
+                                    <th>Due Date</th>
+                                }
+                                <th>Created</th>
+                                <th class="col-actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in Model.RecentTickets)
                             {
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Ticket ID</th>
-                                            <th>Title</th>
-                                            <th>Category</th>
-                                            <th>Priority</th>
-                                            <th>Status</th>
-                                            @if (Model.UserRole != "Client")
-                                            {
-                                                <th>Submitted By</th>
-                                            }
-                                            @if (Model.UserRole == "Technician")
-                                            {
-                                                <th>Due Date</th>
-                                            }
-                                            <th>Created</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var ticket in Model.RecentTickets)
-                                        {
-                                            <tr class="ticket-row"
-                                                data-ticket-id="@ticket.Id"
-                                                data-title="@ticket.Title"
-                                                data-category="@ticket.Category"
-                                                data-priority="@ticket.Priority.ToLower()"
-                                                data-status="@ticket.Status.ToLower()"
-                                                data-created="@ticket.CreatedDate.Ticks"
-                                                data-submitted-by="@ticket.SubmittedBy">
-                                                <td><span class="ticket-id">#@ticket.Id</span></td>
-                                                <td>@ticket.Title</td>
-                                                <td>@ticket.Category</td>
-                                                <td>
-                                                    <span class="priority-text @ticket.Priority.ToLower()">
-                                                        @ticket.Priority
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    @{
-                                                        var statusClass = ticket.Status.ToLower().Replace(" ", "");
-                                                        var statusIcon = statusClass switch
-                                                        {
-                                                            "submitted" => "circle",
-                                                            "inreview" => "clock",
-                                                            "assigned" => "user-check",
-                                                            "inprogress" => "loader",
-                                                            "onhold" => "pause-circle",
-                                                            "completed" => "check-circle",
-                                                            "cancelled" => "x-circle",
-                                                            _ => "circle-dot"
-                                                        };
-                                                    }
-                                                    <i class="status-icon @statusClass" data-lucide="@statusIcon" title="@ticket.Status"></i>
-                                                </td>
-                                                @if (Model.UserRole != "Client")
-                                                {
-                                                    <td>@ticket.SubmittedBy</td>
-                                                }
-                                                @if (Model.UserRole == "Technician")
-                                                {
-                                                    <td>@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
-                                                }
-                                                <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
-                                                <td>
-                                                    <a href="/Tickets/Details/@ticket.Id" class="icon-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                                var statusKey = (ticket.Status ?? "").ToLower().Replace(" ", "");
+                                var sdClass = statusKey switch
+                                {
+                                    "submitted" => "sd-submitted",
+                                    "inprogress" => "sd-inprogress",
+                                    "assigned" => "sd-assigned",
+                                    "completed" => "sd-completed",
+                                    _ => "sd-o"
+                                };
+                                <tr class="ticket-row"
+                                    data-ticket-id="@ticket.Id"
+                                    data-title="@ticket.Title"
+                                    data-category="@ticket.Category"
+                                    data-status="@(ticket.Status?.ToLower() ?? "")"
+                                    data-created="@ticket.CreatedDate.Ticks"
+                                    data-created-date="@ticket.CreatedDate.ToString("yyyy-MM-dd")"
+                                    data-submitted-by="@ticket.SubmittedBy">
+                                    <td><span class="tid">#@ticket.Id</span></td>
+                                    <td><div class="tissue">@ticket.Title</div></td>
+                                    <td>@ticket.Category</td>
+                                    <td><span class="sdot @sdClass">@ticket.Status</span></td>
+                                    @if (Model.UserRole != "Client")
+                                    {
+                                        <td>@ticket.SubmittedBy</td>
+                                    }
+                                    @if (Model.UserRole == "Technician")
+                                    {
+                                        <td>@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
+                                    }
+                                    <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <a href="/Tickets/Details/@ticket.Id" class="act-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
+                                            <i class="bi bi-three-dots" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
                             }
-                            else
-                            {
-                                <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
-                                    <p>No tickets to display</p>
-                                </div>
-                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty">
+                        <div class="empty-ico">
+                            <i class="bi bi-inbox" aria-hidden="true"></i>
                         </div>
+                        <div class="empty-t">No tickets to display</div>
+                        <div class="empty-s">Recent tickets will appear here.</div>
+                        <a href="/Tickets/Create" class="create-btn">Create Ticket</a>
                     </div>
-                </section>
+                }
             </div>
         </div>
     </main>
 </div>
 
 <script>
-    const weekDays = document.getElementById("weekDays");
-    const appointmentList = document.getElementById("appointmentList");
-    const appointmentEmpty = document.getElementById("appointmentEmpty");
-    const weekPrev = document.getElementById("weekPrev");
-    const weekNext = document.getElementById("weekNext");
-    let currentWeekStart = new Date();
-
-    const updateAppointments = (date) => {
-        if (!appointmentList || !appointmentEmpty) {
-            return;
-        }
-
-        let matches = 0;
-        appointmentList.querySelectorAll(".list-item").forEach((item) => {
-            const itemDate = item.getAttribute("data-date");
-            const show = itemDate === date;
-            item.style.display = show ? "flex" : "none";
-            if (show) {
-                matches += 1;
-            }
-        });
-
-        appointmentEmpty.style.display = matches ? "none" : "block";
-    };
-
-    const updateWeekButtons = (startDate) => {
-        currentWeekStart = new Date(startDate);
-        if (!weekDays) {
-            return;
-        }
-
-        const dayButtons = Array.from(weekDays.querySelectorAll(".day-button"));
-        dayButtons.forEach((button, index) => {
-            const date = new Date(startDate);
-            date.setDate(date.getDate() + index);
-            const iso = date.toISOString().slice(0, 10);
-            button.setAttribute("data-date", iso);
-            button.querySelector(".day-label").textContent = date.toLocaleDateString(undefined, { weekday: "short" });
-            button.querySelector(".day-number").textContent = date.getDate();
-        });
-
-        dayButtons.forEach((button, index) => {
-            button.classList.toggle("active", index === 0);
-        });
-
-        updateAppointments(dayButtons[0].getAttribute("data-date"));
-    };
-
-    if (weekDays) {
-        weekDays.addEventListener("click", (event) => {
-            const button = event.target.closest(".day-button");
-            if (!button) {
-                return;
-            }
-            weekDays.querySelectorAll(".day-button").forEach((item) => item.classList.remove("active"));
-            button.classList.add("active");
-            updateAppointments(button.getAttribute("data-date"));
-        });
-    }
-
-    if (weekPrev && weekNext) {
-        const changeWeek = (direction) => {
-            const startDate = new Date(currentWeekStart);
-            startDate.setDate(startDate.getDate() + direction * 7);
-            updateWeekButtons(startDate);
-        };
-
-        weekPrev.addEventListener("click", () => changeWeek(-1));
-        weekNext.addEventListener("click", () => changeWeek(1));
-    }
-
-    if (weekDays) {
-        const firstDate = weekDays.querySelector(".day-button")?.getAttribute("data-date");
-        if (firstDate) {
-            currentWeekStart = new Date(firstDate);
-            updateAppointments(firstDate);
-        }
-    }
-
     const ticketSearch = document.getElementById("ticketSearch");
     const ticketStatusFilter = document.getElementById("ticketStatusFilter");
-    const ticketPriorityFilter = document.getElementById("ticketPriorityFilter");
+    const ticketDateFilter = document.getElementById("ticketDateFilter");
     const ticketSort = document.getElementById("ticketSort");
     const ticketClearFilters = document.getElementById("ticketClearFilters");
-    const ticketsTableBody = document.querySelector(".panel-tickets tbody");
+    const ticketsTableBody = document.querySelector(".tsec tbody");
     const ticketRows = ticketsTableBody ? Array.from(ticketsTableBody.querySelectorAll(".ticket-row")) : [];
 
-    const priorityWeight = {
-        high: 3,
-        medium: 2,
-        low: 1
+    const todayIso = () => new Date().toISOString().slice(0, 10);
+    const daysAgoIso = (days) => {
+        const d = new Date();
+        d.setDate(d.getDate() - days);
+        return d.toISOString().slice(0, 10);
     };
 
     const applyTicketFilters = () => {
-        if (!ticketRows.length) {
-            return;
-        }
-
+        if (!ticketRows.length) return;
         const searchValue = (ticketSearch?.value ?? "").trim().toLowerCase();
         const statusValue = ticketStatusFilter?.value ?? "all";
-        const priorityValue = ticketPriorityFilter?.value ?? "all";
+        const dateValue = ticketDateFilter?.value ?? "all";
         const sortValue = ticketSort?.value ?? "last-updated";
 
         ticketRows.forEach((row) => {
             const rowStatus = (row.getAttribute("data-status") ?? "").toLowerCase();
-            const rowPriority = (row.getAttribute("data-priority") ?? "").toLowerCase();
+            const rowDate = row.getAttribute("data-created-date") ?? "";
             const searchable = [
                 row.getAttribute("data-ticket-id") ?? "",
                 row.getAttribute("data-title") ?? "",
                 row.getAttribute("data-category") ?? "",
                 row.getAttribute("data-status") ?? "",
-                row.getAttribute("data-priority") ?? "",
                 row.getAttribute("data-submitted-by") ?? ""
             ].join(" ").toLowerCase();
-
             const matchesSearch = !searchValue || searchable.includes(searchValue);
             const matchesStatus = statusValue === "all" || rowStatus === statusValue;
-            const matchesPriority = priorityValue === "all" || rowPriority === priorityValue;
-
-            row.style.display = matchesSearch && matchesStatus && matchesPriority ? "table-row" : "none";
+            let matchesDate = true;
+            if (dateValue !== "all" && rowDate) {
+                if (dateValue === "today") matchesDate = rowDate === todayIso();
+                else {
+                    const n = parseInt(dateValue, 10);
+                    if (!isNaN(n)) matchesDate = rowDate >= daysAgoIso(n);
+                }
+            }
+            row.style.display = matchesSearch && matchesStatus && matchesDate ? "table-row" : "none";
         });
 
         const sortedRows = [...ticketRows].sort((left, right) => {
             const leftCreated = Number(left.getAttribute("data-created") ?? 0);
             const rightCreated = Number(right.getAttribute("data-created") ?? 0);
-
             switch (sortValue) {
                 case "newest":
-                case "last-updated":
-                    return rightCreated - leftCreated;
-                case "oldest":
-                    return leftCreated - rightCreated;
-                case "priority": {
-                    const leftPriority = priorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
-                    const rightPriority = priorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
-                    if (rightPriority !== leftPriority) {
-                        return rightPriority - leftPriority;
-                    }
-                    return rightCreated - leftCreated;
-                }
-                default:
-                    return 0;
+                case "last-updated": return rightCreated - leftCreated;
+                case "oldest": return leftCreated - rightCreated;
+                default: return 0;
             }
         });
-
         sortedRows.forEach((row) => ticketsTableBody?.appendChild(row));
     };
 
     ticketSearch?.addEventListener("input", applyTicketFilters);
     ticketStatusFilter?.addEventListener("change", applyTicketFilters);
-    ticketPriorityFilter?.addEventListener("change", applyTicketFilters);
+    ticketDateFilter?.addEventListener("change", applyTicketFilters);
     ticketSort?.addEventListener("change", applyTicketFilters);
-
     ticketClearFilters?.addEventListener("click", () => {
-        if (ticketSearch) {
-            ticketSearch.value = "";
-        }
-        if (ticketStatusFilter) {
-            ticketStatusFilter.value = "all";
-        }
-        if (ticketPriorityFilter) {
-            ticketPriorityFilter.value = "all";
-        }
-        if (ticketSort) {
-            ticketSort.value = "last-updated";
-        }
+        if (ticketSearch) ticketSearch.value = "";
+        if (ticketStatusFilter) ticketStatusFilter.value = "all";
+        if (ticketDateFilter) ticketDateFilter.value = "all";
+        if (ticketSort) ticketSort.value = "last-updated";
         applyTicketFilters();
     });
-
     applyTicketFilters();
 </script>

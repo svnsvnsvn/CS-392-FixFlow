@@ -1,12 +1,12 @@
 :root {
     color-scheme: light;
-    --font-primary: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-primary: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
     --font-secondary: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, sans-serif;
     --bg: #e7f4f3;
     --bg-2: #f5fbfa;
     --surface: #ffffff;
     --surface-2: #f9fbfb;
-    --text: #111827;
+    --text: #0f172a;
     --text-secondary: #6b7280;
     --muted: #5f6b7a;
     --accent: #2aa3a4;
@@ -17,16 +17,17 @@
     --line-strong: #c5e0dc;
     --input-border: #d7ebe8;
     --input-bg: #f9fafb;
+    --ff-dark: #0f172a;
     
-    /* SHADOWS */
-    --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+    /* SHADOWS — minimal */
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 1px 3px rgba(15, 23, 42, 0.06);
+    --shadow-lg: 0 2px 4px rgba(15, 23, 42, 0.06);
     
-    /* BORDER RADIUS */
-    --radius-lg: 16px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
+    /* BORDER RADIUS — subtle */
+    --radius-lg: 4px;
+    --radius-md: 4px;
+    --radius-sm: 4px;
     
     /* SPACING*/
     --spacing-xs: 0.5rem;
@@ -101,10 +102,19 @@ button .bi,
 }
 
 .navbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 700;
     font-size: 20px;
-    color: var(--text);
+    color: var(--ff-dark);
     text-decoration: none;
+}
+
+.navbar-brand-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
 }
 
 .navbar-links {
@@ -174,6 +184,7 @@ button .bi,
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    color: var(--ff-dark);
 }
 
 .page-subtitle {
@@ -206,18 +217,23 @@ button .bi,
     background: transparent;
 }
 
-.page > .auth-shell {
+.page > .auth-shell,
+.page > .auth-split {
     background: transparent;
     border: none;
     box-shadow: none;
     padding: 0;
+    margin: 0;
+    max-width: none;
 }
 
 /* SIDEBAR LAYOUT */
 .app-shell {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: auto 1fr;
+    gap: 0;
     height: 100vh;
+    max-height: 100vh;
     width: 100%;
     overflow: hidden;
 }
@@ -297,11 +313,18 @@ button .bi,
     border-top: 1px solid rgba(148, 163, 184, 0.3);
 }
 
+.app-sidebar-footer .app-user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
 .app-user {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    min-width: 0;
 }
 
 .app-user-row {
@@ -348,33 +371,36 @@ button .bi,
     opacity: 0.8;
 }
 
+.app-logout-form {
+    flex-shrink: 0;
+}
+
 .app-logout {
-    width: 100%;
-    background: rgba(148, 163, 184, 0.2);
-    border: 1px solid rgba(148, 163, 184, 0.45);
-    color: #ffffff;
-    padding: 0.75rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: rgba(226, 232, 240, 0.85);
     border-radius: var(--radius-sm);
-    box-shadow: none;
+    cursor: pointer;
+    transition: color 0.15s ease;
 }
 
 .app-logout:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: none;
-    box-shadow: none;
+    color: #ffffff;
 }
 
 .app-main {
-    background: radial-gradient(circle at top left, rgba(42, 163, 164, 0.08) 0%, rgba(42, 163, 164, 0) 40%),
-        linear-gradient(180deg, #f5fbfa 0%, var(--bg) 35%, #e7f4f3 100%);
-    padding: 2.25rem 2.5rem 3rem;
-    height: 100vh;
+    background: transparent;
+    padding: 0;
+    min-height: 0;
     overflow-y: auto;
-}
-
-.app-main > .page-shell {
-    max-width: 1100px;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
 }
 
 @media (max-width: 960px) {
@@ -453,7 +479,7 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(42, 163, 164, 0.2);
+    box-shadow: 0 0 0 2px rgba(42, 163, 164, 0.15);
     background: #ffffff;
 }
 
@@ -465,14 +491,14 @@ button {
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 8px 18px rgba(42, 163, 164, 0.25);
+    box-shadow: var(--shadow);
     display: inline-flex;
     align-items: center;
 }
 
 button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(42, 163, 164, 0.25);
+    box-shadow: var(--shadow);
 }
 
 button:focus-visible {
@@ -504,12 +530,12 @@ a:focus-visible {
 .btn-primary {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #ffffff;
-    box-shadow: 0 8px 18px rgba(42, 163, 164, 0.25);
+    box-shadow: var(--shadow);
 }
 
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(42, 163, 164, 0.25);
+    box-shadow: var(--shadow);
 }
 
 .btn-secondary {
@@ -736,7 +762,7 @@ th, td {
 .login-container {
     background: white;
     padding: 3rem 2.5rem;
-    border-radius: 20px;
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow);
     width: 100%;
     max-width: 420px;
@@ -819,7 +845,7 @@ label {
     width: 100%;
     padding: 0.875rem 1rem;
     border: 2px solid #e3ecea;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     font-size: 1rem;
     transition: all 0.3s ease;
     background: #f9fafb;
@@ -830,13 +856,13 @@ label {
     outline: none;
     border-color: var(--accent);
     background: white;
-    box-shadow: 0 0 0 3px rgba(42, 163, 164, 0.2);
+    box-shadow: 0 0 0 2px rgba(42, 163, 164, 0.15);
 }
 
 .btn-login {
     width: 100%;
     padding: 1rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     font-size: 1rem;
     font-weight: 600;
     margin-top: 0.5rem;
@@ -847,7 +873,7 @@ label {
     border: 2px solid #fcc;
     color: #c33;
     padding: 0.875rem 1rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
     display: flex;
@@ -1019,7 +1045,7 @@ label {
 
 .card {
     background: var(--surface);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow);
     overflow: hidden;
 }
@@ -1054,9 +1080,14 @@ label {
 
 /* Fix admin page top spacing */
 body.layoutless {
-    padding-top: 2rem;
+    padding-top: 0;
 }
 
 main.page--full {
-    padding-top: 2rem;
+    padding-top: 0;
+}
+
+body.auth-page main.page--full {
+    padding: 0;
+    margin: 0;
 }

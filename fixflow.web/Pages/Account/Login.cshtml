@@ -1,58 +1,94 @@
 @page
 @model fixflow.web.Pages.Account.LoginModel
 @{
-    ViewData["Title"] = "Login - FixFlow";
+    ViewData["Title"] = "Sign In - FixFlow";
+    ViewData["HideNav"] = true;
+    ViewData["AuthPage"] = true;
     Layout = "_Layout";
 }
 
-<div class="auth-shell">
-    <div class="login-container">
-        <div class="logo-section">
-            <div class="logo-text">FixFlow</div>
-            <div class="logo-subtitle">Maintenance Request System</div>
+<div class="auth-split">
+    <div class="auth-form-panel">
+        <header class="auth-header">
+            <a class="auth-logo" href="/Account/Login" aria-label="FixFlow home">
+                <img class="auth-logo-img" src="~/images/ff_logo.png" alt="" />
+                <span class="auth-logo-text">FixFlow</span>
+            </a>
+            <a class="auth-help-link" href="/About">Need help?</a>
+        </header>
+
+        <div class="auth-form-body">
+            <div class="auth-welcome-wrap">
+                <h1 class="auth-welcome-title">Welcome back</h1>
+                <p class="auth-welcome-sub">Enter your details to access the workspace.</p>
+            </div>
+
+            @if (Model.LoginFailed)
+            {
+                <div class="auth-error" role="alert">
+                    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                    <span>Invalid username or password. Please try again.</span>
+                </div>
+            }
+
+            <form method="post" class="auth-form">
+                @Html.AntiForgeryToken()
+                <div class="auth-field">
+                    <label class="auth-field-label" for="username">Username</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-person" aria-hidden="true"></i>
+                        <input class="auth-input"
+                               name="userName"
+                               type="text"
+                               id="username"
+                               placeholder="Enter your username"
+                               autocomplete="username"
+                               required />
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <div class="auth-field-row">
+                        <label class="auth-field-label" for="password">Password</label>
+                        @* Forgot password: add handler and page when implemented — Adam *@
+                        <a class="auth-forgot-link" href="#">Forgot password?</a>
+                    </div>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-lock" aria-hidden="true"></i>
+                        <input class="auth-input"
+                               name="password"
+                               type="password"
+                               id="password"
+                               placeholder="Enter your password"
+                               autocomplete="current-password"
+                               required />
+                    </div>
+                </div>
+                <button type="submit" class="auth-btn-primary">Sign In</button>
+            </form>
+
+            <p class="auth-divider-text">
+                Don't have an account? <a asp-page="/Account/NewUser">Create Account</a>
+            </p>
         </div>
 
-        @if (Model.LoginFailed)
-        {
-            <div class="error-message">
-                <i class="bi bi-exclamation-triangle error-icon"></i>
-                <span>Invalid username or password. Please try again.</span>
+        <footer class="auth-footer">
+            <p class="auth-footer-copy">© @DateTime.UtcNow.Year FixFlow</p>
+        </footer>
+    </div>
+
+    <div class="auth-visual-panel">
+        <div class="auth-testimonial-card">
+            <div class="auth-testimonial-stars" aria-hidden="true">★★★★★</div>
+            <p class="auth-testimonial-quote">
+                FixFlow transformed our chaotic maintenance logs into a calm, streamlined system. It's operational zen.
+            </p>
+            <div class="auth-testimonial-author">
+                <div class="auth-testimonial-avatar">ER</div>
+                <div>
+                    <p class="auth-testimonial-name">Elena Rodriguez</p>
+                    <p class="auth-testimonial-role">Director of Facilities</p>
+                </div>
             </div>
-        }
-
-        <form method="post">
-            @Html.AntiForgeryToken()
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input name="userName"
-                       type="text"
-                       id="username"
-                       placeholder="Enter your username"
-                       autocomplete="username"
-                       required />
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input name="password"
-                       type="password"
-                       id="password"
-                       placeholder="Enter your password"
-                       autocomplete="current-password"
-                       required />
-            </div>
-
-            <button type="submit" class="btn-login"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
-        </form>
-
-        <div class="divider"></div>
-
-        <div class="footer-text">
-            <a asp-page="./NewUser"><i class="bi bi-person-plus"></i> Create account</a>
-        </div>
-
-        <div class="footer-text">
-            Secure access to your maintenance dashboard
         </div>
     </div>
 </div>

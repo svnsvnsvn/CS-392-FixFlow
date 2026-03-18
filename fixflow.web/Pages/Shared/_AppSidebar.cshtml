@@ -37,17 +37,19 @@
     }
 
     <div class="app-sidebar-footer">
-        <div class="app-user">
-            <div class="app-user-avatar">@initials</div>
-            <div>
-                <div class="app-user-name">@userName</div>
-                <div class="app-user-role">@User.FindFirst("role")?.Value</div>
+        <div class="app-user-row">
+            <div class="app-user">
+                <div class="app-user-avatar">@initials</div>
+                <div>
+                    <div class="app-user-name">@userName</div>
+                    <div class="app-user-role">@User.FindFirst("role")?.Value</div>
+                </div>
             </div>
+            <form method="post" asp-page="/Dashboard" asp-page-handler="Logout" class="app-logout-form">
+                <button type="submit" class="app-logout" aria-label="Logout" title="Logout">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                </button>
+            </form>
         </div>
-        <form method="post" asp-page="/Dashboard" asp-page-handler="Logout">
-            <button type="submit" class="app-logout">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </button>
-        </form>
     </div>
 </aside>

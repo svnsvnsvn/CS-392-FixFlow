@@ -1,44 +1,103 @@
-﻿@page
+@page
 @model fixflow.web.Pages.Account.NewUserModel
-
 @{
-    ViewData["Title"] = "New User Info";
+    ViewData["Title"] = "Create Account - FixFlow";
+    ViewData["HideNav"] = true;
+    ViewData["AuthPage"] = true;
+    Layout = "_Layout";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-person-plus-fill"></i> New User Information</h1>
-        <p class="page-subtitle">Create your account details before setting a password.</p>
-    </div>
+<div class="auth-split">
+    <div class="auth-form-panel">
+        <header class="auth-header">
+            <a class="auth-logo" href="/Account/Login" aria-label="FixFlow home">
+                <img class="auth-logo-img" src="~/images/ff_logo.png" alt="" />
+                <span class="auth-logo-text">FixFlow</span>
+            </a>
+            <a class="auth-help-link" href="/About">Need help?</a>
+        </header>
 
-    <div class="card">
-        <form method="post" class="form-stack">
-            <div class="form-grid">
-                <div class="form-field">
-                    <label asp-for="Input.FirstName"></label>
-                    <input asp-for="Input.FirstName" />
-                </div>
-
-                <div class="form-field">
-                    <label asp-for="Input.LastName"></label>
-                    <input asp-for="Input.LastName" />
-                </div>
-
-                <div class="form-field">
-                    <label asp-for="Input.PhoneNumber"></label>
-                    <input asp-for="Input.PhoneNumber" />
-                </div>
-
-                <div class="form-field">
-                    <label asp-for="Input.Email"></label>
-                    <input asp-for="Input.Email" />
-                </div>
+        <div class="auth-form-body">
+            <div class="auth-welcome-wrap">
+                <h1 class="auth-welcome-title">Create account</h1>
+                <p class="auth-welcome-sub">Enter your details to get started.</p>
             </div>
 
-            <div class="form-actions">
-                <button type="submit"><i class="bi bi-check-circle"></i> Submit</button>
-                <a class="btn btn-secondary" asp-page="./Login"><i class="bi bi-arrow-left"></i> Back to Login</a>
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+            {
+                <div asp-validation-summary="All" class="auth-error" role="alert"></div>
+            }
+
+            <form method="post" class="auth-form auth-form-wide">
+            @Html.AntiForgeryToken()
+            <div class="auth-form-grid">
+                <div class="auth-field">
+                    <label class="auth-field-label" asp-for="Input.FirstName"></label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-person" aria-hidden="true"></i>
+                        <input class="auth-input" asp-for="Input.FirstName" placeholder="First name" />
+                    </div>
+                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-field-label" asp-for="Input.LastName"></label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-person" aria-hidden="true"></i>
+                        <input class="auth-input" asp-for="Input.LastName" placeholder="Last name" />
+                    </div>
+                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-field-label" asp-for="Input.Email"></label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-envelope" aria-hidden="true"></i>
+                        <input class="auth-input" asp-for="Input.Email" placeholder="name@company.com" />
+                    </div>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-field-label" asp-for="Input.PhoneNumber"></label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-telephone" aria-hidden="true"></i>
+                        <input class="auth-input" asp-for="Input.PhoneNumber" placeholder="Optional" />
+                    </div>
+                </div>
+            </div>
+            <div class="auth-form-actions">
+                <button type="submit" class="auth-btn-primary">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
+                    Create Account
+                </button>
             </div>
         </form>
+
+        <p class="auth-divider-text">
+                Already have an account? <a asp-page="./Login">Sign In</a>
+            </p>
+        </div>
+
+        <footer class="auth-footer">
+            <p class="auth-footer-copy">© @DateTime.UtcNow.Year FixFlow</p>
+        </footer>
+    </div>
+
+    <div class="auth-visual-panel">
+        <div class="auth-testimonial-card">
+            <div class="auth-testimonial-stars" aria-hidden="true">★★★★★</div>
+            <p class="auth-testimonial-quote">
+                FixFlow transformed our chaotic maintenance logs into a calm, streamlined system. It's operational zen.
+            </p>
+            <div class="auth-testimonial-author">
+                <div class="auth-testimonial-avatar">ER</div>
+                <div>
+                    <p class="auth-testimonial-name">Elena Rodriguez</p>
+                    <p class="auth-testimonial-role">Director of Facilities</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

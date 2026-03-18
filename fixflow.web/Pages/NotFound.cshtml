@@ -1,0 +1,26 @@
+@page
+@model fixflow.web.Pages.NotFoundModel
+@{
+    ViewData["Title"] = "Page not found — FixFlow";
+    ViewData["HideNav"] = true;
+    Layout = "_Layout";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/notfound.css" />
+}
+
+<div class="not-found">
+    <a class="not-found-brand" href="/" aria-label="FixFlow home">
+        <img class="not-found-logo" src="~/images/ff_logo.png" alt="" />
+        <span class="not-found-brand-text">FixFlow</span>
+    </a>
+    <div class="not-found-content">
+        <span class="not-found-code" aria-hidden="true">404</span>
+        <h1 class="not-found-title">Page not found</h1>
+        <p class="not-found-desc">This page doesn’t exist or may have been moved. Head back to get on track.</p>
+        <a class="not-found-cta btn btn-primary" href="/">
+            <i class="bi bi-house-door" aria-hidden="true"></i>
+            Take me home
+        </a>
+    </div>
+</div>

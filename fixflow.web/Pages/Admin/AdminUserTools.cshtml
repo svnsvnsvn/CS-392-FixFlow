@@ -1,7 +1,11 @@
-﻿@page
+@page
 @model fixflow.web.Pages.Admin.AdminUserToolsModel
 @{
     ViewData["Title"] = "Admin User Tool";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "AdminUserTool";
+    ViewData["BreadcrumbPath"] = "People";
+    ViewData["BreadcrumbTitle"] = "Residents & Staff";
 }
 
 <script src="~/js/UserSearch.js"></script>
@@ -14,100 +18,99 @@
     });
 </script>
 
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Assign roles to users and optionally force password reset.</p>
+            </div>
 
-<h2 style="text-align:center; margin-top:1rem;">Admin User Tool</h2>
+            <a href="/Admin/Users" class="btn btn-s mb20">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Users
+            </a>
 
+            <div class="admin-user-tools">
+                <div class="admin-user-tools-grid">
+                    <!-- SEARCH BOX -->
+                    <div class="admin-panel">
+                        <div class="admin-panel-h">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <span>Find User</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="userQuery">Search by Name</label>
+                            <input type="text"
+                                   id="userQuery"
+                                   class="admin-input"
+                                   value="@Model.Query"
+                                   placeholder="First and/or last name..." />
+                        </div>
 
-<div class="profile-grid">
+                        <div asp-validation-summary="All" class="error-text admin-validation"></div>
+                    </div>
 
-    <!-- -------------------------------------------------- -->
-    <!-- SEARCH BOX -->
-    <!-- -------------------------------------------------- -->
-    <div class="profile-box grid-item">
-        <h2>Find User</h2>
-        <div class="form-group">
-            <p>Search by Name:</p>
-            <input type="text"
-                    id="userQuery"
-                    value="@Model.Query"
-                    placeholder="First and/or last name..." />
-        </div>
-        <br /><br />
-        <!-- VALIDATION SUMMARY -->
-        <div asp-validation-summary="All" class="error-text" style="margin-top:1rem;"></div>
-    </div>
+                    <!-- USER LIST + ROLE SETTINGS -->
+                    <form method="post" class="admin-user-form">
+                        <div class="admin-panel">
+                            <div class="admin-panel-h">
+                                <i class="bi bi-person-plus" aria-hidden="true"></i>
+                                <span>Assign Role</span>
+                            </div>
 
+                            <div class="form-group">
+                                <label for="SelectedUserId">Select User</label>
+                                <select name="SelectedUserId" id="SelectedUserId" size="8" class="admin-select">
+                                    <optgroup label="Search Results" id="searchResults"></optgroup>
+                                </select>
+                            </div>
+                        </div>
 
-    <!-- -------------------------------------------------- -->
-    <!-- USER LIST BOX -->
-    <!-- -------------------------------------------------- -->
-    <form method="post">
-    <div class="password-box grid-item">
+                        <div class="admin-panel">
+                            <div class="admin-panel-h">
+                                <i class="bi bi-sliders" aria-hidden="true"></i>
+                                <span>User Settings</span>
+                            </div>
 
-        <h2>Assign Role</h2>
+                            <div class="form-group">
+                                <label>User Role</label>
+                                <div class="admin-role-options">
+                                    <label class="admin-role-option">
+                                        Resident
+                                        <input type="radio" name="SelectedUserRole" value="Resident" />
+                                    </label>
+                                    <label class="admin-role-option">
+                                        Employee
+                                        <input type="radio" name="SelectedUserRole" value="Employee" />
+                                    </label>
+                                    <label class="admin-role-option">
+                                        Manager
+                                        <input type="radio" name="SelectedUserRole" value="Manager" />
+                                    </label>
+                                    <label class="admin-role-option">
+                                        Admin
+                                        <input type="radio" name="SelectedUserRole" value="Admin" />
+                                    </label>
+                                </div>
+                            </div>
 
-        <!-- USER LIST -->
-        <div class="form-group">
-            <p>Select User:</p>
+                            <div class="form-group admin-checkbox-row">
+                                <label class="admin-checkbox-label">
+                                    <input type="checkbox" asp-for="ResetPassOnLogin" />
+                                    Force password reset on next login
+                                </label>
+                            </div>
 
-            <select name="SelectedUserId"
-                    id="SelectedUserId"
-                    size="8"
-                    style="width:100%; padding:0.625rem; background-color:var(--primary-bg-color); color:white; border:0.0625rem solid var(--border-bg); border-radius:0.25rem;">
-
-                <optgroup label="Search Results" id="searchResults">
-                        
-                </optgroup>
-            </select>
-        </div>
-    </div>
-
-    <!-- -------------------------------------------------- -->
-    <!-- USER ROLE AND SETTINGS BOX -->
-    <!-- -------------------------------------------------- -->
-
-        <div class="settings-box grid-item">
-            <!-- ROLE SELECTION (Option 1 applied) -->
-            <div class="form-group">
-                <h2>User Settings</h2>
-                <p>User Role:</p>
-
-                <div style="display:flex; gap:1.5rem;">
-
-                    <label style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:0;">
-                        Resident
-                        <input type="radio" name="SelectedUserRole" value="Resident" />
-                    </label>
-
-                    <label style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:0;">
-                        Employee
-                        <input type="radio" name="SelectedUserRole" value="Employee" />
-                    </label>
-
-                    <label style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:0;">
-                        Manager
-                        <input type="radio" name="SelectedUserRole" value="Manager" />
-                    </label>
-
-                    <label style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:0;">
-                        Admin
-                        <input type="radio" name="SelectedUserRole" value="Admin" />
-                    </label>
+                            <div class="form-group admin-submit-row">
+                                <button type="submit" class="btn btn-p">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <br />
-            <div class="form-group">
-                <div style="display:flex; flex-direction:column; align-items:flex-start; gap:0.5rem;">
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin:0;">
-                    <input type="checkbox" asp-for="ResetPassOnLogin" />
-                        Force password reset on next login
-                    </label>
-
-                    <button type="submit" class="btn-primary" style="margin-top:1rem;">
-                        Save Changes
-                    </button>
-                </div>
-            </div>
         </div>
-    </form>
+    </main>
 </div>

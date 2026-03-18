@@ -10,35 +10,36 @@ services:
     networks:
       public_face:
       backend:
+
+  db:
+    image: postgres:16
+    container_name: fixflow-db
+    restart: always
+    environment:
+      POSTGRES_DB: fixflow
+      POSTGRES_USER: fixflow
+      POSTGRES_PASSWORD: fixflow_local_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fixflow -d fixflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - fixflow-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
   web:
     build: ./fixflow.web
     container_name: fixflow-web
     restart: always
     environment:
-      ConnectionStrings__Default: "Host=fixflow-postgres;Database=fixflow;Username=fixflow_user;Password=fixflow_password"
-    networks:
-      - backend
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=fixflow;Username=fixflow;Password=fixflow_local_dev"
     depends_on:
       db:
         condition: service_healthy
-  
-  db:
-    image: postgres:16
-    container_name: fixflow-postgres
-    restart: always
-    environment:
-        POSTGRES_USER: fixflow_user
-        POSTGRES_PASSWORD: fixflow_password
-        POSTGRES_DB: fixflow
-    volumes:
-        - ./db:/var/lib/postgresql/data
     networks:
-        - backend
-    healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U fixflow_user"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
+      - backend
 
   adminer:
     image: adminer
@@ -54,3 +55,6 @@ networks:
     driver: bridge
   public_face:
     driver: bridge
+
+volumes:
+  fixflow-db-data:

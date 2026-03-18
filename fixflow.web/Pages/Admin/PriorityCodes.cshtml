@@ -2,76 +2,108 @@
 @model fixflow.web.Pages.Admin.PriorityCodesModel
 @{
     ViewData["Title"] = "Manage Priority Codes";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "PriorityCodes";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Priority Params";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-exclamation-triangle"></i> Manage Priority Codes</h1>
-        <p class="page-subtitle">Configure priority levels for ticket classification</p>
-    </div>
-
-    <div class="toolbar">
-        <a href="/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
-        <a asp-page="./PriorityCodeCreate" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add New Priority Code
-        </a>
-    </div>
-
-    <div class="card">
-        @if (Model.PriorityCodes != null && Model.PriorityCodes.Any())
-        {
-            <table>
-                <thead>
-                    <tr>
-                        <th><i class="bi bi-hash"></i> Code</th>
-                        <th><i class="bi bi-exclamation-triangle"></i> Priority Name</th>
-                        <th><i class="bi bi-pencil-square"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{int i = 0;}
-                    @foreach (var priority in Model.PriorityCodes)
-                    {
-                        <tr>
-                            <td>@priority.PriorityCode</td>
-                            <td>@priority.PriorityName</td>
-                            <td>
-                                @if (i == 0)
-                                {
-                                    <img src="~/icons/arrow-up-circle.svg" style="visibility:hidden" />
-                                }
-                                else
-                                {
-                                    <a asp-page-handler="Decreasepriority" asp-route-id="@priority.Id">
-                                        <img src="~/icons/arrow-up-circle.svg" />
-                                    </a>
-                                }
-                                @if (i == Model.PriorityCodes.Count() - 1)
-                                {
-                                    <img src="~/icons/arrow-down-circle.svg" style="visibility:hidden" />
-                                }
-                                else
-                                {
-                                    <a asp-page-handler="Increasepriority" asp-route-id="@priority.Id">
-                                        <img src="~/icons/arrow-down-circle.svg" />
-                                    </a>
-                                }
-                                <a asp-page-handler="Deletepriority" asp-route-id="@priority.Id">
-                                    <img src="~/icons/trash-2.svg" />
-                                </a>
-                            </td>
-                        </tr>
-                        i++;
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="placeholder">
-                <i class="bi bi-exclamation-triangle icon-lg icon-faded"></i>
-                <p>No priority codes configured yet. Click "Add New Priority Code" to get started.</p>
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Configure priority levels for ticket classification.</p>
+                <a asp-page="./PriorityCodeCreate" class="btn btn-p">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i> Add New Priority Code
+                </a>
             </div>
-        }
-    </div>
+            <a href="/Dashboard" class="btn btn-s mb20">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Dashboard
+            </a>
+
+            <div class="tsec">
+                @if (Model.PriorityCodes != null && Model.PriorityCodes.Any())
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Priority Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int i = 0;}
+                            @foreach (var priority in Model.PriorityCodes)
+                            {
+                                <tr>
+                                    <td>@priority.PriorityCode</td>
+                                    <td class="tissue">@priority.PriorityName</td>
+                                    <td>
+                                        <div class="tsec-actions">
+                                            @if (i == 0)
+                                            {
+                                                <span class="act-btn" style="visibility:hidden" aria-hidden="true">
+                                                    <i class="bi bi-arrow-up-circle"></i>
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <a asp-page-handler="Decreasepriority"
+                                                   asp-route-id="@priority.Id"
+                                                   class="act-btn"
+                                                   aria-label="Move priority up"
+                                                   title="Move up">
+                                                    <i class="bi bi-arrow-up-circle" aria-hidden="true"></i>
+                                                </a>
+                                            }
+
+                                            @if (i == Model.PriorityCodes.Count() - 1)
+                                            {
+                                                <span class="act-btn" style="visibility:hidden" aria-hidden="true">
+                                                    <i class="bi bi-arrow-down-circle"></i>
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <a asp-page-handler="Increasepriority"
+                                                   asp-route-id="@priority.Id"
+                                                   class="act-btn"
+                                                   aria-label="Move priority down"
+                                                   title="Move down">
+                                                    <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+                                                </a>
+                                            }
+
+                                            <a asp-page-handler="Deletepriority"
+                                               asp-route-id="@priority.Id"
+                                               class="act-btn"
+                                               aria-label="Delete priority code"
+                                               title="Delete">
+                                                <i class="bi bi-trash" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty">
+                        <div class="empty-ico">
+                            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                        </div>
+                        <div class="empty-t">No priority codes configured yet.</div>
+                        <div class="empty-s">Click "Add New Priority Code" to get started.</div>
+                        <a asp-page="./PriorityCodeCreate" class="create-btn">Add New Priority Code</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
 </div>

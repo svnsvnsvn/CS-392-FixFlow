@@ -5,6 +5,7 @@
     var signedIn = SignInManager.IsSignedIn(User);
     var hideNav = (ViewData["HideNav"] as bool? ?? false) || signedIn;
     var fullBleed = hideNav;
+    var landingPage = ViewData["LandingPage"] as bool? == true && !hideNav;
 }
 
 <!DOCTYPE html>
@@ -13,6 +14,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@(ViewData["Title"] ?? "FixFlow")</title>
+    @if (ViewData["MetaDescription"] != null)
+    {
+        <meta name="description" content="@ViewData["MetaDescription"]" />
+    }
+    @if (ViewData["OgTitle"] != null)
+    {
+        <meta property="og:title" content="@ViewData["OgTitle"]" />
+        <meta property="og:description" content="@(ViewData["OgDescription"] ?? ViewData["MetaDescription"])" />
+        <meta property="og:type" content="website" />
+    }
+    <link rel="icon" href="~/images/ff_logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,14 +34,40 @@
     <link rel="stylesheet" href="~/css/dashboard.css" />
     <link rel="stylesheet" href="~/css/tickets.css" />
     <link rel="stylesheet" href="~/css/admin.css" />
+    <link rel="stylesheet" href="~/css/inspo.css" />
+    <link rel="stylesheet" href="~/css/ref.css" />
+    <link rel="stylesheet" href="~/css/auth.css" />
+    @if (landingPage) { <link rel="stylesheet" href="~/css/about.css" /> }
     @RenderSection("Styles", required: false)
 </head>
-<body class="@(hideNav ? "layoutless" : "")">
-    @if (!hideNav)
+<body class="@(hideNav ? "layoutless" : "")@(ViewData["AuthPage"] as bool? == true ? " auth-page" : "")@(landingPage ? " landing-page" : "")">
+    @if (landingPage)
+    {
+        <header class="landing-header">
+            <nav class="landing-nav">
+                <a class="landing-brand" href="/About" aria-label="FixFlow home">
+                    <img class="landing-brand-logo" src="~/images/ff_logo.png" alt="" />
+                    <span class="landing-brand-text">FixFlow</span>
+                </a>
+                <div class="landing-nav-links">
+                    <a href="#how">How it works</a>
+                    <a href="#roles">Who it's for</a>
+                </div>
+                <div class="landing-nav-actions">
+                    <a class="landing-btn-login" href="/Account/Login">Log In <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                    <a class="landing-btn-create" href="/Account/NewUser"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create Account</a>
+                </div>
+            </nav>
+        </header>
+    }
+    else if (!hideNav)
     {
         <header class="site-header">
             <nav class="navbar">
-                <a class="navbar-brand" href="/Account/Login">FixFlow</a>
+                <a class="navbar-brand" href="/Account/Login">
+                <img class="navbar-brand-logo" src="~/images/ff_logo.png" alt="" />
+                FixFlow
+            </a>
                 <div class="navbar-links">
                     <a href="/Account/Login"><i class="bi bi-box-arrow-in-right"></i> Log In</a>
                     <a href="/Account/NewUser"><i class="bi bi-person-plus"></i> Create Account</a>
@@ -43,68 +81,6 @@
         @RenderBody()
     </main>
 
-    <div class="announcement-modal" id="announcementModal" aria-hidden="true" hidden>
-        <div class="announcement-card" role="dialog" aria-modal="true" aria-labelledby="announcementTitle">
-            <div class="announcement-header">
-                <h3 class="announcement-title" id="announcementTitle">Announcements</h3>
-                <button class="btn btn-ghost" type="button" id="closeAnnouncements" aria-label="Close announcements">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <div class="announcement-body">
-                <div class="list-item">
-                    <div class="list-title">Emergency request protocol</div>
-                    <div class="list-meta">Use High priority for safety-related issues.</div>
-                </div>
-                <div class="list-item">
-                    <div class="list-title">Maintenance hours</div>
-                    <div class="list-meta">Standard service runs 8am - 6pm weekdays.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const announcementModal = document.getElementById("announcementModal");
-        const closeAnnouncements = document.getElementById("closeAnnouncements");
-
-        const openAnnouncements = () => {
-            if (!announcementModal) {
-                return;
-            }
-            announcementModal.classList.add("active");
-            announcementModal.setAttribute("aria-hidden", "false");
-            announcementModal.removeAttribute("hidden");
-        };
-
-        const closeAnnouncementModal = () => {
-            if (!announcementModal) {
-                return;
-            }
-            announcementModal.classList.remove("active");
-            announcementModal.setAttribute("aria-hidden", "true");
-            announcementModal.setAttribute("hidden", "");
-        };
-
-        if (announcementModal && closeAnnouncements) {
-            closeAnnouncements.addEventListener("click", closeAnnouncementModal);
-            announcementModal.addEventListener("click", (event) => {
-                if (event.target === announcementModal) {
-                    closeAnnouncementModal();
-                }
-            });
-        }
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                closeAnnouncementModal();
-            }
-        });
-
-        document.querySelectorAll("[data-announcements-open]").forEach((button) => {
-            button.addEventListener("click", openAnnouncements);
-        });
-    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

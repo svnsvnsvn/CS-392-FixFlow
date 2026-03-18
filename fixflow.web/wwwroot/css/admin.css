@@ -12,7 +12,7 @@
     background: white;
     border: 1px solid var(--line);
     border-radius: 0;
-    box-shadow: var(--shadow);
+    box-shadow: none;
 }
 
 .admin-table {
@@ -97,4 +97,141 @@
 
 .u-hidden {
     display: none;
+}
+
+/* Admin User Tool (role assignment) */
+.admin-user-tools {
+    width: 100%;
+}
+
+.admin-user-tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.admin-user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.admin-panel {
+    background: var(--surf);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 16px;
+}
+
+.admin-panel-h {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-family: var(--fh);
+    font-weight: 700;
+    color: var(--tp);
+}
+
+.admin-panel-h i {
+    color: var(--ink);
+}
+
+.admin-panel label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ts);
+    margin-bottom: 6px;
+}
+
+.admin-input {
+    width: 100%;
+    border: 1px solid var(--line);
+    padding: 7px 10px;
+    font-family: var(--fb);
+    font-size: 12.5px;
+    color: var(--tp);
+    background: var(--surf);
+    outline: none;
+    border-radius: var(--r);
+}
+
+.admin-input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(42, 163, 164, 0.12);
+}
+
+.admin-select {
+    width: 100%;
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    font-family: var(--fb);
+    font-size: 12.5px;
+    color: var(--tp);
+    background: var(--surf);
+    outline: none;
+    border-radius: var(--r);
+}
+
+.admin-select option {
+    background: var(--surf);
+    color: var(--tp);
+}
+
+.admin-role-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-role-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--fb);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--tp);
+    cursor: pointer;
+}
+
+.admin-checkbox-row {
+    margin-top: 10px;
+}
+
+.admin-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.admin-checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.admin-submit-row {
+    margin-top: 14px;
+}
+
+.admin-validation {
+    margin-top: 12px;
+}
+
+/* Table action icon spacing (Admin list pages) */
+.tsec-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@media (max-width: 980px) {
+    .admin-user-tools-grid {
+        grid-template-columns: 1fr;
+    }
 }

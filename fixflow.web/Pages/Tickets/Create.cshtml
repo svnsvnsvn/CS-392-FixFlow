@@ -3,82 +3,84 @@
 @{
     ViewData["Title"] = "Create Ticket";
     ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Tickets";
+    ViewData["BreadcrumbPath"] = "Operations";
+    ViewData["BreadcrumbTitle"] = "Create Ticket";
 }
 
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
 
-    <main class="app-main">
-        <div class="page-shell">
-            <div class="page-header">
-                <h1 class="page-title"><i class="bi bi-plus-circle"></i> Create New Ticket</h1>
-                <p class="page-subtitle">Log a maintenance request with the right details.</p>
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Log a maintenance request with the right details.</p>
+                <a asp-page="./List" class="btn btn-s"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Tickets</a>
             </div>
 
-            <div class="card">
-                <form method="post" class="form-stack">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                    @if (Model.IsStaff)
-                    {
-                        <div class="form-field">
-                            <label asp-for="Input.ResidentId"><i class="bi bi-person"></i> Resident</label>
-                            <select asp-for="Input.ResidentId" asp-items="Model.Residents" class="form-control">
-                                <option value="">-- Select Resident (Optional) --</option>
-                            </select>
-                            <span asp-validation-for="Input.ResidentId" class="text-danger"></span>
-                            <small class="form-text">Leave empty to create on behalf of yourself</small>
-                        </div>
-                    }
-
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label asp-for="Input.LocationCode"><i class="bi bi-building"></i> Building/Location</label>
-                            <select asp-for="Input.LocationCode" asp-items="Model.Buildings" class="form-control">
-                                <option value="">-- Select Building --</option>
-                            </select>
-                            <span asp-validation-for="Input.LocationCode" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-field">
-                            <label asp-for="Input.Unit"><i class="bi bi-door-closed"></i> Unit Number</label>
-                            <input asp-for="Input.Unit" type="number" min="1" max="9999" class="form-control" placeholder="e.g., 412" />
-                            <span asp-validation-for="Input.Unit" class="text-danger"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label asp-for="Input.TicketTypeCode"><i class="bi bi-folder"></i> Issue Type</label>
-                            <select asp-for="Input.TicketTypeCode" asp-items="Model.TicketTypes" class="form-control">
-                                <option value="">-- Select Issue Type --</option>
-                            </select>
-                            <span asp-validation-for="Input.TicketTypeCode" class="text-danger"></span>
-                        </div>
+            <div class="card mb20">
+                <div class="ch"><span class="ct">Maintenance Request</span></div>
+                <div class="cb">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         @if (Model.IsStaff)
                         {
-                            <div class="form-field">
-                                <label asp-for="Input.DueDate"><i class="bi bi-calendar"></i> Due Date</label>
-                                <input asp-for="Input.DueDate" type="date" class="form-control" />
-                                <span asp-validation-for="Input.DueDate" class="text-danger"></span>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.ResidentId">Resident (optional)</label>
+                                <select class="fsel" asp-for="Input.ResidentId" asp-items="Model.Residents">
+                                    <option value="">-- Select Resident (Optional) --</option>
+                                </select>
+                                <span asp-validation-for="Input.ResidentId" class="text-danger"></span>
                             </div>
                         }
-                    </div>
 
-                    <div class="form-field">
-                        <label asp-for="Input.Description"><i class="bi bi-card-text"></i> Description</label>
-                        <textarea asp-for="Input.Description" class="form-control" rows="6"
-                                  placeholder="Please describe the issue in detail. Include location specifics, what's happening, and when it started..."></textarea>
-                        <span asp-validation-for="Input.Description" class="text-danger"></span>
-                        <small class="form-text">Provide as much detail as possible to help us resolve your issue quickly.</small>
-                    </div>
+                        <div class="fgrid">
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.LocationCode">Building / Location</label>
+                                <select class="fsel" asp-for="Input.LocationCode" asp-items="Model.Buildings">
+                                    <option value="">-- Select Building --</option>
+                                </select>
+                                <span asp-validation-for="Input.LocationCode" class="text-danger"></span>
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.Unit">Unit Number</label>
+                                <input class="finp" asp-for="Input.Unit" type="number" min="1" max="9999" placeholder="e.g., 412" />
+                                <span asp-validation-for="Input.Unit" class="text-danger"></span>
+                            </div>
+                        </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Submit Ticket</button>
-                        <a class="btn btn-secondary" asp-page="./List"><i class="bi bi-arrow-left"></i> Back to Tickets</a>
-                    </div>
-                </form>
+                        <div class="fgrid">
+                            <div class="fg">
+                                <label class="flbl" asp-for="Input.TicketTypeCode">Issue Type</label>
+                                <select class="fsel" asp-for="Input.TicketTypeCode" asp-items="Model.TicketTypes">
+                                    <option value="">-- Select Issue Type --</option>
+                                </select>
+                                <span asp-validation-for="Input.TicketTypeCode" class="text-danger"></span>
+                            </div>
+                            @if (Model.IsStaff)
+                            {
+                                <div class="fg">
+                                    <label class="flbl" asp-for="Input.DueDate">Due Date</label>
+                                    <input class="finp" asp-for="Input.DueDate" type="date" />
+                                    <span asp-validation-for="Input.DueDate" class="text-danger"></span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="fg">
+                            <label class="flbl" asp-for="Input.Description">Description</label>
+                            <textarea class="fta" asp-for="Input.Description" rows="6" placeholder="Describe the issue — when it started, any steps taken, severity."></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p"><i class="bi bi-send" aria-hidden="true"></i> Submit Ticket</button>
+                            <a asp-page="./List" class="btn btn-s">Cancel</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </main>

@@ -3,18 +3,20 @@
 @{
     ViewData["Title"] = $"Ticket #{Model.Ticket.Id} - FixFlow";
     ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Tickets";
+    ViewData["BreadcrumbPath"] = "Operations";
+    ViewData["BreadcrumbTitle"] = $"Ticket #@Model.Ticket.Id";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/tickets.css" />
     <link rel="stylesheet" href="~/css/tickets.css" />
 }
 
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
 
-    <main class="app-main">
-        <div class="details-shell">
+    <main class="main ref-main details-main">
+        @await Html.PartialAsync("_Topbar")
             <div class="page-header">
                 <div>
                     <h1 class="page-title"><i class="bi bi-ticket-perforated"></i> Ticket #@Model.Ticket.Id</h1>
@@ -76,8 +78,8 @@
                             <div class="details-actions mt-6">
                                 @if (Model.UserRole == "Manager" && (Model.Ticket.Status == "Submitted" || Model.Ticket.Status == "Assigned"))
                                 {
-                                    <form method="post" asp-page-handler="AssignTechnician" asp-route-ticketId="@Model.Ticket.Id" style="display: inline-flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                        <select asp-for="SelectedTechnicianId" asp-items="Model.AvailableTechnicians" class="form-control" style="width: auto; min-width: 200px;"></select>
+                                    <form method="post" asp-page-handler="AssignTechnician" asp-route-ticketId="@Model.Ticket.Id" class="ff-form-inline-flex">
+                                        <select asp-for="SelectedTechnicianId" asp-items="Model.AvailableTechnicians" class="form-control ff-select-auto"></select>
                                         <button type="submit" class="btn btn-primary">@(Model.Ticket.Status == "Assigned" ? "Reassign Technician" : "Assign Technician")</button>
                                     </form>
                                     <button class="btn btn-secondary">Change Priority</button>
@@ -130,7 +132,7 @@
                         @if (!Model.PublicComments.Any())
                         {
                             <div class="empty-state">
-                                <i class="bi bi-chat" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <i class="bi bi-chat ff-empty-icon" aria-hidden="true"></i>
                                 <p>No comments yet</p>
                             </div>
                         }
@@ -172,7 +174,7 @@
                             @if (!Model.InternalNotes.Any())
                             {
                                 <div class="empty-state">
-                                    <i class="bi bi-sticky" style="font-size: 3rem; opacity: 0.3;"></i>
+                                    <i class="bi bi-sticky ff-empty-icon" aria-hidden="true"></i>
                                     <p>No internal notes yet</p>
                                 </div>
                             }
@@ -247,7 +249,7 @@
                             @if (!Model.ActivityHistory.Any())
                             {
                                 <div class="empty-state">
-                                    <i class="bi bi-folder2-open" style="font-size: 3rem; opacity: 0.3;"></i>
+                                    <i class="bi bi-folder2-open ff-empty-icon" aria-hidden="true"></i>
                                     <p>No activity yet</p>
                                 </div>
                             }
@@ -255,6 +257,5 @@
                     </div>
                 </div>
             </div>
-        </div>
     </main>
 </div>

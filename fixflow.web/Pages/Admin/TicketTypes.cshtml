@@ -2,53 +2,70 @@
 @model fixflow.web.Pages.Admin.TicketTypesModel
 @{
     ViewData["Title"] = "Manage Ticket Types";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "TicketTypes";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Ticket Params";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-folder"></i> Manage Ticket Types</h1>
-        <p class="page-subtitle">Configure categories for maintenance requests</p>
-    </div>
-
-    <div class="toolbar">
-        <a href="/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
-        <a asp-page="./TicketTypeCreate" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add New Ticket Type
-        </a>
-    </div>
-
-    <div class="card">
-        @if (Model.TicketTypes != null && Model.TicketTypes.Any())
-        {
-            <table>
-                <thead>
-                    <tr>
-                        <th><i class="bi bi-hash"></i> Code</th>
-                        <th><i class="bi bi-folder"></i> Type Name</th>
-                        <th><i class="bi bi-pencil-square"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var ticketType in Model.TicketTypes)
-                    {
-                        <tr>
-                            <td>@ticketType.Id</td>
-                            <td>@ticketType.TypeName</td>
-                            <td>
-                                <a asp-page-handler="DeleteStatus" asp-route-id="@ticketType.Id">
-                                    <img src="~/icons/trash-2.svg" /></a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="placeholder">
-                <i class="bi bi-folder icon-lg icon-faded"></i>
-                <p>No ticket types configured yet. Click "Add New Ticket Type" to get started.</p>
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Configure categories for maintenance requests.</p>
+                <a asp-page="./TicketTypeCreate" class="btn btn-p">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i> Add New Ticket Type
+                </a>
             </div>
-        }
-    </div>
+            <a href="/Dashboard" class="btn btn-s mb20">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Dashboard
+            </a>
+
+            <div class="tsec">
+                @if (Model.TicketTypes != null && Model.TicketTypes.Any())
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Type Name</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticketType in Model.TicketTypes)
+                            {
+                                <tr>
+                                    <td>@ticketType.Id</td>
+                                    <td class="tissue">@ticketType.TypeName</td>
+                                    <td>
+                                        <a asp-page-handler="DeleteStatus"
+                                           asp-route-id="@ticketType.Id"
+                                           class="act-btn"
+                                           aria-label="Delete ticket type"
+                                           title="Delete">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty">
+                        <div class="empty-ico">
+                            <i class="bi bi-folder" aria-hidden="true"></i>
+                        </div>
+                        <div class="empty-t">No ticket types configured yet.</div>
+                        <div class="empty-s">Click "Add New Ticket Type" to get started.</div>
+                        <a asp-page="./TicketTypeCreate" class="create-btn">Add New Ticket Type</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
 </div>

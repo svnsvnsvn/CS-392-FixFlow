@@ -1,29 +1,262 @@
 @page
 @model fixflow.web.Pages.AboutModel
 @{
-    ViewData["Title"] = "About Services - FixFlow";
+    ViewData["Title"] = "FixFlow — Property Maintenance, Simplified";
+    ViewData["LandingPage"] = true;
+    ViewData["MetaDescription"] = "FixFlow helps property teams manage maintenance tickets, residents, and operations with clarity and speed.";
+    ViewData["OgTitle"] = "FixFlow — Property Maintenance, Simplified";
+    ViewData["OgDescription"] = "Submit requests, track status, and resolve issues — all in one calm, trustworthy platform.";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-info-circle"></i> About Our Services</h1>
-        <p class="page-subtitle">Learn how FixFlow helps manage maintenance requests end-to-end.</p>
-    </div>
-
-    <div class="card">
-        <p>
-            FixFlow streamlines maintenance intake, assignment, and resolution for property teams and residents.
-            Submit requests, track status updates, and collaborate with staff in one place.
+<main class="page">
+    <section class="landing-hero">
+        <div class="hero-eyebrow fade-up">
+            <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+            Property Operations Platform
+        </div>
+        <h1 class="landing-hero-title fade-up delay-1">
+            Track maintenance requests,<br />
+            <span class="accent">from submission to close.</span>
+        </h1>
+        <p class="landing-hero-desc fade-up delay-2">
+            FixFlow gives property teams a single place to submit tickets, filter by status and date, and move issues through a clear workflow.
         </p>
-        <div class="divider"></div>
-        <div class="page-shell">
-            <div>
-                <h2 class="page-title"><i class="bi bi-list-check"></i> What you can do</h2>
-                <p class="page-subtitle">Key capabilities for residents, staff, and administrators.</p>
+        <div class="landing-hero-ctas fade-up delay-3">
+            <a class="landing-cta-primary" href="/Account/NewUser">Get started free <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+            <a class="landing-cta-secondary" href="#how">See how it works</a>
+        </div>
+        <div class="hero-trust fade-up delay-4">
+            <div class="trust-item">
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                No credit card required
             </div>
-            <div class="placeholder">
-                Request tracking, priority management, internal notes, and reporting live here.
+            <div class="trust-item">
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                Free for residents
+            </div>
+            <div class="trust-item">
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                Set up in under 10 minutes
             </div>
         </div>
-    </div>
-</div>
+
+        <div class="landing-mockup-wrap fade-up delay-4">
+            <div class="landing-browser">
+                <div class="landing-browser-bar">
+                    <div class="landing-browser-dots">
+                        <span class="red"></span>
+                        <span class="yellow"></span>
+                        <span class="green"></span>
+                    </div>
+                </div>
+                <div class="landing-browser-body">
+                    <aside class="landing-mockup-sidebar">
+                        <div class="mockup-brand">
+                            <img class="mockup-brand-logo" src="~/images/ff_logo.png" alt="" />
+                            <span class="mockup-brand-text">FixFlow</span>
+                        </div>
+                        <div class="mockup-lbl">Workspace</div>
+                        <a class="mockup-link active" href="#">
+                            <i class="bi bi-clipboard-check" aria-hidden="true"></i> Tickets <span class="badge">12</span>
+                        </a>
+                        <a class="mockup-link" href="#">
+                            <i class="bi bi-people" aria-hidden="true"></i> Residents &amp; Staff
+                        </a>
+                        <div class="mockup-lbl">Configuration</div>
+                        <a class="mockup-link" href="#">
+                            <i class="bi bi-lightning" aria-hidden="true"></i> Status Workflows
+                        </a>
+                        <a class="mockup-link" href="#">
+                            <i class="bi bi-building" aria-hidden="true"></i> Building Params
+                        </a>
+                    </aside>
+                    <div class="landing-mockup-main">
+                        <div class="landing-mockup-stats">
+                            <div class="landing-mockup-stat">
+                                <div class="lbl">Open Tickets</div>
+                                <div class="val">0</div>
+                            </div>
+                            <div class="landing-mockup-stat">
+                                <div class="lbl">Pending</div>
+                                <div class="val">0</div>
+                            </div>
+                            <div class="landing-mockup-stat">
+                                <div class="lbl">In Progress</div>
+                                <div class="val">0</div>
+                            </div>
+                            <div class="landing-mockup-stat accent">
+                                <div class="lbl">Completed Today</div>
+                                <div class="val">0</div>
+                            </div>
+                        </div>
+                        <div class="ph">
+                            <p class="ph-s">Top 10 most recently updated tickets.</p>
+                            <a href="#" class="btn btn-s">View all</a>
+                        </div>
+
+                        <div class="fbar">
+                            <div class="ts-wrap">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                                <input class="fbar-inp" id="ticketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+                            </div>
+                            <select class="fbar-sel" id="ticketStatusFilter" aria-label="Filter by status">
+                                <option value="all" selected>All statuses</option>
+                                <option value="submitted">Submitted</option>
+                                <option value="in progress">In Progress</option>
+                                <option value="assigned">Assigned</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <select class="fbar-sel" id="ticketDateFilter" aria-label="Filter by date">
+                                <option value="all" selected>All dates</option>
+                                <option value="today">Today</option>
+                                <option value="7">Past 7 days</option>
+                                <option value="30">Past 30 days</option>
+                            </select>
+                            <select class="fbar-sel" id="ticketSort" aria-label="Sort tickets">
+                                <option value="last-updated" selected>Sort: last updated</option>
+                                <option value="newest">Sort: newest</option>
+                                <option value="oldest">Sort: oldest</option>
+                            </select>
+                            <button class="fbar-clear" type="button" id="ticketClearFilters">Clear filters</button>
+                        </div>
+
+                        <div class="tsec">
+                            <div class="tsec-hd"></div>
+                            <div class="empty">
+                                <div class="empty-ico">
+                                    <i class="bi bi-inbox" aria-hidden="true"></i>
+                                </div>
+                                <div class="empty-t">No tickets to display</div>
+                                <div class="empty-s">Recent tickets will appear here.</div>
+                                <a href="/Tickets/Create" class="create-btn">Create Ticket</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="landing-section" id="how">
+        <div class="landing-section-center">
+            <div class="section-eyebrow">How it works</div>
+            <h2 class="section-title">From report to resolved in four steps</h2>
+            <p class="section-sub">No missed requests, no email chains. Every issue is tracked from the moment it's submitted to the day it's closed.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-title">Resident submits</div>
+                <p class="step-desc">Residents log a request with type, location, and description in under a minute.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-title">Manager assigns</div>
+                <p class="step-desc">Managers review the request, set priority, and assign to the right staff member or vendor.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-title">Staff resolves</div>
+                <p class="step-desc">Technicians update status as work progresses — parts ordered, scheduled, dispatched.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-title">Issue closed</div>
+                <p class="step-desc">The resident is notified on resolution. The full history stays on record.</p>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <section class="landing-section" id="roles">
+        <div class="section-eyebrow">Who it's for</div>
+        <h2 class="section-title">Every role has exactly what they need</h2>
+        <p class="section-sub">FixFlow adapts to your role — residents see their own requests, staff see their queue, managers see everything.</p>
+        <div class="roles-grid">
+            <div class="role-card">
+                <div class="role-icon teal-light">
+                    <i class="bi bi-house-door" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="role-name">Residents</div>
+                    <div class="role-desc">Submit and track maintenance requests from your unit, any time.</div>
+                </div>
+                <div class="role-features">
+                    <div class="role-feat">Submit requests in under 60 seconds</div>
+                    <div class="role-feat">Track status from submitted to resolved</div>
+                    <div class="role-feat">Receive notifications at each update</div>
+                    <div class="role-feat">Contact your manager directly</div>
+                </div>
+            </div>
+            <div class="role-card">
+                <div class="role-icon slate">
+                    <i class="bi bi-tools" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="role-name">Maintenance Staff</div>
+                    <div class="role-desc">Work through your assigned queue with all the context you need.</div>
+                </div>
+                <div class="role-features">
+                    <div class="role-feat">See your personal ticket queue</div>
+                    <div class="role-feat">Update status as work progresses</div>
+                    <div class="role-feat">Log parts ordered or vendor involvement</div>
+                    <div class="role-feat">Add internal notes for your team</div>
+                </div>
+            </div>
+            <div class="role-card">
+                <div class="role-icon teal">
+                    <i class="bi bi-people" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="role-name">Property Managers</div>
+                    <div class="role-desc">Full visibility across all buildings, tickets, residents, and staff.</div>
+                </div>
+                <div class="role-features">
+                    <div class="role-feat">Assign tickets to staff or vendors</div>
+                    <div class="role-feat">Monitor SLA compliance in real time</div>
+                    <div class="role-feat">Approve new resident accounts</div>
+                    <div class="role-feat">Access resolution time analytics</div>
+                </div>
+            </div>
+            <div class="role-card">
+                <div class="role-icon green">
+                    <i class="bi bi-gear" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="role-name">Administrators</div>
+                    <div class="role-desc">Configure the system, manage buildings, and control all user roles.</div>
+                </div>
+                <div class="role-features">
+                    <div class="role-feat">Set up buildings and unit structures</div>
+                    <div class="role-feat">Define ticket types, priorities, statuses</div>
+                    <div class="role-feat">Manage all user accounts and roles</div>
+                    <div class="role-feat">Configure automation rules</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <section class="cta-section">
+        <div class="cta-inner">
+            <h2 class="cta-title">Ready to bring order to maintenance?</h2>
+            <p class="cta-sub">Join property teams and residents who've replaced email chains and sticky notes with a system that actually works.</p>
+            <div class="cta-btns">
+                <a class="btn-cta-white" href="/Account/NewUser">Create a free account <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                <a class="btn-cta-outline" href="/Account/Login">Log in to your account</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <div class="footer-inner">
+            <a class="footer-brand" href="/About">
+                <img class="footer-brand-logo" src="~/images/ff_logo.png" alt="" />
+                FixFlow
+            </a>
+            <div class="footer-copy">© @DateTime.UtcNow.Year FixFlow. All rights reserved.</div>
+        </div>
+    </footer>
+</main>

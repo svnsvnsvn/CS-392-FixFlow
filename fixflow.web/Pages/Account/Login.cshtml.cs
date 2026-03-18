@@ -33,6 +33,12 @@ public class LoginModel : PageModel
     {
     }
 
+    public async Task<IActionResult> OnPostLogoutAsync()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToPage("/Account/Login");
+    }
+
     public async Task<IActionResult> OnPostAsync(
         string userName,
         string password)
@@ -65,7 +71,7 @@ public class LoginModel : PageModel
             }
             else
             {
-                return RedirectToPage("/Dashboard");
+                return RedirectToPage("/Tickets/List");
             }
         }
 

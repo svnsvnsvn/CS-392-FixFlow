@@ -1,88 +1,110 @@
-﻿@page
+@page
 @model fixflow.web.Pages.Account.ProfileModel
 @{
     ViewData["Title"] = "User Profile";
     ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Account";
+    ViewData["BreadcrumbPath"] = "Account";
+    ViewData["BreadcrumbTitle"] = "Profile";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css" />
 }
 
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
 
-    <main class="app-main">
-        <div class="page-shell">
-            <div class="page-header">
-                <h1 class="page-title"><i class="bi bi-person-circle"></i> User Profile</h1>
-                <p class="page-subtitle">Update your contact details and password settings.</p>
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <p class="ph-s">Update your contact details and password settings.</p>
+
+            <div class="card mb20">
+                <div class="ch">
+                    <span class="ct"><i class="bi bi-person-badge" aria-hidden="true"></i> Contact Information</span>
+                </div>
+                <div class="cb">
+                    <form method="post" asp-page-handler="UpdateProfile">
+                        <div class="fgrid">
+                            <div class="fg">
+                                <label class="flbl" asp-for="ProfileInput.UserName">Username</label>
+                                <input class="finp" asp-for="ProfileInput.UserName" />
+                                <span asp-validation-for="ProfileInput.UserName" class="text-danger"></span>
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="ProfileInput.FirstName">First Name</label>
+                                <input class="finp" asp-for="ProfileInput.FirstName" />
+                                <span asp-validation-for="ProfileInput.FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="ProfileInput.LastName">Last Name</label>
+                                <input class="finp" asp-for="ProfileInput.LastName" />
+                                <span asp-validation-for="ProfileInput.LastName" class="text-danger"></span>
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="ProfileInput.Email">Email</label>
+                                <input class="finp" asp-for="ProfileInput.Email" type="email" />
+                                <span asp-validation-for="ProfileInput.Email" class="text-danger"></span>
+                            </div>
+                            <div class="fg fg-full">
+                                <label class="flbl" asp-for="ProfileInput.PhoneNumber">Phone Number</label>
+                                <input class="finp" asp-for="ProfileInput.PhoneNumber" type="tel" />
+                                <span asp-validation-for="ProfileInput.PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p">
+                                <i class="bi bi-save" aria-hidden="true"></i> Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div class="card">
-                <form method="post" asp-page-handler="UpdateProfile" class="form-stack p-6">
-                    <h2 class="text-lg font-semibold mb-4"><i class="bi bi-person-badge"></i> Contact Information</h2>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label asp-for="ProfileInput.UserName">Username</label>
-                            <input asp-for="ProfileInput.UserName" />
+            <div class="card mb20">
+                <div class="ch">
+                    <span class="ct"><i class="bi bi-shield-lock" aria-hidden="true"></i> Password</span>
+                </div>
+                <div class="cb">
+                    <p class="ph-s">Keep your account secure with a strong password.</p>
+                    <form method="post" asp-page-handler="ChangePassword" asp-route-userId="@Model.PasswordInput.UserId" asp-route-token="@Model.PasswordInput.SecurityTokenStash">
+                        <div class="fgrid">
+                            <div class="fg">
+                                <label class="flbl" asp-for="PasswordInput.CurrentPassword">Current Password</label>
+                                @if (Model.RequireCurrentPassword)
+                                {
+                                    <input class="finp" type="password" asp-for="PasswordInput.CurrentPassword" />
+                                }
+                                else
+                                {
+                                    <input class="finp" asp-for="PasswordInput.CurrentPassword" disabled placeholder="Not required for this update" />
+                                }
+                                <span asp-validation-for="PasswordInput.CurrentPassword" class="text-danger"></span>
+                            </div>
+                            <div class="fg">
+                                <label class="flbl" asp-for="PasswordInput.NewPassword">New Password</label>
+                                <input class="finp" type="password" asp-for="PasswordInput.NewPassword" />
+                                <span asp-validation-for="PasswordInput.NewPassword" class="text-danger"></span>
+                            </div>
+                            <div class="fg fg-full">
+                                <label class="flbl" asp-for="PasswordInput.VerifyPassword">Verify Password</label>
+                                <input class="finp" type="password" asp-for="PasswordInput.VerifyPassword" />
+                                <span asp-validation-for="PasswordInput.VerifyPassword" class="text-danger"></span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label asp-for="ProfileInput.FirstName">First Name</label>
-                            <input asp-for="ProfileInput.FirstName" />
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p">
+                                <i class="bi bi-key" aria-hidden="true"></i> Update Password
+                            </button>
                         </div>
-
-                        <div class="form-group">
-                            <label asp-for="ProfileInput.LastName">Last Name</label>
-                            <input asp-for="ProfileInput.LastName" />
-                        </div>
-
-                        <div class="form-group">
-                            <label asp-for="ProfileInput.Email">Email</label>
-                            <input asp-for="ProfileInput.Email" />
-                        </div>
-
-                        <div class="form-group">
-                            <label asp-for="ProfileInput.PhoneNumber">Phone Number</label>
-                            <input asp-for="ProfileInput.PhoneNumber" />
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Profile</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card">
-                <form method="post" asp-page-handler="ChangePassword" asp-route-userId="@Model.PasswordInput.UserId" asp-route-token="@Model.PasswordInput.SecurityTokenStash" class="form-stack p-6">
-                    <h2 class="text-lg font-semibold mb-1"><i class="bi bi-shield-lock"></i> Password</h2>
-                    <p class="page-subtitle mb-4">Keep your account secure with a strong password.</p>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label asp-for="PasswordInput.CurrentPassword">Current Password</label>
-                            @if (Model.RequireCurrentPassword)
-                            {
-                                <input type="password" asp-for="PasswordInput.CurrentPassword" />
-                            }
-                            else
-                            {
-                                <input asp-for="PasswordInput.CurrentPassword" disabled />
-                            }
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="PasswordInput.NewPassword">New Password</label>
-                            <input type="password" asp-for="PasswordInput.NewPassword" />
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="PasswordInput.VerifyPassword">Verify Password</label>
-                            <input type="password" asp-for="PasswordInput.VerifyPassword" />
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-key"></i> Update Password</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </main>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

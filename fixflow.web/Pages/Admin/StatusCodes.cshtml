@@ -2,73 +2,108 @@
 @model fixflow.web.Pages.Admin.StatusCodesModel
 @{
     ViewData["Title"] = "Manage Status Codes";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "StatusCodes";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Status Params";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-flag"></i> Manage Status Codes</h1>
-        <p class="page-subtitle">Configure status options for ticket workflow</p>
-    </div>
-
-    <div class="toolbar">
-        <a href="/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
-        <a asp-page="./StatusCodeCreate" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add New Status Code
-        </a>
-    </div>
-
-    <div class="card">
-        @if (Model.StatusCodes != null && Model.StatusCodes.Any())
-        {
-            <table>
-                <thead>
-                    <tr>
-                        <th><i class="bi bi-hash"></i> Code</th>
-                        <th><i class="bi bi-flag"></i> Status Name</th>
-                        <th><i class="bi bi-pencil-square"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{int i = 0;}
-                    @foreach (var status in Model.StatusCodes)
-                    {
-                        <tr>
-                            <td>@status.StatusCode</td>
-                            <td>@status.StatusName</td>
-                            <td>
-                                @if (i == 0)
-                                {
-                                    <img src="~/icons/arrow-up-circle.svg" style="visibility:hidden" />
-                                }
-                                else
-                                {
-                                    <a asp-page-handler="DecreaseStatus"  asp-route-id="@status.Id">
-                                        <img src="~/icons/arrow-up-circle.svg" /></a>
-                                }
-                                @if (i == Model.StatusCodes.Count() - 1)
-                                {
-                                    <img src="~/icons/arrow-down-circle.svg" style="visibility:hidden"/>
-                                }
-                                else
-                                {
-                                    <a asp-page-handler="IncreaseStatus" asp-route-id="@status.Id">
-                                        <img src="~/icons/arrow-down-circle.svg" /></a>
-                                }
-                                <a asp-page-handler="DeleteStatus" asp-route-id="@status.Id">
-                                    <img src="~/icons/trash-2.svg" /></a>
-                            </td>
-                        </tr>
-                        i++;
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="placeholder">
-                <i class="bi bi-flag icon-lg icon-faded"></i>
-                <p>No status codes configured yet. Click "Add New Status Code" to get started.</p>
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Configure status options for ticket workflow.</p>
+                <a asp-page="./StatusCodeCreate" class="btn btn-p">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i> Add New Status Code
+                </a>
             </div>
-        }
-    </div>
+            <a href="/Dashboard" class="btn btn-s mb20">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Dashboard
+            </a>
+
+            <div class="tsec">
+                @if (Model.StatusCodes != null && Model.StatusCodes.Any())
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Status Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int i = 0;}
+                            @foreach (var status in Model.StatusCodes)
+                            {
+                                <tr>
+                                    <td>@status.StatusCode</td>
+                                    <td class="tissue">@status.StatusName</td>
+                                    <td>
+                                        <div class="tsec-actions">
+                                            @if (i == 0)
+                                            {
+                                                <span class="act-btn" style="visibility:hidden" aria-hidden="true">
+                                                    <i class="bi bi-arrow-up-circle"></i>
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <a asp-page-handler="DecreaseStatus"
+                                                   asp-route-id="@status.Id"
+                                                   class="act-btn"
+                                                   aria-label="Move status up"
+                                                   title="Move up">
+                                                    <i class="bi bi-arrow-up-circle" aria-hidden="true"></i>
+                                                </a>
+                                            }
+
+                                            @if (i == Model.StatusCodes.Count() - 1)
+                                            {
+                                                <span class="act-btn" style="visibility:hidden" aria-hidden="true">
+                                                    <i class="bi bi-arrow-down-circle"></i>
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <a asp-page-handler="IncreaseStatus"
+                                                   asp-route-id="@status.Id"
+                                                   class="act-btn"
+                                                   aria-label="Move status down"
+                                                   title="Move down">
+                                                    <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+                                                </a>
+                                            }
+
+                                            <a asp-page-handler="DeleteStatus"
+                                               asp-route-id="@status.Id"
+                                               class="act-btn"
+                                               aria-label="Delete status code"
+                                               title="Delete">
+                                                <i class="bi bi-trash" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty">
+                        <div class="empty-ico">
+                            <i class="bi bi-flag" aria-hidden="true"></i>
+                        </div>
+                        <div class="empty-t">No status codes configured yet.</div>
+                        <div class="empty-s">Click "Add New Status Code" to get started.</div>
+                        <a asp-page="./StatusCodeCreate" class="create-btn">Add New Status Code</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
 </div>

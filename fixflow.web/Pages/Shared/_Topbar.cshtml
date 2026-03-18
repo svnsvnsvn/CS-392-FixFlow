@@ -1,0 +1,12 @@
+@{
+    var path = ViewData["BreadcrumbPath"] as string ?? "Operations";
+    var title = ViewData["BreadcrumbTitle"] as string ?? "Overview";
+}
+<header class="topbar">
+    <div class="bc">
+        <div class="bc-path">
+            <span>@path.ToUpperInvariant()</span>
+        </div>
+        <div class="bc-title">@title</div>
+    </div>
+</header>

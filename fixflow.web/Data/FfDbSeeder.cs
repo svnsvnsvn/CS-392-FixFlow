@@ -1,7 +1,6 @@
 ﻿using fixflow.web.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace fixflow.web.Data
 {
@@ -121,72 +120,118 @@ namespace fixflow.web.Data
             }
 
 
-            // AMS if no admins exist create the default and set to require password change at next login.
-            var admins = await _userManager.GetUsersInRoleAsync("Admin");
-            if (!admins.Any())
-            {
-                // AMS - Setup new admin user settings
+            // Get LocationCode of "Unassigned" building once, used by seeded account profiles.
+            var unassignedLocationCode = await _db.FfBuildingDirectorys
+                .Where(x => x.LocationName == "Unassigned")
+                .Select(x => x.LocationCode)
+                .SingleAsync();
 
-                using var userCreationTransaction = await _db.Database.BeginTransactionAsync();
-                try
+            // Ensure one account exists for each active role (excluding Pending), all with password "password".
+            await EnsureSeedAccountAsync("admin", "admin@fixflow.local", "Default", "Administrator", "Admin", unassignedLocationCode);
+            await EnsureSeedAccountAsync("manager", "manager@fixflow.local", "Default", "Manager", "Manager", unassignedLocationCode);
+            await EnsureSeedAccountAsync("employee", "employee@fixflow.local", "Default", "Employee", "Employee", unassignedLocationCode);
+            await EnsureSeedAccountAsync("resident", "resident@fixflow.local", "Default", "Resident", "Resident", unassignedLocationCode);
+        }
+
+        private async Task EnsureSeedAccountAsync(
+            string username,
+            string email,
+            string firstName,
+            string lastName,
+            string role,
+            int locationCode)
+        {
+            using var userTransaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                var user = await _userManager.FindByNameAsync(username);
+                if (user == null)
                 {
-                    var initialAdmin = new AppUser
+                    user = new AppUser
                     {
-                        UserName = "admin",
-                        Email = "admin@fixflow.local",
+                        UserName = username,
+                        Email = email,
                         EmailConfirmed = true,
-                        ResetPassOnLogin = true
+                        ResetPassOnLogin = false
                     };
 
-                    // AMS - Create new admin user
-                    string randPassword = $"{Guid.NewGuid():N}".Substring(0, 12) + "aA1!";
-                    var resultU = await _userManager.CreateAsync(initialAdmin, randPassword);
-                    // AMS - Take success/fail of Admin user creation, assign admin role, and log an appropriate output.
-                    if (!resultU.Succeeded)
+                    var createResult = await _userManager.CreateAsync(user, "password");
+                    if (!createResult.Succeeded)
                     {
-                        throw new Exception($"Failed to create initial admin user: {string.Join(", ", resultU.Errors.Select(e => e.Description))}");
+                        throw new Exception($"Failed to create seeded user '{username}': {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                    }
+                }
+                else
+                {
+                    // Keep seeded accounts in a known, login-ready state.
+                    user.Email ??= email;
+                    user.EmailConfirmed = true;
+                    user.ResetPassOnLogin = false;
+                    var updateResult = await _userManager.UpdateAsync(user);
+                    if (!updateResult.Succeeded)
+                    {
+                        throw new Exception($"Failed to update seeded user '{username}': {string.Join(", ", updateResult.Errors.Select(e => e.Description))}");
                     }
 
-                    var resultUR = await _userManager.AddToRoleAsync(initialAdmin, "Admin");
-                    if (!resultUR.Succeeded)
+                    if (await _userManager.HasPasswordAsync(user))
                     {
-                        throw new Exception($"Failed to add 'admin' role to admin user: {string.Join(", ", resultUR.Errors.Select(e => e.Description))}");
+                        var passwordMatches = await _userManager.CheckPasswordAsync(user, "password");
+                        if (!passwordMatches)
+                        {
+                            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                            var resetResult = await _userManager.ResetPasswordAsync(user, token, "password");
+                            if (!resetResult.Succeeded)
+                            {
+                                throw new Exception($"Failed to reset password for seeded user '{username}': {string.Join(", ", resetResult.Errors.Select(e => e.Description))}");
+                            }
+                        }
                     }
-
-                    // Get LocationCode of "Unassigned" building
-                    var locationCode = await _db.FfBuildingDirectorys
-                        .Where(x => x.LocationName == "Unassigned")
-                        .Select(x => x.LocationCode)
-                        .SingleAsync();
-
-
-                    // Create Profile
-                    var initialAdminProfile = new FfUserProfile
+                    else
                     {
-                        FName = "Default",
-                        LName = "Administrator",
-                        FfUserId = initialAdmin.Id,
+                        var addPasswordResult = await _userManager.AddPasswordAsync(user, "password");
+                        if (!addPasswordResult.Succeeded)
+                        {
+                            throw new Exception($"Failed to set password for seeded user '{username}': {string.Join(", ", addPasswordResult.Errors.Select(e => e.Description))}");
+                        }
+                    }
+                }
+
+                if (!await _userManager.IsInRoleAsync(user, role))
+                {
+                    var addToRoleResult = await _userManager.AddToRoleAsync(user, role);
+                    if (!addToRoleResult.Succeeded)
+                    {
+                        throw new Exception($"Failed to add role '{role}' to user '{username}': {string.Join(", ", addToRoleResult.Errors.Select(e => e.Description))}");
+                    }
+                }
+
+                var profile = await _db.FfUserProfiles.FirstOrDefaultAsync(p => p.FfUserId == user.Id);
+                if (profile == null)
+                {
+                    profile = new FfUserProfile
+                    {
+                        FfUserId = user.Id,
+                        FName = firstName,
+                        LName = lastName,
                         LocationCode = locationCode
                     };
 
-                    _db.FfUserProfiles.Add(initialAdminProfile);
-                    await _db.SaveChangesAsync();
-
-                    _logger.LogCritical(@"
-                        ==================================================
-                            INITIAL ADMIN ACCOUNT CREATED
-                            USERNAME: admin
-                            PASSWORD: {Password}
-                        ==================================================
-                        ", randPassword);
-
-                    await userCreationTransaction.CommitAsync();
+                    _db.FfUserProfiles.Add(profile);
                 }
-                catch
+                else
                 {
-                    await userCreationTransaction.RollbackAsync();          // Stop db writes if something failed. Prevent half transactions.
-                    throw;
+                    profile.FName = firstName;
+                    profile.LName = lastName;
+                    profile.LocationCode = locationCode;
                 }
+
+                await _db.SaveChangesAsync();
+                await userTransaction.CommitAsync();
+            }
+            catch
+            {
+                await userTransaction.RollbackAsync();
+                throw;
             }
         }
     }

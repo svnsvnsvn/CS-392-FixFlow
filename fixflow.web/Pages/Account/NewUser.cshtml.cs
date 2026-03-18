@@ -1,4 +1,4 @@
-﻿using fixflow.web.Data;
+using fixflow.web.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -26,13 +26,13 @@ public class NewUserModel : PageModel
 
     public class InputModel
     {
-        [Required]
+        [Required, Display(Name = "First name")]
         public string FirstName { get; set; } = string.Empty;
-        [Required]
+        [Required, Display(Name = "Last name")]
         public string LastName { get; set; } = string.Empty;
-        [Phone]
+        [Phone, Display(Name = "Phone (optional)")]
         public string? PhoneNumber { get; set; }
-        [Required, EmailAddress]
+        [Required, EmailAddress, Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
     }
 
@@ -117,7 +117,7 @@ public class NewUserModel : PageModel
         }
 
 
-        // New user is a user, generate token and forward to user profile page to setup password.
+        // New user must set password; send them to Profile with token.
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         return RedirectToPage("/Account/Profile", new { userId = user.Id, token });
     }

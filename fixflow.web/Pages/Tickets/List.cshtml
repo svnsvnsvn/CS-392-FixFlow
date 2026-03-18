@@ -3,8 +3,13 @@
 @{
     ViewData["Title"] = "Tickets List";
     ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Tickets";
+    ViewData["BreadcrumbPath"] = "Operations";
+    ViewData["BreadcrumbTitle"] = "All Tickets";
+    ViewData["TopbarCreateUrl"] = "/Tickets/Create";
+    ViewData["TopbarSearch"] = false;
+    var isStaff = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Employee");
 }
-
 
 @section Styles {
     <link rel="stylesheet" href="~/css/tickets.css" />
@@ -13,142 +18,146 @@
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
 
-    <main class="app-main">
-        <div class="page-shell">
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title"><i class="bi bi-list-ul"></i> All Tickets</h1>
-                    <p class="page-subtitle">Track, search, and manage maintenance requests.</p>
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+
+
+            <div class="fbar">
+                <div class="ts-wrap">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input class="fbar-inp" id="listTicketSearch" type="search" placeholder="Search ticket #, type, location, unit…" aria-label="Search tickets" />
                 </div>
-                <div class="tickets-toolbar">
-                    <a href="/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
-                    <a asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create New Ticket</a>
-                </div>
+                <select class="fbar-sel" id="listTicketStatusFilter" aria-label="Filter by status">
+                    <option value="all" selected>All statuses</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="in progress">In Progress</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="completed">Completed</option>
+                </select>
+                @if (isStaff)
+                {
+                    <select class="fbar-sel" id="listTicketPriorityFilter" aria-label="Filter by priority">
+                        <option value="all" selected>All priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                }
+                <select class="fbar-sel" id="listTicketSort" aria-label="Sort tickets">
+                    <option value="last-updated" selected>Sort: last updated</option>
+                    <option value="newest">Sort: newest</option>
+                    <option value="oldest">Sort: oldest</option>
+                    @if (isStaff)
+                    {
+                        <option value="priority">Sort: priority</option>
+                    }
+                </select>
+                <button class="fbar-clear" type="button" id="listTicketClearFilters">Clear filters</button>
             </div>
 
-            <div class="card">
-                <div class="filter-bar">
-                    <div class="filter-group">
-                        <input class="filter-input" id="listTicketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
-                        <select class="filter-select" id="listTicketStatusFilter" aria-label="Filter by status">
-                            <option value="all" selected>All statuses</option>
-                            <option value="submitted">Submitted</option>
-                            <option value="in progress">In Progress</option>
-                            <option value="assigned">Assigned</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                        <select class="filter-select" id="listTicketPriorityFilter" aria-label="Filter by priority">
-                            <option value="all" selected>All priorities</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                        <select class="filter-select" id="listTicketSort" aria-label="Sort tickets">
-                            <option value="last-updated" selected>Sort: last updated</option>
-                            <option value="newest">Sort: newest</option>
-                            <option value="oldest">Sort: oldest</option>
-                            <option value="priority">Sort: priority</option>
-                        </select>
-                    </div>
-                    <div class="filter-spacer"></div>
-                    <div class="filter-group">
-                        <button class="btn btn-ghost" type="button" id="listTicketClearFilters">Clear filters</button>
-                    </div>
+            <div class="tsec">
+                <div class="tsec-hd">
+                    <span class="ph-s" id="listTicketCount"></span>
                 </div>
-
-                <div class="table-container">
-                    @if (Model.Tickets != null && Model.Tickets.Any())
-                    {
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Ticket</th>
-                                    <th>Type</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Location</th>
-                                    <th>Unit</th>
-                                    <th>Requested By</th>
-                                    <th>Assigned To</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var ticket in Model.Tickets)
+                @if (Model.Tickets != null && Model.Tickets.Any())
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-id">ID</th>
+                                <th>Issue</th>
+                                <th>Type</th>
+                                @if (isStaff)
                                 {
-                                    var statusClass = (ticket.StatusCode?.StatusName ?? "").ToLower().Replace(" ", "");
-                                    var priorityClass = (ticket.PriorityCode?.PriorityName ?? "").ToLower();
-                                    var statusName = ticket.StatusCode?.StatusName ?? "-";
-                                    var priorityName = ticket.PriorityCode?.PriorityName ?? "-";
-                                    var ticketCode = string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode;
-                                    var ticketTypeName = ticket.TicketType?.TypeName ?? "-";
-                                    var locationName = ticket.Building?.LocationName ?? "-";
-                                    var requestedBy = ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}";
-                                    var assignedTo = Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-";
-
-                                    <tr class="list-ticket-row"
-                                        data-ticket-id="@ticket.TicketId"
-                                        data-ticket-code="@ticketCode"
-                                        data-type="@ticketTypeName"
-                                        data-priority="@priorityName.ToLower()"
-                                        data-status="@statusName.ToLower()"
-                                        data-location="@locationName"
-                                        data-unit="@ticket.Unit"
-                                        data-requested-by="@requestedBy"
-                                        data-assigned-to="@assignedTo">
-                                        <td><span class="ticket-id">@ticketCode</span></td>
-                                        <td>@ticketTypeName</td>
-                                        <td>
-                                            <span class="priority-text @priorityClass">
-                                                @priorityName
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @{
-                                                var statusIconMap = statusClass switch
-                                                {
-                                                    "submitted" => "bi-circle",
-                                                    "inreview" => "bi-clock",
-                                                    "assigned" => "bi-person-check",
-                                                    "inprogress" => "bi-arrow-repeat",
-                                                    "onhold" => "bi-pause-circle",
-                                                    "completed" => "bi-check-circle",
-                                                    "cancelled" => "bi-x-circle",
-                                                    _ => "bi-circle-fill"
-                                                };
-                                            }
-                                            <i class="status-icon bi @statusIconMap" title="@statusName"></i>
-                                        </td>
-                                        <td>@locationName</td>
-                                        <td>@ticket.Unit</td>
-                                        <td>@requestedBy</td>
-                                        <td>@assignedTo</td>
-                                        <td style="display: flex; gap: 0.5rem; align-items: center;">
-                                            <a href="/Tickets/Details/@ticketCode" class="btn btn-secondary btn-icon" aria-label="View ticket">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
-                                            {
-                                                <form method="post" asp-page-handler="PickUpTicket" asp-route-ticketId="@ticket.TicketId" style="display: inline;">
-                                                    <button type="submit" class="btn btn-primary btn-icon" aria-label="Pick up ticket" title="Pick up ticket">
-                                                        <i class="bi bi-hand-thumbs-up"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                        </td>
-                                    </tr>
+                                    <th>Priority</th>
                                 }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <div class="empty-state">
-                            <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
-                            <p>No tickets to display</p>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Unit</th>
+                                <th>Requested By</th>
+                                <th>Assigned To</th>
+                                <th class="col-actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in Model.Tickets)
+                            {
+                                var statusName = ticket.StatusCode?.StatusName ?? "-";
+                                var statusKey = (statusName ?? "").ToLower().Replace(" ", "");
+                                var sdClass = statusKey switch
+                                {
+                                    "submitted" => "sd-submitted",
+                                    "inprogress" => "sd-inprogress",
+                                    "in progress" => "sd-inprogress",
+                                    "assigned" => "sd-assigned",
+                                    "completed" => "sd-completed",
+                                    "cancelled" => "sd-cancelled",
+                                    "closed" => "sd-cls",
+                                    _ => "sd-o"
+                                };
+                                var priorityName = ticket.PriorityCode?.PriorityName ?? "-";
+                                var priorityKey = (priorityName ?? "").ToLower();
+                                var ticketCode = string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode;
+                                var ticketTypeName = ticket.TicketType?.TypeName ?? "-";
+                                var locationName = ticket.Building?.LocationName ?? "-";
+                                var requestedBy = ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}";
+                                var assignedTo = Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-";
+
+                                <tr class="list-ticket-row"
+                                    data-ticket-id="@ticket.TicketId"
+                                    data-ticket-code="@ticketCode"
+                                    data-type="@ticketTypeName"
+                                    data-priority="@priorityKey"
+                                    data-status="@statusName.ToLower()"
+                                    data-location="@locationName"
+                                    data-unit="@ticket.Unit"
+                                    data-requested-by="@requestedBy"
+                                    data-assigned-to="@assignedTo">
+                                    <td><span class="tid">#@ticketCode</span></td>
+                                    <td>
+                                        <div class="tissue">@(string.IsNullOrWhiteSpace(ticket.TicketDescription) ? ticketTypeName : (ticket.TicketDescription.Length > 60 ? ticket.TicketDescription.Substring(0, 60) + "…" : ticket.TicketDescription))</div>
+                                        <div class="tmeta">@ticketTypeName</div>
+                                    </td>
+                                    <td>@ticketTypeName</td>
+                                    @if (isStaff)
+                                    {
+                                        <td><span class="pri @priorityKey">@priorityName</span></td>
+                                    }
+                                    <td><span class="sdot @sdClass">@statusName</span></td>
+                                    <td>@locationName</td>
+                                    <td>@ticket.Unit</td>
+                                    <td>@requestedBy</td>
+                                    <td>@assignedTo</td>
+                                    <td>
+                                        <a href="/Tickets/Details/@ticketCode" class="act-btn" aria-label="View ticket" title="View ticket">
+                                            <i class="bi bi-three-dots" aria-hidden="true"></i>
+                                        </a>
+                                        @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
+                                        {
+                                            <form method="post" asp-page-handler="PickUpTicket" asp-route-ticketId="@ticket.TicketId" class="ref-inline-form">
+                                                <button type="submit" class="btn btn-p btn-sm" aria-label="Pick up ticket" title="Pick up ticket">
+                                                    <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty">
+                        <div class="empty-ico">
+                            <i class="bi bi-inbox" aria-hidden="true"></i>
                         </div>
-                    }
-                </div>
+                        <div class="empty-t">No tickets to display</div>
+                        <div class="empty-s">You haven't submitted any maintenance requests yet. When you do, they'll appear here.</div>
+                        <a href="/Tickets/Create" class="create-btn">Create your first ticket</a>
+                    </div>
+                }
             </div>
         </div>
     </main>
@@ -160,23 +169,21 @@
     const listTicketPriorityFilter = document.getElementById("listTicketPriorityFilter");
     const listTicketSort = document.getElementById("listTicketSort");
     const listTicketClearFilters = document.getElementById("listTicketClearFilters");
-    const listTicketsTableBody = document.querySelector(".table-container tbody");
+    const listTicketCountEl = document.getElementById("listTicketCount");
+    const listTicketsTableBody = document.querySelector(".tsec tbody");
     const listTicketRows = listTicketsTableBody ? Array.from(listTicketsTableBody.querySelectorAll(".list-ticket-row")) : [];
+    const hasPriorityFilter = !!listTicketPriorityFilter;
 
-    const listPriorityWeight = {
-        high: 3,
-        medium: 2,
-        low: 1
-    };
+    const listPriorityWeight = { high: 3, medium: 2, low: 1 };
 
     const applyListTicketFilters = () => {
         if (!listTicketRows.length) {
+            if (listTicketCountEl) listTicketCountEl.textContent = "0 results";
             return;
         }
-
         const searchValue = (listTicketSearch?.value ?? "").trim().toLowerCase();
         const statusValue = listTicketStatusFilter?.value ?? "all";
-        const priorityValue = listTicketPriorityFilter?.value ?? "all";
+        const priorityValue = hasPriorityFilter ? (listTicketPriorityFilter?.value ?? "all") : "all";
         const sortValue = listTicketSort?.value ?? "last-updated";
 
         listTicketRows.forEach((row) => {
@@ -185,68 +192,51 @@
             const searchable = [
                 row.getAttribute("data-ticket-code") ?? "",
                 row.getAttribute("data-type") ?? "",
-                row.getAttribute("data-priority") ?? "",
                 row.getAttribute("data-status") ?? "",
                 row.getAttribute("data-location") ?? "",
                 row.getAttribute("data-unit") ?? "",
                 row.getAttribute("data-requested-by") ?? "",
                 row.getAttribute("data-assigned-to") ?? ""
             ].join(" ").toLowerCase();
-
+            if (hasPriorityFilter) searchable += " " + (row.getAttribute("data-priority") ?? "");
             const matchesSearch = !searchValue || searchable.includes(searchValue);
             const matchesStatus = statusValue === "all" || rowStatus === statusValue;
-            const matchesPriority = priorityValue === "all" || rowPriority === priorityValue;
-
+            const matchesPriority = !hasPriorityFilter || priorityValue === "all" || rowPriority === priorityValue;
             row.style.display = matchesSearch && matchesStatus && matchesPriority ? "table-row" : "none";
         });
+
+        const visible = listTicketRows.filter(r => r.style.display !== "none");
+        if (listTicketCountEl) listTicketCountEl.textContent = visible.length + " result" + (visible.length !== 1 ? "s" : "");
 
         const sortedRows = [...listTicketRows].sort((left, right) => {
             const leftId = Number(left.getAttribute("data-ticket-id") ?? 0);
             const rightId = Number(right.getAttribute("data-ticket-id") ?? 0);
-
+            if (hasPriorityFilter && sortValue === "priority") {
+                const lp = listPriorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+                const rp = listPriorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+                if (rp !== lp) return rp - lp;
+                return rightId - leftId;
+            }
             switch (sortValue) {
                 case "newest":
-                case "last-updated":
-                    return rightId - leftId;
-                case "oldest":
-                    return leftId - rightId;
-                case "priority": {
-                    const leftPriority = listPriorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
-                    const rightPriority = listPriorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
-                    if (rightPriority !== leftPriority) {
-                        return rightPriority - leftPriority;
-                    }
-                    return rightId - leftId;
-                }
-                default:
-                    return 0;
+                case "last-updated": return rightId - leftId;
+                case "oldest": return leftId - rightId;
+                default: return rightId - leftId;
             }
         });
-
         sortedRows.forEach((row) => listTicketsTableBody?.appendChild(row));
     };
 
     listTicketSearch?.addEventListener("input", applyListTicketFilters);
     listTicketStatusFilter?.addEventListener("change", applyListTicketFilters);
-    listTicketPriorityFilter?.addEventListener("change", applyListTicketFilters);
+    if (listTicketPriorityFilter) listTicketPriorityFilter.addEventListener("change", applyListTicketFilters);
     listTicketSort?.addEventListener("change", applyListTicketFilters);
-
     listTicketClearFilters?.addEventListener("click", () => {
-        if (listTicketSearch) {
-            listTicketSearch.value = "";
-        }
-        if (listTicketStatusFilter) {
-            listTicketStatusFilter.value = "all";
-        }
-        if (listTicketPriorityFilter) {
-            listTicketPriorityFilter.value = "all";
-        }
-        if (listTicketSort) {
-            listTicketSort.value = "last-updated";
-        }
-
+        if (listTicketSearch) listTicketSearch.value = "";
+        if (listTicketStatusFilter) listTicketStatusFilter.value = "all";
+        if (listTicketPriorityFilter) listTicketPriorityFilter.value = "all";
+        if (listTicketSort) listTicketSort.value = "last-updated";
         applyListTicketFilters();
     });
-
     applyListTicketFilters();
 </script>
