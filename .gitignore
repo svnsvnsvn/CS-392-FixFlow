@@ -11,6 +11,10 @@ obj/
 
 # Docker stuff
 *.env
+# Local-only live-reload (copy from docker-compose.override.example.yml and Dockerfile.dev.example)
+docker-compose.override.yml
+docker-compose.override.yaml
+fixflow.web/Dockerfile.dev
 /fixflow.web/appsettings.Development.json
 instructions.txt
 fixflow.web/UI_TODO.md

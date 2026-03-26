@@ -1,6 +1,9 @@
 @page "{id}"
 @model fixflow.web.Pages.Tickets.DetailsModel
 @{
+    var isResident = User.IsInRole("Resident") || User.IsInRole("Pending");
+    var ticketsHomeHref = isResident ? "/Dashboard" : "/Tickets/List";
+    var ticketsHomeLabel = isResident ? "Back to My Tickets" : "Back to Tickets";
     ViewData["Title"] = $"Ticket #{Model.Ticket.Id} - FixFlow";
     ViewData["HideNav"] = true;
     ViewData["ActiveNav"] = "Tickets";
@@ -23,7 +26,7 @@
                     <p class="page-subtitle">Details and updates for this request.</p>
                 </div>
                 <div class="details-actions">
-                    <a href="/Tickets/List" class="btn btn-secondary">  <i class="bi bi-arrow-left"></i> Back to Tickets</a>
+                    <a href="@ticketsHomeHref" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> @ticketsHomeLabel</a>
                 </div>
             </div>
 

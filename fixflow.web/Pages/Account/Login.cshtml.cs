@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using fixflow.web.Data;
+using fixflow.web.Domain.Enums;
 
 namespace fixflow.web.Pages.Account;
 
@@ -31,12 +32,6 @@ public class LoginModel : PageModel
 
     public void OnGet()
     {
-    }
-
-    public async Task<IActionResult> OnPostLogoutAsync()
-    {
-        await _signInManager.SignOutAsync();
-        return RedirectToPage("/Account/Login");
     }
 
     public async Task<IActionResult> OnPostAsync(
@@ -71,6 +66,12 @@ public class LoginModel : PageModel
             }
             else
             {
+                if (await _userManager.IsInRoleAsync(user, RoleTypes.Resident.ToString())
+                    || await _userManager.IsInRoleAsync(user, RoleTypes.Pending.ToString()))
+                {
+                    return RedirectToPage("/Dashboard");
+                }
+
                 return RedirectToPage("/Tickets/List");
             }
         }

@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Manage Users";
     ViewData["HideNav"] = true;
-    ViewData["ActiveNav"] = "AdminUserTool";
+    ViewData["ActiveNav"] = "AdminUsers";
     ViewData["BreadcrumbPath"] = "People";
     ViewData["BreadcrumbTitle"] = "Residents & Staff";
 }
@@ -14,10 +14,10 @@
         @await Html.PartialAsync("_Topbar")
         <div class="ref-page">
             <div class="ph">
-                <span></span>
+                <p class="ph-s admin-users-lead">Everyone registered in FixFlow. Use the filters to narrow the table, open <strong>Edit</strong> for a shortcut to the form below, or invite someone new.</p>
                 <a asp-page="/Account/NewUser" class="btn btn-p"><i class="bi bi-person-plus" aria-hidden="true"></i> Invite User</a>
             </div>
-            <div class="stat-row">
+            <div class="stat-row admin-users-stats">
                 <div class="sc">
                     <div class="sc-lbl">Total users</div>
                     <div class="sc-val">@Model.TotalUsers</div>
@@ -35,33 +35,52 @@
                     <div class="sc-val">@Model.PendingCount</div>
                 </div>
             </div>
-            <div class="fbar">
-                <div class="ts-wrap">
-                    <i class="bi bi-search" aria-hidden="true"></i>
-                    <input type="text" class="fbar-inp" placeholder="Search users..." id="userSearch" />
+            <div class="admin-users-filters-card">
+                <div class="admin-users-filters-head">
+                    <span class="admin-users-filters-title">Filter directory</span>
+                    <button type="button" class="fbar-clear" id="userFiltersClear">Clear all</button>
                 </div>
-                <select class="fbar-sel" id="roleFilter" aria-label="Filter by role">
-                    <option value="">All roles</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Employee">Employee</option>
-                    <option value="Resident">Resident</option>
-                    <option value="Pending">Pending</option>
-                </select>
-                <select class="fbar-sel" id="buildingFilter" aria-label="Filter by building">
-                    <option value="">All buildings</option>
-                    @if (Model.UserRows != null)
-                    {
-                        foreach (var b in Model.UserRows.Select(r => r.BuildingDisplay).Where(s => !string.IsNullOrEmpty(s) && s != "-").Distinct().OrderBy(s => s))
+                <div class="admin-users-filters-inner">
+                    <div class="ts-wrap">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <input type="text" class="fbar-inp" placeholder="Search name or email…" id="userSearch" />
+                    </div>
+                    <select class="fbar-sel" id="roleFilter" aria-label="Filter by role">
+                        <option value="">All roles</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Employee">Employee</option>
+                        <option value="Resident">Resident</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                    <select class="fbar-sel" id="buildingFilter" aria-label="Filter by building">
+                        <option value="">All buildings</option>
+                        @if (Model.UserRows != null)
                         {
-                            <option value="@b">@b</option>
+                            foreach (var b in Model.UserRows.Select(r => r.BuildingDisplay).Where(s => !string.IsNullOrEmpty(s) && s != "-").Distinct().OrderBy(s => s))
+                            {
+                                <option value="@b">@b</option>
+                            }
                         }
-                    }
-                </select>
+                    </select>
+                    <select class="fbar-sel" id="unitFilter" aria-label="Filter by unit assignment">
+                        <option value="">Any unit</option>
+                        <option value="assigned">Has unit #</option>
+                        <option value="none">No unit assigned</option>
+                    </select>
+                    <select class="fbar-sel" id="joinedFilter" aria-label="Filter by join date recorded">
+                        <option value="">Any join record</option>
+                        <option value="yes">Join date on file</option>
+                        <option value="no">Join date not set</option>
+                    </select>
+                </div>
             </div>
-            <div class="tsec">
+            <div class="tsec admin-users-tsec">
                 @if (Model.UserRows != null && Model.UserRows.Any())
                 {
+                    <div class="tsec-hd">
+                        <span class="ph-s" id="userTableCount"></span>
+                    </div>
                     <table>
                         <thead>
                             <tr>
@@ -69,7 +88,6 @@
                                 <th>Role</th>
                                 <th>Unit</th>
                                 <th>Building</th>
-                                <th>Status</th>
                                 <th>Joined</th>
                                 <th class="col-actions">Actions</th>
                             </tr>
@@ -83,7 +101,14 @@
                                 var initials = (f.Length > 0 ? f[0].ToString() : "") + (l.Length > 0 ? l[0].ToString() : "");
                                 if (string.IsNullOrEmpty(initials)) { initials = "?"; } else { initials = initials.ToUpperInvariant(); }
                                 var unitDisplay = p.Unit > 0 ? p.Unit.ToString() : "—";
-                                <tr data-role="@row.RoleName" data-building="@row.BuildingDisplay" data-name="@((p.FName + " " + p.LName).ToLowerInvariant())" data-email="@(p.FfUser?.Email?.ToLowerInvariant() ?? "")">
+                                var hasUnit = p.Unit > 0 ? "1" : "0";
+                                var joinedKnown = (row.Joined != null && row.Joined != "-") ? "1" : "0";
+                                <tr data-role="@row.RoleName"
+                                    data-building="@row.BuildingDisplay"
+                                    data-has-unit="@hasUnit"
+                                    data-joined-known="@joinedKnown"
+                                    data-name="@((p.FName + " " + p.LName).ToLowerInvariant())"
+                                    data-email="@(p.FfUser?.Email?.ToLowerInvariant() ?? "")">
                                     <td>
                                         <div class="user-cell user-cell-stack">
                                             <span class="user-av" aria-hidden="true">@initials</span>
@@ -94,18 +119,17 @@
                                     <td><span class="rb rb-@row.RoleName.ToLowerInvariant()">@row.RoleName</span></td>
                                     <td>@unitDisplay</td>
                                     <td>@row.BuildingDisplay</td>
+                                    <td>@row.Joined</td>
                                     <td>
-                                        @if (row.Status == "Active")
+                                        @if (User.IsInRole("Admin"))
                                         {
-                                            <span class="status-active">Active</span>
+                                            <a href="/Admin/Users?editUser=@p.FfUserId#user-tools" class="btn btn-s btn-sm">Edit</a>
                                         }
                                         else
                                         {
-                                            <span class="status-pending">Pending</span>
+                                            <span class="text-muted">—</span>
                                         }
                                     </td>
-                                    <td>@row.Joined</td>
-                                    <td><a href="#" class="btn btn-s btn-sm">Edit</a></td>
                                 </tr>
                             }
                         </tbody>
@@ -120,33 +144,233 @@
                     </div>
                 }
             </div>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div id="user-tools" class="admin-users-editor">
+                    <div class="admin-users-editor-intro">
+                        <h2 class="admin-users-editor-title">Edit user</h2>
+                        <p class="admin-users-editor-lead">Work top to bottom: search and pick the account, adjust profile and building, then change role or security only when necessary. Unchanged role radios keep the current assignment.</p>
+                    </div>
+
+                    <div asp-validation-summary="All" class="text-danger mb16"></div>
+
+                    <form method="post" class="admin-user-form">
+                        <div class="admin-panel admin-panel--step">
+                            <div class="admin-step-title">
+                                <span class="admin-step-num" aria-hidden="true">1</span>
+                                Find and select
+                            </div>
+                            <div class="admin-picker-split">
+                                <div class="form-group">
+                                    <label for="userQuery">Search by name</label>
+                                    <input type="text"
+                                           id="userQuery"
+                                           class="admin-input"
+                                           placeholder="First and/or last name…"
+                                           autocomplete="off" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="SelectedUserId">Matching users</label>
+                                    <select name="SelectedUserId" id="SelectedUserId" size="8" class="admin-select admin-select-tall">
+                                        <optgroup label="Search results" id="searchResults"></optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-panel admin-panel--step">
+                            <div class="admin-step-title">
+                                <span class="admin-step-num" aria-hidden="true">2</span>
+                                Profile &amp; residence
+                            </div>
+                            <div class="admin-form-grid-2">
+                                <div class="form-group">
+                                    <label asp-for="EditFName">First name</label>
+                                    <input asp-for="EditFName" class="admin-input" autocomplete="given-name" />
+                                    <span class="text-danger" asp-validation-for="EditFName"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="EditLName">Last name</label>
+                                    <input asp-for="EditLName" class="admin-input" autocomplete="family-name" />
+                                    <span class="text-danger" asp-validation-for="EditLName"></span>
+                                </div>
+                            </div>
+                            <div class="admin-form-grid-2">
+                                <div class="form-group">
+                                    <label asp-for="EditUserName">Username</label>
+                                    <input asp-for="EditUserName" class="admin-input" autocomplete="username" />
+                                    <span class="text-danger" asp-validation-for="EditUserName"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="EditEmail">Email</label>
+                                    <input asp-for="EditEmail" class="admin-input" autocomplete="email" />
+                                    <span class="text-danger" asp-validation-for="EditEmail"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="EditPhone">Phone <span class="text-muted">(optional)</span></label>
+                                <input asp-for="EditPhone" class="admin-input" autocomplete="tel" />
+                                <span class="text-danger" asp-validation-for="EditPhone"></span>
+                            </div>
+                            <div class="admin-form-grid-2">
+                                <div class="form-group">
+                                    <label asp-for="EditLocationCode">Building / location</label>
+                                    <select asp-for="EditLocationCode" class="admin-select">
+                                        <option value="0">Not assigned</option>
+                                        @foreach (var b in Model.BuildingOptions)
+                                        {
+                                            <option value="@b.Value">@b.Text</option>
+                                        }
+                                    </select>
+                                    <span class="text-danger" asp-validation-for="EditLocationCode"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="EditUnit">Unit #</label>
+                                    <input asp-for="EditUnit" class="admin-input" min="0" max="9999" />
+                                    <span class="text-danger" asp-validation-for="EditUnit"></span>
+                                </div>
+                            </div>
+                            <p class="admin-form-hint">Use <strong>Not assigned</strong> when someone is not tied to a building. Unit <strong>0</strong> means no unit on file.</p>
+                        </div>
+
+                        <div class="admin-panel admin-panel--step">
+                            <div class="admin-step-title">
+                                <span class="admin-step-num" aria-hidden="true">3</span>
+                                Role &amp; security
+                            </div>
+                            <div class="form-group">
+                                <label>User role</label>
+                                <p class="admin-form-hint admin-form-hint--compact">Change only when promoting or correcting access. Leave as-is (or re-select the same role) to keep the current assignment.</p>
+                                <div class="admin-role-segment" role="group" aria-label="User role">
+                                    <label class="admin-role-pill">
+                                        <input type="radio" name="SelectedUserRole" value="Resident" />
+                                        <span class="admin-role-pill-text">Resident</span>
+                                    </label>
+                                    <label class="admin-role-pill">
+                                        <input type="radio" name="SelectedUserRole" value="Employee" />
+                                        <span class="admin-role-pill-text">Employee</span>
+                                    </label>
+                                    <label class="admin-role-pill">
+                                        <input type="radio" name="SelectedUserRole" value="Manager" />
+                                        <span class="admin-role-pill-text">Manager</span>
+                                    </label>
+                                    <label class="admin-role-pill">
+                                        <input type="radio" name="SelectedUserRole" value="Admin" />
+                                        <span class="admin-role-pill-text">Admin</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group admin-checkbox-row">
+                                <label class="admin-checkbox-label">
+                                    <input type="checkbox" asp-for="ResetPassOnLogin" />
+                                    Force password reset on next login
+                                </label>
+                            </div>
+                            <div class="admin-submit-bar">
+                                <button type="submit" class="btn btn-p">Save changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            }
         </div>
     </main>
 </div>
-<script>
-    (function () {
-        var search = document.getElementById('userSearch');
-        var roleFilter = document.getElementById('roleFilter');
-        var buildingFilter = document.getElementById('buildingFilter');
-        var rows = document.querySelectorAll('.tsec tbody tr[data-role]');
-        function filter() {
-            var q = (search && search.value) ? search.value.trim().toLowerCase() : '';
-            var role = (roleFilter && roleFilter.value) ? roleFilter.value : '';
-            var building = (buildingFilter && buildingFilter.value) ? buildingFilter.value : '';
-            rows.forEach(function (tr) {
-                var show = true;
-                if (q) {
-                    var name = (tr.getAttribute('data-name') || '');
-                    var email = (tr.getAttribute('data-email') || '');
-                    if (name.indexOf(q) === -1 && email.indexOf(q) === -1) show = false;
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/UserSearch.js"></script>
+    <script src="~/js/UserSettings.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var search = document.getElementById('userSearch');
+            var roleFilter = document.getElementById('roleFilter');
+            var buildingFilter = document.getElementById('buildingFilter');
+            var unitFilter = document.getElementById('unitFilter');
+            var joinedFilter = document.getElementById('joinedFilter');
+            var userFiltersClear = document.getElementById('userFiltersClear');
+            var rows = document.querySelectorAll('.tsec tbody tr[data-role]');
+            var userCountEl = document.getElementById('userTableCount');
+            function filterTable() {
+                var q = (search && search.value) ? search.value.trim().toLowerCase() : '';
+                var role = (roleFilter && roleFilter.value) ? roleFilter.value : '';
+                var building = (buildingFilter && buildingFilter.value) ? buildingFilter.value : '';
+                var unit = (unitFilter && unitFilter.value) ? unitFilter.value : '';
+                var joined = (joinedFilter && joinedFilter.value) ? joinedFilter.value : '';
+                var visible = 0;
+                rows.forEach(function (tr) {
+                    var show = true;
+                    if (q) {
+                        var name = (tr.getAttribute('data-name') || '');
+                        var email = (tr.getAttribute('data-email') || '');
+                        if (name.indexOf(q) === -1 && email.indexOf(q) === -1) show = false;
+                    }
+                    if (show && role && tr.getAttribute('data-role') !== role) show = false;
+                    if (show && building && tr.getAttribute('data-building') !== building) show = false;
+                    if (show && unit) {
+                        var hu = tr.getAttribute('data-has-unit') || '0';
+                        if (unit === 'assigned' && hu !== '1') show = false;
+                        if (unit === 'none' && hu !== '0') show = false;
+                    }
+                    if (show && joined) {
+                        var jk = tr.getAttribute('data-joined-known') || '0';
+                        if (joined === 'yes' && jk !== '1') show = false;
+                        if (joined === 'no' && jk !== '0') show = false;
+                    }
+                    tr.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+                if (userCountEl) {
+                    userCountEl.textContent = visible + ' shown' + (rows.length !== visible ? ' (' + rows.length + ' total)' : '');
                 }
-                if (show && role && tr.getAttribute('data-role') !== role) show = false;
-                if (show && building && tr.getAttribute('data-building') !== building) show = false;
-                tr.style.display = show ? '' : 'none';
+            }
+            if (search) search.addEventListener('input', filterTable);
+            if (roleFilter) roleFilter.addEventListener('change', filterTable);
+            if (buildingFilter) buildingFilter.addEventListener('change', filterTable);
+            if (unitFilter) unitFilter.addEventListener('change', filterTable);
+            if (joinedFilter) joinedFilter.addEventListener('change', filterTable);
+            if (userFiltersClear) userFiltersClear.addEventListener('click', function () {
+                if (search) search.value = '';
+                if (roleFilter) roleFilter.value = '';
+                if (buildingFilter) buildingFilter.value = '';
+                if (unitFilter) unitFilter.value = '';
+                if (joinedFilter) joinedFilter.value = '';
+                filterTable();
             });
-        }
-        if (search) search.addEventListener('input', filter);
-        if (roleFilter) roleFilter.addEventListener('change', filter);
-        if (buildingFilter) buildingFilter.addEventListener('change', filter);
-    })();
-</script>
+            filterTable();
+
+            var base = '/Admin/Users';
+            var userQuery = document.getElementById('userQuery');
+            var searchResults = document.getElementById('searchResults');
+            var selectedUserId = document.getElementById('SelectedUserId');
+            if (userQuery && searchResults) {
+                InitalizeUserSearch('userQuery', 'searchResults', base + '?handler=Search');
+            }
+            if (selectedUserId) {
+                InitalizeUserSettingsFetcher('SelectedUserId', base + '?handler=UserSettings');
+            }
+            @if (User.IsInRole("Admin") && Model.InitialEditJson != null)
+            {
+                <text>
+                (function () {
+                    var payload = @Html.Raw(Model.InitialEditJson);
+                    var sel = document.getElementById('SelectedUserId');
+                    var og = document.getElementById('searchResults');
+                    if (sel && og && payload && payload.id && payload.label) {
+                        og.replaceChildren();
+                        var opt = document.createElement('option');
+                        opt.value = payload.id;
+                        opt.textContent = payload.label;
+                        og.appendChild(opt);
+                        sel.value = payload.id;
+                        sel.dispatchEvent(new Event('change'));
+                    }
+                    var anchor = document.getElementById('user-tools');
+                    if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                })();
+                </text>
+            }
+        });
+    </script>
+}

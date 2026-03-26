@@ -1,0 +1,9 @@
+# Local live-reload only: copy to Dockerfile.dev (gitignored) and use docker-compose.override.example.yml.
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+WORKDIR /src
+COPY fixflow.web.csproj .
+RUN dotnet restore ./fixflow.web.csproj
+COPY . .
+EXPOSE 8080
+ENV DOTNET_USE_POLLING_FILE_WATCHER=1
+CMD ["dotnet", "watch", "--non-interactive", "run", "--project", "fixflow.web.csproj", "--no-launch-profile", "--urls", "http://0.0.0.0:8080"]

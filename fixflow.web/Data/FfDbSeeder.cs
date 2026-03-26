@@ -1,4 +1,4 @@
-﻿using fixflow.web.Data;
+using fixflow.web.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -125,6 +125,37 @@ namespace fixflow.web.Data
                 .Where(x => x.LocationName == "Unassigned")
                 .Select(x => x.LocationCode)
                 .SingleAsync();
+
+            // TicketService.GetNextShortCode requires exactly one active row (partial unique index on SeriesIsActive = true).
+            if (!await _db.FfTicketConstructoror.AnyAsync(c => c.SeriesIsActive))
+            {
+                var existing = await _db.FfTicketConstructoror.OrderBy(c => c.Id).FirstOrDefaultAsync();
+                if (existing != null)
+                {
+                    existing.SeriesIsActive = true;
+                    await _db.SaveChangesAsync();
+                    _logger.LogInformation("Activated existing FfTicketConstructoror row Id={Id} for short codes.", existing.Id);
+                }
+                else
+                {
+                    short nextSeries = 1;
+                    if (await _db.FfTicketConstructoror.AnyAsync())
+                    {
+                        var max = await _db.FfTicketConstructoror.MaxAsync(c => c.TicketSeries);
+                        nextSeries = (short)Math.Min(max + 1, short.MaxValue);
+                    }
+
+                    _db.FfTicketConstructoror.Add(new FfTicketShortCodeConstructor
+                    {
+                        TicketPrefix = "FF",
+                        SeriesIsActive = true,
+                        TicketSeries = nextSeries,
+                        LastTicketUsed = 0
+                    });
+                    await _db.SaveChangesAsync();
+                    _logger.LogInformation("Seeded default FfTicketConstructoror series {Series} for short codes.", nextSeries);
+                }
+            }
 
             // Ensure one account exists for each active role (excluding Pending), all with password "password".
             await EnsureSeedAccountAsync("admin", "admin@fixflow.local", "Default", "Administrator", "Admin", unassignedLocationCode);

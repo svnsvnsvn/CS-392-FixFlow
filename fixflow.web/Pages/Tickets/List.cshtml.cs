@@ -24,9 +24,20 @@ namespace fixflow.web.Pages.Tickets
         public IList<FfTicketRegister> Tickets { get; set; } = default!;
         public Dictionary<Guid, string> TicketAssignees { get; set;  } = new();
 
+        public bool ShowOperationsStats { get; set; }
+        public int TotalTickets { get; set; }
+        public int PendingTickets { get; set; }
+        public int InProgressTickets { get; set; }
+        public int CompletedToday { get; set; }
+
+        public bool ShowTechnicianWorkspaceIntro { get; set; }
+
         public async Task OnGetAsync()
         {
-            // Load tickets directly from DB
+            // Resident/Pending redirect off List; staff GET /Dashboard -> List: Program.cs middleware.
+
+            // TODO (Adam): Load tickets (and assignee flows/profiles) via a service instead of FfDbContext.
+            // ITicketService has no list-tickets API yet; add one or extend an existing service.
             Tickets = await _context.FfTicketRegisters
                 .Include(t => t.TicketType)
                 .Include(t => t.PriorityCode)
@@ -36,29 +47,59 @@ namespace fixflow.web.Pages.Tickets
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Get latest assignees for each ticket
             var ticketIds = Tickets.Select(t => t.TicketId).ToList();
-            var latestFlows = await _context.FfTicketFlows
-                .Where(f => ticketIds.Contains(f.TicketId))
-                .GroupBy(f => f.TicketId)
-                .Select(g => g.OrderByDescending(f => f.TimeStamp).FirstOrDefault())
-                .ToListAsync();
+            var allFlows = ticketIds.Count == 0
+                ? new List<FfTicketFlow>()
+                : await _context.FfTicketFlows
+                    .Where(f => ticketIds.Contains(f.TicketId))
+                    .AsNoTracking()
+                    .ToListAsync();
 
-            var userIds = latestFlows.Where(f => f != null && f.NewAssignee != null)
-                .Select(f => f!.NewAssignee)
+            var latestFlows = allFlows
+                .GroupBy(f => f.TicketId)
+                .Select(g => g.OrderByDescending(f => f.TimeStamp).First())
+                .ToList();
+
+            var userIds = latestFlows
+                .Where(f => !string.IsNullOrEmpty(f.NewAssignee))
+                .Select(f => f.NewAssignee)
                 .Distinct()
                 .ToList();
 
-            var userProfiles = await _context.FfUserProfiles
-                .Where(p => userIds.Contains(p.FfUserId))
-                .ToDictionaryAsync(p => p.FfUserId, p => $"{p.FName} {p.LName}".Trim());
+            var userProfiles = userIds.Count == 0
+                ? new Dictionary<string, string>()
+                : await _context.FfUserProfiles
+                    .Where(p => userIds.Contains(p.FfUserId))
+                    .ToDictionaryAsync(p => p.FfUserId, p => $"{p.FName} {p.LName}".Trim());
 
             TicketAssignees = latestFlows
-                .Where(f => f != null && f.NewAssignee != null)
+                .Where(f => !string.IsNullOrEmpty(f.NewAssignee))
                 .ToDictionary(
-                    f => f!.TicketId,
-                    f => userProfiles.TryGetValue(f.NewAssignee!, out var name) ? name : "Unknown"
-                );
+                    f => f.TicketId,
+                    f => userProfiles.TryGetValue(f.NewAssignee, out var name) ? name : "Unknown");
+
+            if (User.IsInRole(RoleTypes.Admin.ToString()) || User.IsInRole(RoleTypes.Manager.ToString()))
+            {
+                ShowOperationsStats = true;
+                var pendingCode = (await _ticketService.GetStatusCode("Submitted")).Data;
+                var completedCode = (await _ticketService.GetStatusCode("Completed")).Data;
+                var inProgressCode = (await _ticketService.GetStatusCode("In Progress")).Data;
+
+                TotalTickets = Tickets.Count;
+                PendingTickets = Tickets.Count(t => t.TicketStatus == pendingCode);
+                InProgressTickets = Tickets.Count(t => t.TicketStatus == inProgressCode);
+                CompletedToday = Tickets.Count(ticket => ticket.TicketStatus == completedCode &&
+                    allFlows
+                        .Where(flow => flow.TicketId == ticket.TicketId)
+                        .OrderByDescending(flow => flow.TimeStamp)
+                        .Select(flow => flow.TimeStamp)
+                        .FirstOrDefault()
+                        .Date == DateTime.UtcNow.Date);
+            }
+            else if (User.IsInRole(RoleTypes.Employee.ToString()))
+            {
+                ShowTechnicianWorkspaceIntro = true;
+            }
         }
 
         public async Task<IActionResult> OnPostPickUpTicketAsync(Guid ticketId)

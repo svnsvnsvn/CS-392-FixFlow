@@ -11,9 +11,10 @@ namespace fixflow.web.Pages
 {
     public class DashboardModel : PageModel
     {
+        // TODO (Adam): Remove FfDbContext from this page. All reads/writes should go through a service
+        // (e.g. new IDashboardService or methods on ITicketService) so Razor Pages never touch the DbContext.
         private readonly FfDbContext _context;
         private readonly ITicketService _ticketService;
-        
 
         public DashboardModel(FfDbContext context, ITicketService ticketService)
         {
@@ -38,9 +39,8 @@ namespace fixflow.web.Pages
         public string TicketsViewAllLabel { get; set; } = "My Tickets";
         public string TicketsViewAllUrl { get; set; } = "/Tickets/List";
 
-        // Tickets list
+        // Tickets list (full set for the table; UI paginates 20 per page)
         public List<TicketViewModel> Tickets { get; set; } = new();
-        public List<TicketViewModel> RecentTickets { get; set; } = new();
 
         // Dashboard modules
         public List<DashboardAppointment> UpcomingAppointments { get; set; } = new();
@@ -131,6 +131,9 @@ namespace fixflow.web.Pages
 
         private async Task BuildDashboardFromDbAsync(string role)
         {
+            // TODO (Adam): Replace direct _context usage below with a single service call that returns
+            // tickets (scoped by role/user), related flows, status names, and profile display names for
+            // building TicketViewModels + activity. ITicketService currently has no list/query APIs for this.
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
             var ticketsQuery = _context.FfTicketRegisters
@@ -189,7 +192,9 @@ namespace fixflow.web.Pages
                     CreatedDate = created == default ? DateTime.UtcNow : created,
                     DueDate = null
                 };
-            }).ToList();
+            })
+                .OrderByDescending(ticket => ticket.CreatedDate)
+                .ToList();
 
             var result = await _ticketService.GetStatusCode("Submitted");
             int pendingCode = result.Data;
@@ -209,11 +214,6 @@ namespace fixflow.web.Pages
                     .Select(flow => flow.TimeStamp)
                     .FirstOrDefault()
                     .Date == DateTime.UtcNow.Date);
-
-            RecentTickets = Tickets
-                .OrderByDescending(ticket => ticket.CreatedDate)
-                .Take(10)
-                .ToList();
 
             UpcomingAppointments = Tickets
                 .OrderByDescending(ticket => ticket.CreatedDate)

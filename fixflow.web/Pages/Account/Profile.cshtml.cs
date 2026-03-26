@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using fixflow.web.Data;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -57,6 +58,12 @@ namespace fixflow.web.Pages.Account
 
         public bool RequireCurrentPassword { get; set; } = true;
 
+        /// <summary>Building on file for the signed-in profile (read-only).</summary>
+        public string ResidenceBuildingLabel { get; set; } = string.Empty;
+
+        /// <summary>Unit on file for the signed-in profile (read-only).</summary>
+        public string ResidenceUnitLabel { get; set; } = string.Empty;
+
         public async Task<IActionResult> OnGetAsync(string userId, string token)
         {
             AppUser user;       // Hold on to identity core user data for use after reasoning logic
@@ -109,20 +116,141 @@ namespace fixflow.web.Pages.Account
             ProfileInput.UserName = user.UserName;
             ProfileInput.FirstName = userProfile.FName;
             ProfileInput.LastName = userProfile.LName;
-            ProfileInput.Email = user.Email;
+            ProfileInput.Email = user.Email ?? string.Empty;
             ProfileInput.PhoneNumber = user.PhoneNumber;
+
+            await FillResidenceLabelsAsync(user.Id);
 
             return Page();
         }
 
+        private async Task FillResidenceLabelsAsync(string ffUserId)
+        {
+            var userProfile = await _db.FfUserProfiles.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.FfUserId == ffUserId);
+            if (userProfile == null)
+            {
+                ResidenceBuildingLabel = "—";
+                ResidenceUnitLabel = "—";
+                return;
+            }
 
+            var building = await _db.FfBuildingDirectorys.AsNoTracking()
+                .FirstOrDefaultAsync(b => b.LocationCode == userProfile.LocationCode);
+
+            if (building != null && !string.Equals(building.LocationName, "Unassigned", StringComparison.OrdinalIgnoreCase))
+            {
+                ResidenceBuildingLabel = $"{building.LocationName} (#{building.BuildingNumber})";
+            }
+            else if (userProfile.LocationCode != 0)
+            {
+                ResidenceBuildingLabel = $"Location code {userProfile.LocationCode}";
+            }
+            else
+            {
+                ResidenceBuildingLabel = "Not assigned";
+            }
+
+            ResidenceUnitLabel = userProfile.Unit > 0 ? userProfile.Unit.ToString() : "—";
+        }
+
+        private async Task ReloadProfileAndResidenceAsync(AppUser user)
+        {
+            var userProfile = await _db.FfUserProfiles.FindAsync(user.Id);
+            if (userProfile == null)
+            {
+                return;
+            }
+
+            ProfileInput.UserName = user.UserName ?? string.Empty;
+            ProfileInput.FirstName = userProfile.FName;
+            ProfileInput.LastName = userProfile.LName;
+            ProfileInput.Email = user.Email ?? string.Empty;
+            ProfileInput.PhoneNumber = user.PhoneNumber;
+            await FillResidenceLabelsAsync(user.Id);
+        }
+
+        private async Task HydrateProfilePageForPasswordContextAsync(string? userId, string? token)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return;
+            }
+
+            var lookup = await _userManager.FindByIdAsync(userId);
+            if (lookup == null)
+            {
+                return;
+            }
+
+            PasswordInput.UserId = lookup.Id;
+            if (!string.IsNullOrEmpty(token))
+            {
+                PasswordInput.SecurityTokenStash = token;
+            }
+
+            var tokenFlow = lookup.ResetPassOnLogin && !string.IsNullOrEmpty(token);
+            RequireCurrentPassword = !tokenFlow;
+
+            await ReloadProfileAndResidenceAsync(lookup);
+        }
 
         public async Task<IActionResult> OnPostUpdateProfileAsync()
         {
-            if (!TryValidateModel(ProfileInput, nameof(ProfileInput)))
-                return Page();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-            return Page();
+            PasswordInput.UserId = user.Id;
+            await FillResidenceLabelsAsync(user.Id);
+
+            if (!TryValidateModel(ProfileInput, nameof(ProfileInput)))
+            {
+                return Page();
+            }
+
+            var setUserName = await _userManager.SetUserNameAsync(user, ProfileInput.UserName);
+            if (!setUserName.Succeeded)
+            {
+                foreach (var err in setUserName.Errors)
+                    ModelState.AddModelError(nameof(ProfileInput.UserName), err.Description);
+                return Page();
+            }
+
+            var setEmail = await _userManager.SetEmailAsync(user, ProfileInput.Email);
+            if (!setEmail.Succeeded)
+            {
+                foreach (var err in setEmail.Errors)
+                    ModelState.AddModelError(nameof(ProfileInput.Email), err.Description);
+                return Page();
+            }
+
+            user.PhoneNumber = string.IsNullOrWhiteSpace(ProfileInput.PhoneNumber)
+                ? null
+                : ProfileInput.PhoneNumber.Trim();
+            var updateIdentity = await _userManager.UpdateAsync(user);
+            if (!updateIdentity.Succeeded)
+            {
+                foreach (var err in updateIdentity.Errors)
+                    ModelState.AddModelError(string.Empty, err.Description);
+                return Page();
+            }
+
+            var userProfile = await _db.FfUserProfiles.FindAsync(user.Id);
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+
+            userProfile.FName = ProfileInput.FirstName.Trim();
+            userProfile.LName = ProfileInput.LastName.Trim();
+            await _db.SaveChangesAsync();
+
+            await _signInManager.RefreshSignInAsync(user);
+            TempData["StatusMessage"] = "Profile saved.";
+            return RedirectToPage();
         }
 
 
@@ -132,6 +260,7 @@ namespace fixflow.web.Pages.Account
             ModelState.Clear();
             if (!TryValidateModel(PasswordInput, nameof(PasswordInput)))
             {
+                await HydrateProfilePageForPasswordContextAsync(userId, token);
                 return Page();
             }
 
@@ -174,6 +303,7 @@ namespace fixflow.web.Pages.Account
             if (PasswordInput.NewPassword != PasswordInput.VerifyPassword)          // Ensure New and Verify passwords match
             {
                 ModelState.AddModelError("PasswordInput.VerifyPassword", "Passwords do not match.");
+                await HydrateProfilePageForPasswordContextAsync(userId, token);
                 return Page();
             }
 
@@ -186,6 +316,7 @@ namespace fixflow.web.Pages.Account
                 if (recycledPassword)
                 {
                     ModelState.AddModelError("PasswordInput.VerifyPassword", "Password must be new.");
+                    await HydrateProfilePageForPasswordContextAsync(userId, token);
                     return Page();
                 }
             }
@@ -200,6 +331,7 @@ namespace fixflow.web.Pages.Account
                     {
                         ModelState.AddModelError(nameof(PasswordInput.NewPassword), error.Description);
                     }
+                    await HydrateProfilePageForPasswordContextAsync(userId, token);
                     return Page();
                 }
             }
@@ -224,6 +356,7 @@ namespace fixflow.web.Pages.Account
                     {
                         ModelState.AddModelError("", error.Description);
                     }
+                    await HydrateProfilePageForPasswordContextAsync(userId, token);
                     return Page();
                 }
             }
@@ -239,6 +372,7 @@ namespace fixflow.web.Pages.Account
                     {
                         ModelState.AddModelError("", error.Description);
                     }
+                    await HydrateProfilePageForPasswordContextAsync(userId, token);
                     return Page();
                 }
             }
@@ -281,6 +415,7 @@ namespace fixflow.web.Pages.Account
                 return RedirectToPage("/Account/Profile");
             }
 
+            await HydrateProfilePageForPasswordContextAsync(userId, token);
             return Page();
         }
 

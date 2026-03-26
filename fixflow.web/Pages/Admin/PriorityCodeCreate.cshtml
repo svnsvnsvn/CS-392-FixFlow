@@ -2,27 +2,41 @@
 @model fixflow.web.Pages.Admin.PriorityCodeCreateModel
 @{
     ViewData["Title"] = "Add Priority Code";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "PriorityCodes";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Add Priority Code";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-exclamation-triangle"></i> Add Priority Code</h1>
-        <p class="page-subtitle">Create a new priority level for tickets.</p>
-    </div>
-
-    <div class="card">
-        <form method="post" class="form-stack">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label asp-for="Input.PriorityName">Priority Name</label>
-                    <input asp-for="Input.PriorityName" type="text" />
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Create a new priority level for tickets.</p>
+                <a asp-page="./PriorityCodes" class="btn btn-s"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Priority Codes</a>
+            </div>
+            <div class="card mb20">
+                <div class="ch"><span class="ct">Priority details</span></div>
+                <div class="cb">
+                    <form method="post">
+                        <div class="fg">
+                            <label class="flbl" asp-for="Input.PriorityName">Priority Name</label>
+                            <input class="finp" asp-for="Input.PriorityName" type="text" />
+                            <span asp-validation-for="Input.PriorityName" class="text-danger"></span>
+                        </div>
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p"><i class="bi bi-check-lg" aria-hidden="true"></i> Save Priority Code</button>
+                            <a asp-page="./PriorityCodes" class="btn btn-s">Cancel</a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="form-actions">
-                <button type="submit">Save Priority Code</button>
-                <a class="btn btn-secondary" asp-page="./PriorityCodes">Back to Priority Codes</a>
-            </div>
-        </form>
-    </div>
+        </div>
+    </main>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

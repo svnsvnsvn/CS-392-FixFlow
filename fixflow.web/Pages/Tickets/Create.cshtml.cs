@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
+using System.Text.Json;
 
 namespace fixflow.web.Pages.Tickets
 {
@@ -27,8 +27,15 @@ namespace fixflow.web.Pages.Tickets
 
         public List<SelectListItem> Buildings { get; set; } = new();
         public List<SelectListItem> TicketTypes { get; set; } = new();
+        public List<SelectListItem> Priorities { get; set; } = new();
         public List<SelectListItem> Residents { get; set; } = new();
         public bool IsStaff { get; set; }
+
+        /// <summary>JSON <c>{ "location": n, "unit": n }</c> for signed-in resident profile (client autofill).</summary>
+        public string? ResidentProfileAutofillJson { get; set; }
+
+        /// <summary>JSON map of resident user id → location/unit for staff “on behalf of” autofill.</summary>
+        public string? StaffResidentProfilesJson { get; set; }
 
         [BindProperty]
         public TicketInput Input { get; set; } = new();
@@ -55,21 +62,18 @@ namespace fixflow.web.Pages.Tickets
             IsStaff = (userRole == RoleTypes.Manager || userRole == RoleTypes.Employee || userRole == RoleTypes.Admin);
                         
 
-            await LoadDropdownData();
+            await LoadDropdownDataAsync(user);
 
             // Pre-populate location and unit from user profile if available (for residents only)
-            if (!IsStaff)
+            if (!IsStaff && user != null)
             {
-                if (user != null)
-                {
-                    var userProfile = await _context.FfUserProfiles
-                        .FirstOrDefaultAsync(p => p.FfUserId == user.Id);
+                var userProfile = await _context.FfUserProfiles
+                    .FirstOrDefaultAsync(p => p.FfUserId == user.Id);
 
-                    if (userProfile != null)
-                    {
-                        Input.LocationCode = userProfile.LocationCode;
-                        Input.Unit = userProfile.Unit;
-                    }
+                if (userProfile != null)
+                {
+                    Input.LocationCode = userProfile.LocationCode;
+                    Input.Unit = userProfile.Unit;
                 }
             }
 
@@ -97,7 +101,7 @@ namespace fixflow.web.Pages.Tickets
 
             if (!ModelState.IsValid)
             {
-                await LoadDropdownData();
+                await LoadDropdownDataAsync(user);
                 return Page();
             }
 
@@ -106,6 +110,50 @@ namespace fixflow.web.Pages.Tickets
                 return RedirectToPage("/Account/Login");
             }
 
+            var submittedStatus = await _ticketService.GetStatusCode("Submitted");
+            if (!submittedStatus.Success)
+            {
+                ModelState.AddModelError(string.Empty, "Ticket status “Submitted” is not configured. Ask an admin to seed status codes.");
+                await LoadDropdownDataAsync(user);
+                return Page();
+            }
+
+            int priorityValue;
+            if (IsStaff)
+            {
+                if (Input.TicketPriorityCode <= 0)
+                {
+                    ModelState.AddModelError(nameof(Input.TicketPriorityCode), "Please select a priority.");
+                    await LoadDropdownDataAsync(user);
+                    return Page();
+                }
+
+                priorityValue = Input.TicketPriorityCode;
+            }
+            else
+            {
+                var medium = await _ticketService.GetPriorityCode("Medium");
+                var normal = await _ticketService.GetPriorityCode("Normal");
+                if (medium.Success)
+                    priorityValue = medium.Data;
+                else if (normal.Success)
+                    priorityValue = normal.Data;
+                else
+                {
+                    var firstPri = await _context.FfPriorityCodess.OrderBy(p => p.PriorityCode).FirstOrDefaultAsync();
+                    if (firstPri == null)
+                    {
+                        ModelState.AddModelError(string.Empty, "No priority codes are configured.");
+                        await LoadDropdownDataAsync(user);
+                        return Page();
+                    }
+
+                    priorityValue = firstPri.PriorityCode;
+                }
+            }
+
+            var subject = $"Unit {Input.Unit} — maintenance request";
+
             // Map to the DTO that the real backend expects
             var newTicketDto = new NewTicketDto
             {
@@ -113,9 +161,9 @@ namespace fixflow.web.Pages.Tickets
                 Location = Input.LocationCode,
                 Unit = Input.Unit,
                 TicketTroubleType = Input.TicketTypeCode,
-                TicketPriority = 2, // Same as PriorityCode
-                TicketStatus = 1,
-                TicketSubject = $"Ticket for Unit {Input.Unit}", // Generate from description or make it a field
+                TicketPriority = priorityValue,
+                TicketStatus = submittedStatus.Data,
+                TicketSubject = subject,
                 TicketDescription = Input.Description
             };
 
@@ -124,16 +172,24 @@ namespace fixflow.web.Pages.Tickets
             if (!result.Success)
             {
                 ModelState.AddModelError(string.Empty, result.Error ?? "Ticket could not be created.");
-                await LoadDropdownData();
+                await LoadDropdownDataAsync(user);
                 return Page();
             }
 
             TempData["SuccessMessage"] = $"Ticket created successfully!";
+            if (userRole == RoleTypes.Resident || userRole == RoleTypes.Pending)
+            {
+                return RedirectToPage("/Dashboard");
+            }
+
             return RedirectToPage("./List");
         }
 
-        private async Task LoadDropdownData()
+        private async Task LoadDropdownDataAsync(AppUser? currentUser)
         {
+            ResidentProfileAutofillJson = null;
+            StaffResidentProfilesJson = null;
+
             var buildingResult = await _ticketService.GetBuildings();
             if ((buildingResult.Success)&&(buildingResult.Data != null))
             {
@@ -187,6 +243,35 @@ namespace fixflow.web.Pages.Tickets
                         Text = $"{r.UserName} ({r.Email})"
                     })
                     .ToList();
+
+                var ids = residents.Select(r => r.Id).ToList();
+                var profileRows = await _context.FfUserProfiles.AsNoTracking()
+                    .Where(p => ids.Contains(p.FfUserId))
+                    .Select(p => new { p.FfUserId, p.LocationCode, p.Unit })
+                    .ToListAsync();
+                var byId = profileRows.ToDictionary(
+                    r => r.FfUserId,
+                    r => new Dictionary<string, int> { ["location"] = r.LocationCode, ["unit"] = r.Unit });
+                StaffResidentProfilesJson = JsonSerializer.Serialize(byId);
+
+                Priorities = await _context.FfPriorityCodess
+                    .OrderBy(p => p.PriorityCode)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.PriorityCode.ToString(),
+                        Text = p.PriorityName
+                    })
+                    .ToListAsync();
+            }
+            else if (currentUser != null)
+            {
+                var prof = await _context.FfUserProfiles.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.FfUserId == currentUser.Id);
+                if (prof != null)
+                {
+                    ResidentProfileAutofillJson = JsonSerializer.Serialize(
+                        new Dictionary<string, int> { ["location"] = prof.LocationCode, ["unit"] = prof.Unit });
+                }
             }
         }
     }
@@ -206,6 +291,9 @@ namespace fixflow.web.Pages.Tickets
         [Display(Name = "Issue Type")]
         public int TicketTypeCode { get; set; }
 
+        [Display(Name = "Priority")]
+        public int TicketPriorityCode { get; set; }
+
         [Required(ErrorMessage = "Please describe the issue")]
         [Display(Name = "Description")]
         [StringLength(2000, MinimumLength = 10, ErrorMessage = "Description must be between 10 and 2000 characters")]
@@ -213,8 +301,5 @@ namespace fixflow.web.Pages.Tickets
 
         [Display(Name = "Resident")]
         public string? ResidentId { get; set; }
-
-        [Display(Name = "Due Date")]
-        public DateTime? DueDate { get; set; }
     }
 }

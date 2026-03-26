@@ -1,11 +1,13 @@
 @page
 @model fixflow.web.Pages.DashboardModel
 @{
-    ViewData["Title"] = "Dashboard - FixFlow";
+    var dashboardColScope = Model.UserRole == "Client" ? "dash-client"
+        : (Model.UserRole == "Technician" ? "dash-tech" : "dash-staff");
+    ViewData["Title"] = Model.UserRole == "Client" ? "My Tickets - FixFlow" : "Dashboard - FixFlow";
     ViewData["HideNav"] = true;
     ViewData["ActiveNav"] = "Tickets";
     ViewData["BreadcrumbPath"] = "Operations";
-    ViewData["BreadcrumbTitle"] = "Overview";
+    ViewData["BreadcrumbTitle"] = Model.UserRole == "Client" ? "My Tickets" : "Overview";
     ViewData["TopbarCreateUrl"] = "/Tickets/Create";
     ViewData["TopbarSearch"] = true;
 }
@@ -19,13 +21,29 @@
 
     <main class="main ref-main">
         @await Html.PartialAsync("_Topbar")
-        <div class="ref-page">
-            <div class="ph">
-                <p class="ph-s">@Model.WelcomeMessage</p>
-                <a href="/Tickets/Create" class="create-btn">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Create Ticket
-                </a>
-            </div>
+        <div class="ref-page tickets-hub">
+            @if (Model.UserRole == "Client")
+            {
+                <div class="tickets-hub-hero">
+                    <div class="tickets-hub-hero-text">
+                        <p class="tickets-hub-lead">Every maintenance request you submitted—or that staff created for you—lives here. Search or filter, then open a row for full details.</p>
+                    </div>
+                    <a href="/Tickets/Create" class="btn btn-p tickets-hub-cta">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Create ticket
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="tickets-hub-hero">
+                    <div class="tickets-hub-hero-text">
+                        <p class="tickets-hub-lead">@Model.WelcomeMessage</p>
+                    </div>
+                    <a href="/Tickets/Create" class="btn btn-p tickets-hub-cta">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Create ticket
+                    </a>
+                </div>
+            }
 
             @if (Model.UserRole == "Manager" || Model.UserRole == "Admin")
             {
@@ -50,62 +68,76 @@
                 </div>
             }
 
-            <div class="ph">
-                <p class="ph-s">Top 10 most recently updated tickets.</p>
-                <a href="/Tickets/List" class="btn btn-s">View all</a>
-            </div>
-
-            <div class="fbar">
-                <div class="ts-wrap">
-                    <i class="bi bi-search" aria-hidden="true"></i>
-                    <input class="fbar-inp" id="ticketSearch" type="search" placeholder="Search tickets" aria-label="Search tickets" />
+            <div class="tickets-hub-filters">
+                <div class="tickets-hub-filters-head">
+                    <span class="tickets-hub-filters-title">Find tickets</span>
                 </div>
-                <select class="fbar-sel" id="ticketStatusFilter" aria-label="Filter by status">
-                    <option value="all" selected>All statuses</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="in progress">In Progress</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="completed">Completed</option>
-                </select>
-                <select class="fbar-sel" id="ticketDateFilter" aria-label="Filter by date">
-                    <option value="all" selected>All dates</option>
-                    <option value="today">Today</option>
-                    <option value="7">Past 7 days</option>
-                    <option value="30">Past 30 days</option>
-                </select>
-                <select class="fbar-sel" id="ticketSort" aria-label="Sort tickets">
-                    <option value="last-updated" selected>Sort: last updated</option>
-                    <option value="newest">Sort: newest</option>
-                    <option value="oldest">Sort: oldest</option>
-                </select>
-                <button class="fbar-clear" type="button" id="ticketClearFilters">Clear filters</button>
+                <div class="tickets-hub-filters-inner fbar">
+                    <div class="ts-wrap">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <input class="fbar-inp" id="ticketSearch" type="search" placeholder="@(Model.UserRole == "Client" ? "Search ticket #, type, category, status…" : "Search tickets")" aria-label="Search tickets" />
+                    </div>
+                    <select class="fbar-sel" id="ticketStatusFilter" aria-label="Filter by status">
+                        <option value="all" selected>All statuses</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    @if (Model.UserRole != "Client")
+                    {
+                        <select class="fbar-sel" id="ticketDateFilter" aria-label="Filter by date">
+                            <option value="all" selected>All dates</option>
+                            <option value="today">Today</option>
+                            <option value="7">Past 7 days</option>
+                            <option value="30">Past 30 days</option>
+                        </select>
+                    }
+                    <select class="fbar-sel" id="ticketSort" aria-label="Sort tickets">
+                        <option value="last-updated" selected>Sort: last updated</option>
+                        <option value="newest">Sort: newest</option>
+                        <option value="oldest">Sort: oldest</option>
+                    </select>
+                    <button class="fbar-clear tickets-hub-filters-clear" type="button" id="ticketClearFilters">Clear all</button>
+                </div>
             </div>
 
-            <div class="tsec">
-                <div class="tsec-hd"></div>
-                @if (Model.RecentTickets != null && Model.RecentTickets.Any())
+            <div class="tsec tickets-hub-tsec">
+                <div class="tsec-hd tickets-tsec-hd">
+                    <span class="ph-s" id="ticketTableCount"></span>
+                    @if (Model.Tickets != null && Model.Tickets.Any())
+                    {
+                        <div class="tickets-hd-tools">
+                            <div class="tickets-col-dropdown">
+                                <button type="button" class="tickets-col-toggle" id="ticketColumnsToggle" aria-expanded="false" aria-controls="ticketColumnsPanel">Columns</button>
+                                <div class="tickets-col-panel" id="ticketColumnsPanel" hidden role="group" aria-label="Visible columns"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (Model.Tickets != null && Model.Tickets.Any())
                 {
-                    <table>
+                    <table class="ticket-data-table">
                         <thead>
                             <tr>
-                                <th class="col-id">ID</th>
-                                <th>Issue</th>
-                                <th>Category</th>
-                                <th>Status</th>
+                                <th class="col-id" data-tcol="id">ID</th>
+                                <th data-tcol="issue">Issue</th>
+                                <th data-tcol="category">Category</th>
+                                <th data-tcol="status">Status</th>
                                 @if (Model.UserRole != "Client")
                                 {
-                                    <th>Submitted By</th>
+                                    <th data-tcol="submittedBy">Submitted By</th>
                                 }
                                 @if (Model.UserRole == "Technician")
                                 {
-                                    <th>Due Date</th>
+                                    <th data-tcol="due">Due Date</th>
                                 }
-                                <th>Created</th>
-                                <th class="col-actions"></th>
+                                <th data-tcol="created">Created</th>
+                                <th class="col-actions" data-tcol="actions" aria-label="Actions"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var ticket in Model.RecentTickets)
+                            @foreach (var ticket in Model.Tickets)
                             {
                                 var statusKey = (ticket.Status ?? "").ToLower().Replace(" ", "");
                                 var sdClass = statusKey switch
@@ -124,20 +156,20 @@
                                     data-created="@ticket.CreatedDate.Ticks"
                                     data-created-date="@ticket.CreatedDate.ToString("yyyy-MM-dd")"
                                     data-submitted-by="@ticket.SubmittedBy">
-                                    <td><span class="tid">#@ticket.Id</span></td>
-                                    <td><div class="tissue">@ticket.Title</div></td>
-                                    <td>@ticket.Category</td>
-                                    <td><span class="sdot @sdClass">@ticket.Status</span></td>
+                                    <td data-tcol="id"><span class="tid">#@ticket.Id</span></td>
+                                    <td data-tcol="issue"><div class="tissue">@ticket.Title</div></td>
+                                    <td data-tcol="category">@ticket.Category</td>
+                                    <td data-tcol="status"><span class="sdot @sdClass">@ticket.Status</span></td>
                                     @if (Model.UserRole != "Client")
                                     {
-                                        <td>@ticket.SubmittedBy</td>
+                                        <td data-tcol="submittedBy">@ticket.SubmittedBy</td>
                                     }
                                     @if (Model.UserRole == "Technician")
                                     {
-                                        <td>@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
+                                        <td data-tcol="due">@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
                                     }
-                                    <td>@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
-                                    <td>
+                                    <td data-tcol="created">@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
+                                    <td data-tcol="actions">
                                         <a href="/Tickets/Details/@ticket.Id" class="act-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
                                             <i class="bi bi-three-dots" aria-hidden="true"></i>
                                         </a>
@@ -146,6 +178,15 @@
                             }
                         </tbody>
                     </table>
+                    <div class="ticket-pager" id="ticketPager" hidden>
+                        <button type="button" class="btn btn-s ticket-pager-btn" id="ticketPagerPrev" aria-label="Previous page">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <span class="ticket-pager-status" id="ticketPagerStatus"></span>
+                        <button type="button" class="btn btn-s ticket-pager-btn" id="ticketPagerNext" aria-label="Next page">
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 }
                 else
                 {
@@ -154,8 +195,8 @@
                             <i class="bi bi-inbox" aria-hidden="true"></i>
                         </div>
                         <div class="empty-t">No tickets to display</div>
-                        <div class="empty-s">Recent tickets will appear here.</div>
-                        <a href="/Tickets/Create" class="create-btn">Create Ticket</a>
+                        <div class="empty-s">@(Model.UserRole == "Client" ? "You haven't submitted any maintenance requests yet. When you do, they'll appear here." : "Recent tickets will appear here.")</div>
+                        <a href="/Tickets/Create" class="create-btn">@(Model.UserRole == "Client" ? "Create your first ticket" : "Create Ticket")</a>
                     </div>
                 }
             </div>
@@ -163,12 +204,21 @@
     </main>
 </div>
 
+<script src="~/js/ticketTableColumns.js"></script>
 <script>
+    const ticketPageSize = 20;
+    let ticketCurrentPage = 1;
+
     const ticketSearch = document.getElementById("ticketSearch");
     const ticketStatusFilter = document.getElementById("ticketStatusFilter");
     const ticketDateFilter = document.getElementById("ticketDateFilter");
     const ticketSort = document.getElementById("ticketSort");
     const ticketClearFilters = document.getElementById("ticketClearFilters");
+    const ticketTableCountEl = document.getElementById("ticketTableCount");
+    const ticketPager = document.getElementById("ticketPager");
+    const ticketPagerPrev = document.getElementById("ticketPagerPrev");
+    const ticketPagerNext = document.getElementById("ticketPagerNext");
+    const ticketPagerStatus = document.getElementById("ticketPagerStatus");
     const ticketsTableBody = document.querySelector(".tsec tbody");
     const ticketRows = ticketsTableBody ? Array.from(ticketsTableBody.querySelectorAll(".ticket-row")) : [];
 
@@ -177,6 +227,44 @@
         const d = new Date();
         d.setDate(d.getDate() - days);
         return d.toISOString().slice(0, 10);
+    };
+
+    const applyTicketPagination = () => {
+        const matchingInOrder = ticketRows.filter((row) => row.dataset.matches === "1");
+        const totalMatches = matchingInOrder.length;
+        if (ticketTableCountEl) {
+            ticketTableCountEl.textContent = totalMatches + " result" + (totalMatches !== 1 ? "s" : "");
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalMatches / ticketPageSize));
+        if (ticketCurrentPage > totalPages) ticketCurrentPage = totalPages;
+        if (ticketCurrentPage < 1) ticketCurrentPage = 1;
+
+        matchingInOrder.forEach((row, idx) => {
+            row.dataset.matchIndex = String(idx);
+        });
+
+        const start = (ticketCurrentPage - 1) * ticketPageSize;
+        const end = start + ticketPageSize;
+
+        ticketRows.forEach((row) => {
+            if (row.dataset.matches !== "1") {
+                row.style.display = "none";
+                return;
+            }
+            const idx = Number(row.dataset.matchIndex ?? -1);
+            row.style.display = idx >= start && idx < end ? "table-row" : "none";
+        });
+
+        if (ticketPager && ticketPagerStatus && ticketPagerPrev && ticketPagerNext) {
+            const showPager = totalPages > 1;
+            ticketPager.hidden = !showPager;
+            if (showPager) {
+                ticketPagerStatus.textContent = "Page " + ticketCurrentPage + " of " + totalPages;
+                ticketPagerPrev.disabled = ticketCurrentPage <= 1;
+                ticketPagerNext.disabled = ticketCurrentPage >= totalPages;
+            }
+        }
     };
 
     const applyTicketFilters = () => {
@@ -199,14 +287,14 @@
             const matchesSearch = !searchValue || searchable.includes(searchValue);
             const matchesStatus = statusValue === "all" || rowStatus === statusValue;
             let matchesDate = true;
-            if (dateValue !== "all" && rowDate) {
+            if (ticketDateFilter && dateValue !== "all" && rowDate) {
                 if (dateValue === "today") matchesDate = rowDate === todayIso();
                 else {
                     const n = parseInt(dateValue, 10);
                     if (!isNaN(n)) matchesDate = rowDate >= daysAgoIso(n);
                 }
             }
-            row.style.display = matchesSearch && matchesStatus && matchesDate ? "table-row" : "none";
+            row.dataset.matches = matchesSearch && matchesStatus && matchesDate ? "1" : "0";
         });
 
         const sortedRows = [...ticketRows].sort((left, right) => {
@@ -220,6 +308,9 @@
             }
         });
         sortedRows.forEach((row) => ticketsTableBody?.appendChild(row));
+
+        ticketCurrentPage = 1;
+        applyTicketPagination();
     };
 
     ticketSearch?.addEventListener("input", applyTicketFilters);
@@ -231,7 +322,79 @@
         if (ticketStatusFilter) ticketStatusFilter.value = "all";
         if (ticketDateFilter) ticketDateFilter.value = "all";
         if (ticketSort) ticketSort.value = "last-updated";
+        ticketCurrentPage = 1;
         applyTicketFilters();
     });
+    ticketPagerPrev?.addEventListener("click", () => {
+        if (ticketCurrentPage > 1) {
+            ticketCurrentPage -= 1;
+            applyTicketPagination();
+        }
+    });
+    ticketPagerNext?.addEventListener("click", () => {
+        const matchingInOrder = ticketRows.filter((row) => row.dataset.matches === "1");
+        const totalPages = Math.max(1, Math.ceil(matchingInOrder.length / ticketPageSize));
+        if (ticketCurrentPage < totalPages) {
+            ticketCurrentPage += 1;
+            applyTicketPagination();
+        }
+    });
     applyTicketFilters();
+
+    (function () {
+        var table = document.querySelector('.tickets-hub-tsec table.ticket-data-table');
+        var panel = document.getElementById('ticketColumnsPanel');
+        var toggle = document.getElementById('ticketColumnsToggle');
+        if (!table || !panel || !toggle) return;
+        var cols;
+        @if (Model.UserRole == "Client")
+        {
+            <text>
+        cols = [
+            { key: 'id', label: 'ID', required: true },
+            { key: 'issue', label: 'Issue' },
+            { key: 'category', label: 'Category' },
+            { key: 'status', label: 'Status' },
+            { key: 'created', label: 'Created' },
+            { key: 'actions', label: 'Actions', required: true }
+        ];
+            </text>
+        }
+        else if (Model.UserRole == "Technician")
+        {
+            <text>
+        cols = [
+            { key: 'id', label: 'ID', required: true },
+            { key: 'issue', label: 'Issue' },
+            { key: 'category', label: 'Category' },
+            { key: 'status', label: 'Status' },
+            { key: 'submittedBy', label: 'Submitted By' },
+            { key: 'due', label: 'Due Date' },
+            { key: 'created', label: 'Created' },
+            { key: 'actions', label: 'Actions', required: true }
+        ];
+            </text>
+        }
+        else
+        {
+            <text>
+        cols = [
+            { key: 'id', label: 'ID', required: true },
+            { key: 'issue', label: 'Issue' },
+            { key: 'category', label: 'Category' },
+            { key: 'status', label: 'Status' },
+            { key: 'submittedBy', label: 'Submitted By' },
+            { key: 'created', label: 'Created' },
+            { key: 'actions', label: 'Actions', required: true }
+        ];
+            </text>
+        }
+        window.initTicketTableColumns({
+            table: table,
+            scope: '@dashboardColScope',
+            columns: cols,
+            panelHost: panel,
+            toggleBtn: toggle
+        });
+    })();
 </script>

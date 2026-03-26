@@ -1,0 +1,21 @@
+# Local live-reload: copy to docker-compose.override.yml (gitignored).
+# Docker Compose merges this file automatically when you run `docker compose up`.
+# Requires: cp fixflow.web/Dockerfile.dev.example fixflow.web/Dockerfile.dev
+
+services:
+  web:
+    build:
+      context: ./fixflow.web
+      dockerfile: Dockerfile.dev
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=fixflow;Username=fixflow;Password=fixflow_local_dev"
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+    volumes:
+      - ./fixflow.web:/src
+      - fixflow-web-bin:/src/bin
+      - fixflow-web-obj:/src/obj
+
+volumes:
+  fixflow-web-bin:
+  fixflow-web-obj:
