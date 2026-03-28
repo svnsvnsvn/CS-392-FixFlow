@@ -20,5 +20,13 @@ namespace fixflow.web.Services
         Task<ServiceResult<string>> GetPriorityCode(int _StatusCode);
         Task<ServiceResult<PriorityCodeDto>> GetPriorityCodeFromId(int _Id);
 
+
+        
+        // Stuff I need to write.
+        //Task<ServiceResult<TicketDTO>> GetTicketsByRequestor(string _RequestorId);
+        //Task<ServiceResult<TicketDTO>> GetTicketsByAssignee(string _AssigneeId);
+        //Task<ServiceResult<TicketDTO>> GetTicketHistory(Guid _TicketId);
+
+
     }
 }
