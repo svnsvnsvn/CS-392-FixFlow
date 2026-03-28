@@ -1,4 +1,4 @@
-﻿using fixflow.web.Data;
+using fixflow.web.Data;
 using fixflow.web.Dto;
 using fixflow.web.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -992,12 +992,19 @@ namespace fixflow.web.Services
                     return ServiceResult<UserSettingsListItemDTO>.Fail("User Id not found.");
                 }
 
-                UserSettingsListItemDTO returnData = new UserSettingsListItemDTO();
-                returnData.UserId = targetUserSettings.Id;
-                returnData.FName = targetUserName.FName;
-                returnData.LName = targetUserName.LName;
-                returnData.Role = targetUserRole[0];
-                returnData.ResetPassOnLogin = targetUserSettings.ResetPassOnLogin;
+                UserSettingsListItemDTO returnData = new UserSettingsListItemDTO
+                {
+                    UserId = targetUserSettings.Id,
+                    FName = targetUserName.FName,
+                    LName = targetUserName.LName,
+                    UserName = targetUserSettings.UserName ?? string.Empty,
+                    Email = targetUserSettings.Email ?? string.Empty,
+                    PhoneNumber = targetUserSettings.PhoneNumber,
+                    LocationCode = targetUserName.LocationCode,
+                    Unit = targetUserName.Unit,
+                    Role = targetUserRole.Count > 0 ? targetUserRole[0]! : "Pending",
+                    ResetPassOnLogin = targetUserSettings.ResetPassOnLogin
+                };
 
                 return ServiceResult<UserSettingsListItemDTO>.Ok(returnData);
             }

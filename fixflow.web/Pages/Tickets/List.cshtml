@@ -1,7 +1,9 @@
 @page
 @model fixflow.web.Pages.Tickets.ListModel
 @{
-    ViewData["Title"] = "Tickets List";
+    var isOpsLead = User.IsInRole("Admin") || User.IsInRole("Manager");
+    var isTechnician = User.IsInRole("Employee");
+    ViewData["Title"] = isOpsLead ? "Operations - FixFlow" : (isTechnician ? "Workspace - FixFlow" : "Tickets List");
     ViewData["HideNav"] = true;
     ViewData["ActiveNav"] = "Tickets";
     ViewData["BreadcrumbPath"] = "Operations";
@@ -9,10 +11,15 @@
     ViewData["TopbarCreateUrl"] = "/Tickets/Create";
     ViewData["TopbarSearch"] = false;
     var isStaff = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Employee");
+    var listColScope = isStaff ? "list-staff" : "list-lite";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/tickets.css" />
+    @if (Model.ShowOperationsStats)
+    {
+        <link rel="stylesheet" href="~/css/dashboard.css" />
+    }
 }
 
 <div class="app-shell">
@@ -20,64 +27,118 @@
 
     <main class="main ref-main">
         @await Html.PartialAsync("_Topbar")
-        <div class="ref-page">
-
-
-            <div class="fbar">
-                <div class="ts-wrap">
-                    <i class="bi bi-search" aria-hidden="true"></i>
-                    <input class="fbar-inp" id="listTicketSearch" type="search" placeholder="Search ticket #, type, location, unit…" aria-label="Search tickets" />
+        <div class="ref-page tickets-hub">
+            @if (Model.ShowOperationsStats)
+            {
+                <div class="tickets-hub-hero">
+                    <div class="tickets-hub-hero-text">
+                        <p class="tickets-hub-lead">Operations hub: every ticket in the system. Filter the table, then open a row for details.</p>
+                    </div>
+                    <a href="/Tickets/Create" class="btn btn-p tickets-hub-cta">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Create ticket
+                    </a>
                 </div>
-                <select class="fbar-sel" id="listTicketStatusFilter" aria-label="Filter by status">
-                    <option value="all" selected>All statuses</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="in progress">In Progress</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="completed">Completed</option>
-                </select>
-                @if (isStaff)
-                {
-                    <select class="fbar-sel" id="listTicketPriorityFilter" aria-label="Filter by priority">
-                        <option value="all" selected>All priorities</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
+                <div class="stat-row ref-stat-row">
+                    <div class="sc">
+                        <div class="sc-lbl">Open Tickets</div>
+                        <div class="sc-val">@Model.TotalTickets</div>
+                        <div class="sc-sub">Active across all buildings</div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-lbl">Pending</div>
+                        <div class="sc-val">@Model.PendingTickets</div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-lbl">In Progress</div>
+                        <div class="sc-val">@Model.InProgressTickets</div>
+                    </div>
+                    <div class="sc ac">
+                        <div class="sc-lbl">Completed Today</div>
+                        <div class="sc-val">@Model.CompletedToday</div>
+                    </div>
+                </div>
+            }
+            else if (Model.ShowTechnicianWorkspaceIntro)
+            {
+                <div class="tickets-hub-hero">
+                    <div class="tickets-hub-hero-text">
+                        <p class="tickets-hub-lead">Workspace: the full queue—pick up work, filter by status or priority, and open any row for details.</p>
+                    </div>
+                    <a href="/Tickets/Create" class="btn btn-p tickets-hub-cta">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Create ticket
+                    </a>
+                </div>
+            }
+
+            <div class="tickets-hub-filters">
+                <div class="tickets-hub-filters-head">
+                    <span class="tickets-hub-filters-title">Find tickets</span>
+                </div>
+                <div class="tickets-hub-filters-inner fbar">
+                    <div class="ts-wrap">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <input class="fbar-inp" id="listTicketSearch" type="search" placeholder="Search ticket #, type, location, unit…" aria-label="Search tickets" />
+                    </div>
+                    <select class="fbar-sel" id="listTicketStatusFilter" aria-label="Filter by status">
+                        <option value="all" selected>All statuses</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="completed">Completed</option>
                     </select>
-                }
-                <select class="fbar-sel" id="listTicketSort" aria-label="Sort tickets">
-                    <option value="last-updated" selected>Sort: last updated</option>
-                    <option value="newest">Sort: newest</option>
-                    <option value="oldest">Sort: oldest</option>
                     @if (isStaff)
                     {
-                        <option value="priority">Sort: priority</option>
+                        <select class="fbar-sel" id="listTicketPriorityFilter" aria-label="Filter by priority">
+                            <option value="all" selected>All priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
                     }
-                </select>
-                <button class="fbar-clear" type="button" id="listTicketClearFilters">Clear filters</button>
+                    <select class="fbar-sel" id="listTicketSort" aria-label="Sort tickets">
+                        <option value="last-updated" selected>Sort: last updated</option>
+                        <option value="newest">Sort: newest</option>
+                        <option value="oldest">Sort: oldest</option>
+                        @if (isStaff)
+                        {
+                            <option value="priority">Sort: priority</option>
+                        }
+                    </select>
+                    <button class="fbar-clear tickets-hub-filters-clear" type="button" id="listTicketClearFilters">Clear all</button>
+                </div>
             </div>
 
-            <div class="tsec">
-                <div class="tsec-hd">
+            <div class="tsec tickets-hub-tsec">
+                <div class="tsec-hd tickets-tsec-hd">
                     <span class="ph-s" id="listTicketCount"></span>
+                    @if (Model.Tickets != null && Model.Tickets.Any())
+                    {
+                        <div class="tickets-hd-tools">
+                            <div class="tickets-col-dropdown">
+                                <button type="button" class="tickets-col-toggle" id="listTicketColumnsToggle" aria-expanded="false" aria-controls="listTicketColumnsPanel">Columns</button>
+                                <div class="tickets-col-panel" id="listTicketColumnsPanel" hidden role="group" aria-label="Visible columns"></div>
+                            </div>
+                        </div>
+                    }
                 </div>
                 @if (Model.Tickets != null && Model.Tickets.Any())
                 {
-                    <table>
+                    <table class="ticket-data-table">
                         <thead>
                             <tr>
-                                <th class="col-id">ID</th>
-                                <th>Issue</th>
-                                <th>Type</th>
+                                <th class="col-id" data-tcol="id">ID</th>
+                                <th data-tcol="issue">Issue</th>
+                                <th data-tcol="type">Type</th>
                                 @if (isStaff)
                                 {
-                                    <th>Priority</th>
+                                    <th data-tcol="priority">Priority</th>
                                 }
-                                <th>Status</th>
-                                <th>Location</th>
-                                <th>Unit</th>
-                                <th>Requested By</th>
-                                <th>Assigned To</th>
-                                <th class="col-actions"></th>
+                                <th data-tcol="status">Status</th>
+                                <th data-tcol="location">Location</th>
+                                <th data-tcol="unit">Unit</th>
+                                <th data-tcol="requestedBy">Requested By</th>
+                                <th data-tcol="assignedTo">Assigned To</th>
+                                <th class="col-actions" data-tcol="actions" aria-label="Actions"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,22 +175,22 @@
                                     data-unit="@ticket.Unit"
                                     data-requested-by="@requestedBy"
                                     data-assigned-to="@assignedTo">
-                                    <td><span class="tid">#@ticketCode</span></td>
-                                    <td>
+                                    <td data-tcol="id"><span class="tid">#@ticketCode</span></td>
+                                    <td data-tcol="issue">
                                         <div class="tissue">@(string.IsNullOrWhiteSpace(ticket.TicketDescription) ? ticketTypeName : (ticket.TicketDescription.Length > 60 ? ticket.TicketDescription.Substring(0, 60) + "…" : ticket.TicketDescription))</div>
                                         <div class="tmeta">@ticketTypeName</div>
                                     </td>
-                                    <td>@ticketTypeName</td>
+                                    <td data-tcol="type">@ticketTypeName</td>
                                     @if (isStaff)
                                     {
-                                        <td><span class="pri @priorityKey">@priorityName</span></td>
+                                        <td data-tcol="priority"><span class="pri @priorityKey">@priorityName</span></td>
                                     }
-                                    <td><span class="sdot @sdClass">@statusName</span></td>
-                                    <td>@locationName</td>
-                                    <td>@ticket.Unit</td>
-                                    <td>@requestedBy</td>
-                                    <td>@assignedTo</td>
-                                    <td>
+                                    <td data-tcol="status"><span class="sdot @sdClass">@statusName</span></td>
+                                    <td data-tcol="location">@locationName</td>
+                                    <td data-tcol="unit">@ticket.Unit</td>
+                                    <td data-tcol="requestedBy">@requestedBy</td>
+                                    <td data-tcol="assignedTo">@assignedTo</td>
+                                    <td data-tcol="actions">
                                         <a href="/Tickets/Details/@ticketCode" class="act-btn" aria-label="View ticket" title="View ticket">
                                             <i class="bi bi-three-dots" aria-hidden="true"></i>
                                         </a>
@@ -163,6 +224,7 @@
     </main>
 </div>
 
+<script src="~/js/ticketTableColumns.js"></script>
 <script>
     const listTicketSearch = document.getElementById("listTicketSearch");
     const listTicketStatusFilter = document.getElementById("listTicketStatusFilter");
@@ -239,4 +301,52 @@
         applyListTicketFilters();
     });
     applyListTicketFilters();
+
+    (function () {
+        var table = document.querySelector('.tickets-hub-tsec table.ticket-data-table');
+        var panel = document.getElementById('listTicketColumnsPanel');
+        var toggle = document.getElementById('listTicketColumnsToggle');
+        if (!table || !panel || !toggle) return;
+        var cols;
+        @if (isStaff)
+        {
+            <text>
+        cols = [
+            { key: 'id', label: 'ID', required: true },
+            { key: 'issue', label: 'Issue' },
+            { key: 'type', label: 'Type' },
+            { key: 'priority', label: 'Priority' },
+            { key: 'status', label: 'Status' },
+            { key: 'location', label: 'Location' },
+            { key: 'unit', label: 'Unit' },
+            { key: 'requestedBy', label: 'Requested By' },
+            { key: 'assignedTo', label: 'Assigned To' },
+            { key: 'actions', label: 'Actions', required: true }
+        ];
+            </text>
+        }
+        else
+        {
+            <text>
+        cols = [
+            { key: 'id', label: 'ID', required: true },
+            { key: 'issue', label: 'Issue' },
+            { key: 'type', label: 'Type' },
+            { key: 'status', label: 'Status' },
+            { key: 'location', label: 'Location' },
+            { key: 'unit', label: 'Unit' },
+            { key: 'requestedBy', label: 'Requested By' },
+            { key: 'assignedTo', label: 'Assigned To' },
+            { key: 'actions', label: 'Actions', required: true }
+        ];
+            </text>
+        }
+        window.initTicketTableColumns({
+            table: table,
+            scope: '@listColScope',
+            columns: cols,
+            panelHost: panel,
+            toggleBtn: toggle
+        });
+    })();
 </script>

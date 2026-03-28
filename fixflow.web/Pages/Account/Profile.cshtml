@@ -20,6 +20,30 @@
         <div class="ref-page">
             <p class="ph-s">Update your contact details and password settings.</p>
 
+            @if (TempData["StatusMessage"] is string status && !string.IsNullOrEmpty(status))
+            {
+                <p class="ph-s mb20" style="color:#065f46;" role="status">@status</p>
+            }
+
+            <div class="card mb20">
+                <div class="ch">
+                    <span class="ct"><i class="bi bi-building" aria-hidden="true"></i> Residence on file</span>
+                </div>
+                <div class="cb">
+                    <div class="fgrid">
+                        <div class="fg">
+                            <label class="flbl">Building / location</label>
+                            <input class="finp" value="@Model.ResidenceBuildingLabel" readonly disabled />
+                        </div>
+                        <div class="fg">
+                            <label class="flbl">Unit</label>
+                            <input class="finp" value="@Model.ResidenceUnitLabel" readonly disabled />
+                        </div>
+                    </div>
+                    <p class="ph-s text-muted">Used as the default on maintenance requests. Contact your property office if this needs to be updated.</p>
+                </div>
+            </div>
+
             <div class="card mb20">
                 <div class="ch">
                     <span class="ct"><i class="bi bi-person-badge" aria-hidden="true"></i> Contact Information</span>

@@ -1,4 +1,4 @@
-﻿namespace fixflow.web.Data
+namespace fixflow.web.Data
 {
     public class FfTicketRegister
     {

@@ -12,15 +12,12 @@
     </div>
     <div class="app-nav">
         <div class="app-nav-title">Main</div>
-        <a class="app-nav-link" href="/Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
         @{
-            var ticketsLabel = "My Tickets";
-            if (User.IsInRole("Manager") || User.IsInRole("Admin") || User.IsInRole("Employee"))
-            {
-                ticketsLabel = "Tickets";
-            }
+            var isResident = User.IsInRole("Resident") || User.IsInRole("Pending");
+            var ticketsLabel = isResident ? "My Tickets" : "Tickets";
+            var ticketsHref = isResident ? "/Dashboard" : "/Tickets/List";
         }
-        <a class="app-nav-link" href="/Tickets/List"><i class="bi bi-clipboard-check"></i> @ticketsLabel</a>
+        <a class="app-nav-link" href="@ticketsHref"><i class="bi bi-clipboard-check"></i> @ticketsLabel</a>
         <a class="app-nav-link" href="/Account/Profile"><i class="bi bi-person-circle"></i> Account</a>
     </div>
 
@@ -32,7 +29,7 @@
             <a class="app-nav-link" href="/Admin/TicketTypes"><i class="bi bi-folder"></i> Ticket Types</a>
             <a class="app-nav-link" href="/Admin/PriorityCodes"><i class="bi bi-exclamation-triangle"></i> Priority Codes</a>
             <a class="app-nav-link" href="/Admin/StatusCodes"><i class="bi bi-flag"></i> Status Codes</a>
-            <a class="app-nav-link" href="/Admin/AdminUserTools"><i class="bi bi-people"></i> User Tool</a>
+            <a class="app-nav-link" href="/Admin/Users"><i class="bi bi-people"></i> Residents &amp; Staff</a>
         </div>
     }
 

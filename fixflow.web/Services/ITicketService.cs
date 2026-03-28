@@ -4,6 +4,8 @@ using fixflow.web.Dto;
 namespace fixflow.web.Services
 
 {
+    // TODO (Adam): Add read/query APIs for ticket lists (dashboard, /Tickets/List, details) so page models
+    // do not inject FfDbContext. Today those pages query FfTicketRegisters, FfTicketFlows, FfUserProfiles, etc. directly.
     public interface ITicketService
     {
         Task<ServiceResult<Guid>> AddNewTicket(string _requestorId, RoleTypes _requestorRole, NewTicketDto _newTicketData);

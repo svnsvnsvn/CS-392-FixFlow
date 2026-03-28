@@ -45,7 +45,7 @@ namespace fixflow.web.Services
                 var result = await GetNextShortCode();
                 if ((result == null) || (!result.Success))
                 {
-                    return ServiceResult<Guid>.Fail("Could not create new short code");
+                    return ServiceResult<Guid>.Fail(result?.Error ?? "Could not create new short code");
                 }
                 newTicket.TicketShortCode = result.Data;
                    
@@ -94,16 +94,16 @@ namespace fixflow.web.Services
                 }
                 newTicket.TicketTroubleType = _newTicketData.TicketTroubleType;
 
-                // Validate priority code
-                bool validPrioirtyCode = await _db.FfStatusCodes.AnyAsync(u => u.StatusCode == _newTicketData.TicketPriority);
-                if (!validPrioirtyCode)
+                // Validate priority code (FfPriorityCodess.PriorityCode)
+                bool validPriorityCode = await _db.FfPriorityCodess.AnyAsync(u => u.PriorityCode == _newTicketData.TicketPriority);
+                if (!validPriorityCode)
                 {
                     return ServiceResult<Guid>.Fail("Invalid priority code");
                 }
                 newTicket.TicketPriority = _newTicketData.TicketPriority;
 
-                // Validate status code
-                bool validStatusCode = await _db.FfPriorityCodess.AnyAsync(u => u.PriorityCode == _newTicketData.TicketPriority);
+                // Validate status code (FfStatusCodes.StatusCode)
+                bool validStatusCode = await _db.FfStatusCodes.AnyAsync(u => u.StatusCode == _newTicketData.TicketStatus);
                 if (!validStatusCode)
                 {
                     return ServiceResult<Guid>.Fail("Invalid status code");
@@ -283,7 +283,13 @@ namespace fixflow.web.Services
         {
             try
             {
-                var ticketSeriesData = await _db.FfTicketConstructoror.SingleAsync(a => a.SeriesIsActive == true);
+                var ticketSeriesData = await _db.FfTicketConstructoror
+                    .FirstOrDefaultAsync(a => a.SeriesIsActive);
+                if (ticketSeriesData == null)
+                {
+                    return ServiceResult<string>.Fail(
+                        "No active ticket number series (FfTicketConstructoror). Restart the app after seeding, or ask an admin to add one.");
+                }
 
                 string ticketNum = (ticketSeriesData.LastTicketUsed + 1).ToString();
                 int leadingZerosNeeded = 4 - ticketNum.Length;

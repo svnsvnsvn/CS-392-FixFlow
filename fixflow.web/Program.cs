@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
+using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +60,38 @@ using (var scope = app.Services.CreateScope())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Residents: /Tickets/List -> /Dashboard (My Tickets). All other roles: /Dashboard -> /Tickets/List (single ticket hub).
+app.Use(async (context, next) =>
+{
+    if (!HttpMethods.IsGet(context.Request.Method)
+        || context.User.Identity?.IsAuthenticated != true)
+    {
+        await next();
+        return;
+    }
+
+    var path = context.Request.Path.Value ?? "";
+
+    if (string.Equals(path, "/Tickets/List", StringComparison.OrdinalIgnoreCase)
+        && (context.User.IsInRole(RoleTypes.Resident.ToString())
+            || context.User.IsInRole(RoleTypes.Pending.ToString())))
+    {
+        context.Response.Redirect("/Dashboard");
+        return;
+    }
+
+    if (string.Equals(path, "/Dashboard", StringComparison.OrdinalIgnoreCase)
+        && (context.User.IsInRole(RoleTypes.Admin.ToString())
+            || context.User.IsInRole(RoleTypes.Manager.ToString())
+            || context.User.IsInRole(RoleTypes.Employee.ToString())))
+    {
+        context.Response.Redirect("/Tickets/List");
+        return;
+    }
+
+    await next();
+});
 
 app.MapRazorPages();
 

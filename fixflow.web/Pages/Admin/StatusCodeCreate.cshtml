@@ -2,27 +2,41 @@
 @model fixflow.web.Pages.Admin.StatusCodeCreateModel
 @{
     ViewData["Title"] = "Add Status Code";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "StatusCodes";
+    ViewData["BreadcrumbPath"] = "Configuration";
+    ViewData["BreadcrumbTitle"] = "Add Status Code";
 }
 
-<div class="page-shell">
-    <div class="page-header">
-        <h1 class="page-title"><i class="bi bi-flag"></i> Add Status Code</h1>
-        <p class="page-subtitle">Create a new status label for tickets.</p>
-    </div>
-
-    <div class="card">
-        <form method="post" class="form-stack">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label asp-for="Input.StatusName">Status Name</label>
-                    <input asp-for="Input.StatusName" type="text" />
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+    <main class="main ref-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page">
+            <div class="ph">
+                <p class="ph-s">Create a new status label for the ticket workflow.</p>
+                <a asp-page="./StatusCodes" class="btn btn-s"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Status Codes</a>
+            </div>
+            <div class="card mb20">
+                <div class="ch"><span class="ct">Status details</span></div>
+                <div class="cb">
+                    <form method="post">
+                        <div class="fg">
+                            <label class="flbl" asp-for="Input.StatusName">Status Name</label>
+                            <input class="finp" asp-for="Input.StatusName" type="text" />
+                            <span asp-validation-for="Input.StatusName" class="text-danger"></span>
+                        </div>
+                        <div class="ph cb-actions">
+                            <button type="submit" class="btn btn-p"><i class="bi bi-check-lg" aria-hidden="true"></i> Save Status Code</button>
+                            <a asp-page="./StatusCodes" class="btn btn-s">Cancel</a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="form-actions">
-                <button type="submit">Save Status Code</button>
-                <a class="btn btn-secondary" asp-page="./StatusCodes">Back to Status Codes</a>
-            </div>
-        </form>
-    </div>
+        </div>
+    </main>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

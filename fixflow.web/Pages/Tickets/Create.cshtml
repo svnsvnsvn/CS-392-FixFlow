@@ -16,7 +16,7 @@
         <div class="ref-page">
             <div class="ph">
                 <p class="ph-s">Log a maintenance request with the right details.</p>
-                <a asp-page="./List" class="btn btn-s"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Tickets</a>
+                <a href="/Tickets/List" class="btn btn-s"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Tickets</a>
             </div>
 
             <div class="card mb20">
@@ -62,9 +62,11 @@
                             @if (Model.IsStaff)
                             {
                                 <div class="fg">
-                                    <label class="flbl" asp-for="Input.DueDate">Due Date</label>
-                                    <input class="finp" asp-for="Input.DueDate" type="date" />
-                                    <span asp-validation-for="Input.DueDate" class="text-danger"></span>
+                                    <label class="flbl" asp-for="Input.TicketPriorityCode">Priority</label>
+                                    <select class="fsel" asp-for="Input.TicketPriorityCode" asp-items="Model.Priorities">
+                                        <option value="0">-- Select priority --</option>
+                                    </select>
+                                    <span asp-validation-for="Input.TicketPriorityCode" class="text-danger"></span>
                                 </div>
                             }
                         </div>
@@ -77,7 +79,7 @@
 
                         <div class="ph cb-actions">
                             <button type="submit" class="btn btn-p"><i class="bi bi-send" aria-hidden="true"></i> Submit Ticket</button>
-                            <a asp-page="./List" class="btn btn-s">Cancel</a>
+                            <a href="/Tickets/List" class="btn btn-s">Cancel</a>
                         </div>
                     </form>
                 </div>
@@ -85,3 +87,59 @@
         </div>
     </main>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    var locSelect = document.getElementById('Input_LocationCode');
+    var unitInput = document.getElementById('Input_Unit');
+    var resSelect = document.getElementById('Input_ResidentId');
+    var residentDefaults = @Html.Raw(Model.ResidentProfileAutofillJson != null ? Model.ResidentProfileAutofillJson : "null");
+    var staffResidents = @Html.Raw(Model.StaffResidentProfilesJson != null ? Model.StaffResidentProfilesJson : "null");
+
+    function optionValueExists(select, value) {
+        if (!select) return false;
+        var s = String(value);
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === s) return true;
+        }
+        return false;
+    }
+
+    function applyResidentBuildingToUnit() {
+        if (!locSelect || !unitInput || !residentDefaults) return;
+        var v = locSelect.value;
+        if (!v) {
+            unitInput.value = '';
+            return;
+        }
+        var loc = parseInt(v, 10);
+        if (loc === residentDefaults.location && residentDefaults.unit > 0)
+            unitInput.value = String(residentDefaults.unit);
+        else
+            unitInput.value = '';
+    }
+
+    if (locSelect && residentDefaults) {
+        locSelect.addEventListener('change', applyResidentBuildingToUnit);
+        applyResidentBuildingToUnit();
+    }
+
+    function applyStaffResidentProfile() {
+        if (!resSelect || !staffResidents || !locSelect || !unitInput) return;
+        var id = resSelect.value;
+        if (!id) return;
+        var info = staffResidents[id];
+        if (!info) return;
+        if (info.location && optionValueExists(locSelect, info.location))
+            locSelect.value = String(info.location);
+        if (info.unit > 0)
+            unitInput.value = String(info.unit);
+    }
+
+    if (resSelect && staffResidents) {
+        resSelect.addEventListener('change', applyStaffResidentProfile);
+    }
+})();
+</script>
+}
