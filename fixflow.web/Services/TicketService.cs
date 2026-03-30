@@ -157,8 +157,7 @@ namespace fixflow.web.Services
                 return ServiceResult<Guid>.Fail(ex.Message);
             }
         }
-
-        public async Task<ServiceResult<bool>> UpdateTicket(string _requestorId, RoleTypes _requestorRole, UpdateTicketDto _updatedTicketData)
+        public async Task<ServiceResult<bool>> UpdateTicket(string _requestorId, RoleTypes _requestorRole, TicketDataDto _updatedTicketData)
         {
             try
             {
@@ -210,7 +209,6 @@ namespace fixflow.web.Services
                 return ServiceResult<bool>.Fail(ex.Message);
             }
         }
-
         public async Task<ServiceResult<long>> ReassignTicket(string _requestorId, RoleTypes _requestorRole, Guid _ticketIdToUpdate, string _newAssigneeId, int _newStatus)
         {
             try
@@ -315,7 +313,6 @@ namespace fixflow.web.Services
                 return ServiceResult<string>.Fail(ex.Message);
             }
         }
-        
         public async Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypes()
         {
             try
@@ -399,7 +396,6 @@ namespace fixflow.web.Services
                 return ServiceResult<List<StatusCodeDto>>.Fail(ex.Message);
             }
         }
-
         public async Task<ServiceResult<int>> GetStatusCode(string _StatusName)
         {
             try
@@ -442,7 +438,6 @@ namespace fixflow.web.Services
             }
 
         }
-
         public async Task<ServiceResult<int>> GetPriorityCode(string _PriorityName)
         {
             try
@@ -484,6 +479,116 @@ namespace fixflow.web.Services
                 return ServiceResult<PriorityCodeDto>.Fail(ex.Message);
             }
 
+        }
+        public async Task<ServiceResult<List<TicketDataDto>>> GetTicketsByRequestor(string _RequestorId)
+        {
+            try
+            {
+                // Verify _RequestorId is valid and exists exists
+                if (_RequestorId == null)
+                {
+                    return ServiceResult<List<TicketDataDto>>.Fail("_RequestorId not provided");
+                }
+
+                bool requestorExists = await _db.FfUserProfiles.AnyAsync(a => a.FfUserId == _RequestorId);
+                if (!requestorExists)
+                {
+                    return ServiceResult<List<TicketDataDto>>.Fail("_RequestorId not found");
+                }
+
+                var requestorTickets = await _db.FfTicketRegisters
+                    .AsNoTracking()
+                    .Where(a => a.RequestedBy == _RequestorId)
+                    .ToListAsync();
+
+                List<TicketDataDto> ticketsFound = new List<TicketDataDto>();
+
+                foreach (var ticket in requestorTickets)
+                {
+                    ticketsFound.Add(new TicketDataDto
+                    {
+                        TicketId = ticket.TicketId,
+                        RequestedBy = ticket.RequestedBy,
+                        Location = ticket.Location,
+                        Unit = ticket.Unit,
+                        TicketPriority = ticket.TicketPriority,
+                        TicketTroubleType = ticket.TicketTroubleType,
+                        TicketSubject = ticket.TicketSubject,
+                        TicketDescription = ticket.TicketDescription,
+                    });
+                }
+
+                return ServiceResult<List<TicketDataDto>>.Ok(ticketsFound);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<TicketDataDto>>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<List<TicketDataDto>>> GetTicketsByAssignee(string _AssigneeId)
+        {
+            try
+            {
+                // Verify _RequestorId is valid and exists exists
+                if (_AssigneeId == null)
+                {
+                    return ServiceResult<List<TicketDataDto>>.Fail("_AssigneeId not provided");
+                }
+
+                bool asigneeExists = await _db.FfUserProfiles.AnyAsync(a => a.FfUserId == _AssigneeId);
+                if (!asigneeExists)
+                {
+                    return ServiceResult<List<TicketDataDto>>.Fail("_AsigneeId not found");
+                }
+
+                // This grabs all tickets ever assigned to the assignee
+                //var asigneeTickets = await _db.FfTicketRegisters
+                //    .AsNoTracking()
+                //    .Where(b => _db.FfTicketFlows
+                //        .Where(a => a.NewAssignee == _AssigneeId)
+                //        .Select(a => a.TicketId)
+                //        .Distinct()
+                //        .Contains(b.TicketId))
+                //    .ToListAsync();
+
+                // Get latest ticket flow for each ticket
+                var mostRecentFlowPerTicketWithAssignee = await _db.FfTicketFlows
+                    .GroupBy(f => f.TicketId)
+                    .Select(g => g.OrderByDescending(f => f.TimeStamp).First())
+                    .Where(f => f.NewAssignee == _AssigneeId)
+                    .Select(f => f.TicketId)
+                    .ToListAsync();
+
+                // Get tickets for the 
+                var assigneeTickets = await _db.FfTicketRegisters
+                    .Where(t => mostRecentFlowPerTicketWithAssignee.Contains(t.TicketId))
+                    .ToListAsync();
+
+
+
+                List<TicketDataDto> ticketsFound = new List<TicketDataDto>();
+
+                foreach (var ticket in assigneeTickets)
+                {
+                    ticketsFound.Add(new TicketDataDto
+                    {
+                        TicketId = ticket.TicketId,
+                        RequestedBy = ticket.RequestedBy,
+                        Location = ticket.Location,
+                        Unit = ticket.Unit,
+                        TicketPriority = ticket.TicketPriority,
+                        TicketTroubleType = ticket.TicketTroubleType,
+                        TicketSubject = ticket.TicketSubject,
+                        TicketDescription = ticket.TicketDescription,
+                    });
+                }
+
+                return ServiceResult<List<TicketDataDto>>.Ok(ticketsFound);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<TicketDataDto>>.Fail(ex.Message);
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ namespace fixflow.web.Services
     public interface ITicketService
     {
         Task<ServiceResult<Guid>> AddNewTicket(string _requestorId, RoleTypes _requestorRole, NewTicketDto _newTicketData);
-        Task<ServiceResult<bool>> UpdateTicket(string _requestorId, RoleTypes _requestorRole, UpdateTicketDto _updateTicketData);
+        Task<ServiceResult<bool>> UpdateTicket(string _requestorId, RoleTypes _requestorRole, TicketDataDto _updateTicketData);
         Task<ServiceResult<long>> ReassignTicket(string _requestorId, RoleTypes _requestorRole, Guid _ticketIdToUpdate, string _newAssigneeId, int _newStatus);
         Task<ServiceResult<string>> GetNextShortCode();
         Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypes();
@@ -21,12 +21,11 @@ namespace fixflow.web.Services
         Task<ServiceResult<int>> GetPriorityCode(string _StatusName);
         Task<ServiceResult<string>> GetPriorityCode(int _StatusCode);
         Task<ServiceResult<PriorityCodeDto>> GetPriorityCodeFromId(int _Id);
-
+        Task<ServiceResult<List<TicketDataDto>>> GetTicketsByRequestor(string _RequestorId);
+        Task<ServiceResult<List<TicketDataDto>>> GetTicketsByAssignee(string _AssigneeId);
 
         
         // Stuff I need to write.
-        //Task<ServiceResult<TicketDTO>> GetTicketsByRequestor(string _RequestorId);
-        //Task<ServiceResult<TicketDTO>> GetTicketsByAssignee(string _AssigneeId);
         //Task<ServiceResult<TicketDTO>> GetTicketHistory(Guid _TicketId);
 
 

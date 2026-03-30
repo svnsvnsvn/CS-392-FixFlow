@@ -1,6 +1,6 @@
 ﻿namespace fixflow.web.Dto
 {
-    public class UpdateTicketDto
+    public class TicketDataDto
     {
         public Guid TicketId { get; set; }
         public string RequestedBy { get; set; } = string.Empty;
