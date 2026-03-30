@@ -8,7 +8,7 @@
         public FfStatusCodes? StatusCode { get; set; }
         public int NewTicketStatus { get; set; }
         public FfUserProfile? User {  get; set; }
-        public String NewAssignee { get; set; } = string.Empty;
+        public string NewAssignee { get; set; } = string.Empty;
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
 
     }

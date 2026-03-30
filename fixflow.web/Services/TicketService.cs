@@ -518,6 +518,8 @@ namespace fixflow.web.Services
                     });
                 }
 
+
+
                 return ServiceResult<List<TicketDataDto>>.Ok(ticketsFound);
             }
             catch (Exception ex)
@@ -529,7 +531,7 @@ namespace fixflow.web.Services
         {
             try
             {
-                // Verify _RequestorId is valid and exists exists
+                // Verify _AssigneeId is valid and exists exists
                 if (_AssigneeId == null)
                 {
                     return ServiceResult<List<TicketDataDto>>.Fail("_AssigneeId not provided");
@@ -582,12 +584,56 @@ namespace fixflow.web.Services
                         TicketDescription = ticket.TicketDescription,
                     });
                 }
-
+                
                 return ServiceResult<List<TicketDataDto>>.Ok(ticketsFound);
             }
             catch (Exception ex)
             {
                 return ServiceResult<List<TicketDataDto>>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<List<TicketHistoryItemDto>>> GetTicketHistory(Guid _TicketId)
+        {
+            try
+            {
+                // Verify _TicketId is valid and exists exists
+                if (_TicketId == Guid.Empty)
+                {
+                    return ServiceResult<List<TicketHistoryItemDto>>.Fail("_TicketId not provided");
+                }
+
+                bool ticketExists = await _db.FfTicketRegisters.AnyAsync(a => a.TicketId == _TicketId);
+                if (!ticketExists)
+                {
+                    return ServiceResult<List<TicketHistoryItemDto>>.Fail("_TicketId not found");
+                }
+
+                var flowsFound = await _db.FfTicketFlows
+                    .AsNoTracking()
+                    .Where(x => x.TicketId == _TicketId)
+                    .ToListAsync();
+
+                List<TicketHistoryItemDto> historyFound = new List<TicketHistoryItemDto>();
+
+                foreach (var ticket in flowsFound)
+                {
+                    historyFound.Add(new TicketHistoryItemDto
+                    {
+                        TicketStatus = ticket.NewTicketStatus,
+                        Assignee = ticket.NewAssignee,
+                        TimeStamp = ticket.TimeStamp
+                    });
+                }
+
+                historyFound = historyFound
+                    .OrderByDescending(x => x.TimeStamp)
+                    .ToList();
+
+                return ServiceResult<List<TicketHistoryItemDto>>.Ok(historyFound);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<TicketHistoryItemDto>>.Fail(ex.Message);
             }
         }
     }
