@@ -120,7 +120,18 @@
             unitInput.value = '';
     }
 
+    function prefillResidentDefaults() {
+        if (!locSelect || !unitInput || !residentDefaults) return;
+        if ((!locSelect.value || locSelect.value === "0") && optionValueExists(locSelect, residentDefaults.location)) {
+            locSelect.value = String(residentDefaults.location);
+        }
+        if ((!unitInput.value || unitInput.value === "0") && residentDefaults.unit > 0) {
+            unitInput.value = String(residentDefaults.unit);
+        }
+    }
+
     if (locSelect && residentDefaults) {
+        prefillResidentDefaults();
         locSelect.addEventListener('change', applyResidentBuildingToUnit);
         applyResidentBuildingToUnit();
     }
