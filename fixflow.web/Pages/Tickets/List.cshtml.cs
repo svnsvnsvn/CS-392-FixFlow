@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
@@ -12,13 +11,11 @@ namespace fixflow.web.Pages.Tickets
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
-        private readonly FfDbContext _context;
 
-        public ListModel(UserManager<AppUser> userManager, ITicketService ticketService, FfDbContext context)
+        public ListModel(UserManager<AppUser> userManager, ITicketService ticketService)
         {
             _userManager = userManager;
             _ticketService = ticketService;
-            _context = context;
         }
 
         public IList<FfTicketRegister> Tickets { get; set; } = default!;
@@ -36,41 +33,23 @@ namespace fixflow.web.Pages.Tickets
         {
             // Resident/Pending redirect off List; staff GET /Dashboard -> List: Program.cs middleware.
 
-            // TODO (Adam): Load tickets (and assignee flows/profiles) via a service instead of FfDbContext.
-            // ITicketService has no list-tickets API yet; add one or extend an existing service.
-            Tickets = await _context.FfTicketRegisters
-                .Include(t => t.TicketType)
-                .Include(t => t.PriorityCode)
-                .Include(t => t.StatusCode)
-                .Include(t => t.Building)
-                .Include(t => t.RequestedByUser)
-                .AsNoTracking()
-                .ToListAsync();
+            var bundleResult = await _ticketService.GetTicketListBundle();
+            if (!bundleResult.Success || bundleResult.Data == null)
+            {
+                Tickets = new List<FfTicketRegister>();
+                TicketAssignees = new Dictionary<Guid, string>();
+                return;
+            }
 
-            var ticketIds = Tickets.Select(t => t.TicketId).ToList();
-            var allFlows = ticketIds.Count == 0
-                ? new List<FfTicketFlow>()
-                : await _context.FfTicketFlows
-                    .Where(f => ticketIds.Contains(f.TicketId))
-                    .AsNoTracking()
-                    .ToListAsync();
+            Tickets = bundleResult.Data.Tickets;
+            var allFlows = bundleResult.Data.Flows;
 
             var latestFlows = allFlows
                 .GroupBy(f => f.TicketId)
                 .Select(g => g.OrderByDescending(f => f.TimeStamp).First())
                 .ToList();
 
-            var userIds = latestFlows
-                .Where(f => !string.IsNullOrEmpty(f.NewAssignee))
-                .Select(f => f.NewAssignee)
-                .Distinct()
-                .ToList();
-
-            var userProfiles = userIds.Count == 0
-                ? new Dictionary<string, string>()
-                : await _context.FfUserProfiles
-                    .Where(p => userIds.Contains(p.FfUserId))
-                    .ToDictionaryAsync(p => p.FfUserId, p => $"{p.FName} {p.LName}".Trim());
+            var userProfiles = bundleResult.Data.ProfileDisplayNames;
 
             TicketAssignees = latestFlows
                 .Where(f => !string.IsNullOrEmpty(f.NewAssignee))
@@ -122,21 +101,12 @@ namespace fixflow.web.Pages.Tickets
             // Get "Assigned" status code
             var assignedCode = _ticketService.GetStatusCode("Assigned").Result.Data;
 
-            var assignedStatus = await _context.FfStatusCodes
-                .FirstOrDefaultAsync(s => s.StatusCode == assignedCode);
-
-            if (assignedStatus == null)
-            {
-                TempData["ErrorMessage"] = "System configuration error: Assigned status not found.";
-                return RedirectToPage();
-            }
-
             var result = await _ticketService.ReassignTicket(
                 user.Id,
                 userRole,
                 ticketId,
                 user.Id, // Assign to self
-                assignedStatus.Id
+                assignedCode
             );
 
             if (!result.Success)

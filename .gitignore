@@ -16,5 +16,10 @@ docker-compose.override.yml
 docker-compose.override.yaml
 fixflow.web/Dockerfile.dev
 /fixflow.web/appsettings.Development.json
+**/appsettings.Development.json
+**/appsettings.Local.json
 instructions.txt
 fixflow.web/UI_TODO.md
+
+.cursor/
+.vscode/

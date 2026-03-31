@@ -15,7 +15,10 @@
         <div class="ref-page">
             <div class="ph">
                 <p class="ph-s admin-users-lead">Everyone registered in FixFlow. Use the filters to narrow the table, open <strong>Edit</strong> for a shortcut to the form below, or invite someone new.</p>
-                <a asp-page="/Account/NewUser" class="btn btn-p"><i class="bi bi-person-plus" aria-hidden="true"></i> Invite User</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-page="/Account/NewUser" class="btn btn-p"><i class="bi bi-person-plus" aria-hidden="true"></i> Invite User</a>
+                }
             </div>
             <div class="stat-row admin-users-stats">
                 <div class="sc">
@@ -68,11 +71,6 @@
                         <option value="assigned">Has unit #</option>
                         <option value="none">No unit assigned</option>
                     </select>
-                    <select class="fbar-sel" id="joinedFilter" aria-label="Filter by join date recorded">
-                        <option value="">Any join record</option>
-                        <option value="yes">Join date on file</option>
-                        <option value="no">Join date not set</option>
-                    </select>
                 </div>
             </div>
             <div class="tsec admin-users-tsec">
@@ -88,7 +86,6 @@
                                 <th>Role</th>
                                 <th>Unit</th>
                                 <th>Building</th>
-                                <th>Joined</th>
                                 <th class="col-actions">Actions</th>
                             </tr>
                         </thead>
@@ -102,11 +99,9 @@
                                 if (string.IsNullOrEmpty(initials)) { initials = "?"; } else { initials = initials.ToUpperInvariant(); }
                                 var unitDisplay = p.Unit > 0 ? p.Unit.ToString() : "—";
                                 var hasUnit = p.Unit > 0 ? "1" : "0";
-                                var joinedKnown = (row.Joined != null && row.Joined != "-") ? "1" : "0";
                                 <tr data-role="@row.RoleName"
                                     data-building="@row.BuildingDisplay"
                                     data-has-unit="@hasUnit"
-                                    data-joined-known="@joinedKnown"
                                     data-name="@((p.FName + " " + p.LName).ToLowerInvariant())"
                                     data-email="@(p.FfUser?.Email?.ToLowerInvariant() ?? "")">
                                     <td>
@@ -119,7 +114,6 @@
                                     <td><span class="rb rb-@row.RoleName.ToLowerInvariant()">@row.RoleName</span></td>
                                     <td>@unitDisplay</td>
                                     <td>@row.BuildingDisplay</td>
-                                    <td>@row.Joined</td>
                                     <td>
                                         @if (User.IsInRole("Admin"))
                                         {
@@ -140,7 +134,10 @@
                     <div class="empty">
                         <div class="empty-ico"><i class="bi bi-people" aria-hidden="true"></i></div>
                         <div class="empty-t">No users found.</div>
-                        <a asp-page="/Account/NewUser" class="create-btn">Invite User</a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-page="/Account/NewUser" class="create-btn">Invite User</a>
+                        }
                     </div>
                 }
             </div>
@@ -288,7 +285,6 @@
             var roleFilter = document.getElementById('roleFilter');
             var buildingFilter = document.getElementById('buildingFilter');
             var unitFilter = document.getElementById('unitFilter');
-            var joinedFilter = document.getElementById('joinedFilter');
             var userFiltersClear = document.getElementById('userFiltersClear');
             var rows = document.querySelectorAll('.tsec tbody tr[data-role]');
             var userCountEl = document.getElementById('userTableCount');
@@ -297,7 +293,6 @@
                 var role = (roleFilter && roleFilter.value) ? roleFilter.value : '';
                 var building = (buildingFilter && buildingFilter.value) ? buildingFilter.value : '';
                 var unit = (unitFilter && unitFilter.value) ? unitFilter.value : '';
-                var joined = (joinedFilter && joinedFilter.value) ? joinedFilter.value : '';
                 var visible = 0;
                 rows.forEach(function (tr) {
                     var show = true;
@@ -313,11 +308,6 @@
                         if (unit === 'assigned' && hu !== '1') show = false;
                         if (unit === 'none' && hu !== '0') show = false;
                     }
-                    if (show && joined) {
-                        var jk = tr.getAttribute('data-joined-known') || '0';
-                        if (joined === 'yes' && jk !== '1') show = false;
-                        if (joined === 'no' && jk !== '0') show = false;
-                    }
                     tr.style.display = show ? '' : 'none';
                     if (show) visible++;
                 });
@@ -329,13 +319,11 @@
             if (roleFilter) roleFilter.addEventListener('change', filterTable);
             if (buildingFilter) buildingFilter.addEventListener('change', filterTable);
             if (unitFilter) unitFilter.addEventListener('change', filterTable);
-            if (joinedFilter) joinedFilter.addEventListener('change', filterTable);
             if (userFiltersClear) userFiltersClear.addEventListener('click', function () {
                 if (search) search.value = '';
                 if (roleFilter) roleFilter.value = '';
                 if (buildingFilter) buildingFilter.value = '';
                 if (unitFilter) unitFilter.value = '';
-                if (joinedFilter) joinedFilter.value = '';
                 filterTable();
             });
             filterTable();

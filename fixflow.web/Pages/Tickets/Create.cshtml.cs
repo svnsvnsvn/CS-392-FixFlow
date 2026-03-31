@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
@@ -14,15 +13,15 @@ namespace fixflow.web.Pages.Tickets
 {
     public class CreateModel : PageModel
     {
-        private readonly FfDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
+        private readonly IAdminService _adminService;
 
-        public CreateModel(FfDbContext context, UserManager<AppUser> userManager, ITicketService ticketService)
+        public CreateModel(UserManager<AppUser> userManager, ITicketService ticketService, IAdminService adminService)
         {
-            _context = context;
             _userManager = userManager;
             _ticketService = ticketService;
+            _adminService = adminService;
         }
 
         public List<SelectListItem> Buildings { get; set; } = new();
@@ -67,8 +66,8 @@ namespace fixflow.web.Pages.Tickets
             // Pre-populate location and unit from user profile if available (for residents only)
             if (!IsStaff && user != null)
             {
-                var userProfile = await _context.FfUserProfiles
-                    .FirstOrDefaultAsync(p => p.FfUserId == user.Id);
+                var userProfileResult = await _adminService.GetUserProfileById(user.Id);
+                var userProfile = userProfileResult.Success ? userProfileResult.Data : null;
 
                 if (userProfile != null)
                 {
@@ -140,7 +139,10 @@ namespace fixflow.web.Pages.Tickets
                     priorityValue = normal.Data;
                 else
                 {
-                    var firstPri = await _context.FfPriorityCodess.OrderBy(p => p.PriorityCode).FirstOrDefaultAsync();
+                    var priorityListResult = await _adminService.GetPriorityCodeList();
+                    var firstPri = priorityListResult.Success && priorityListResult.Data != null
+                        ? priorityListResult.Data.OrderBy(p => p.PriorityCode).FirstOrDefault()
+                        : null;
                     if (firstPri == null)
                     {
                         ModelState.AddModelError(string.Empty, "No priority codes are configured.");
@@ -148,7 +150,7 @@ namespace fixflow.web.Pages.Tickets
                         return Page();
                     }
 
-                    priorityValue = firstPri.PriorityCode;
+                    priorityValue = firstPri.PriorityCode ?? 0;
                 }
             }
 
@@ -193,15 +195,14 @@ namespace fixflow.web.Pages.Tickets
             var buildingResult = await _ticketService.GetBuildings();
             if ((buildingResult.Success)&&(buildingResult.Data != null))
             {
-                Buildings = await _context.FfBuildingDirectorys
-                    .Where(b => b.LocationName != "Unassigned")
+                Buildings = buildingResult.Data
                     .OrderBy(b => b.LocationName)
                     .Select(b => new SelectListItem
                     {
                         Value = b.LocationCode.ToString(),
                         Text = b.LocationName + " (#" + b.BuildingNumber + ")"
                     })
-                    .ToListAsync();
+                    .ToList();
             }
             else
             {
@@ -245,28 +246,32 @@ namespace fixflow.web.Pages.Tickets
                     .ToList();
 
                 var ids = residents.Select(r => r.Id).ToList();
-                var profileRows = await _context.FfUserProfiles.AsNoTracking()
-                    .Where(p => ids.Contains(p.FfUserId))
-                    .Select(p => new { p.FfUserId, p.LocationCode, p.Unit })
-                    .ToListAsync();
+                var profilesResult = await _adminService.GetUserProfilesByIds(ids);
+                var profileRows = profilesResult.Success && profilesResult.Data != null
+                    ? profilesResult.Data
+                    : new List<FfUserProfile>();
                 var byId = profileRows.ToDictionary(
-                    r => r.FfUserId,
-                    r => new Dictionary<string, int> { ["location"] = r.LocationCode, ["unit"] = r.Unit });
+                    p => p.FfUserId,
+                    p => new Dictionary<string, int> { ["location"] = p.LocationCode, ["unit"] = p.Unit });
                 StaffResidentProfilesJson = JsonSerializer.Serialize(byId);
 
-                Priorities = await _context.FfPriorityCodess
+                var priorityListResult = await _adminService.GetPriorityCodeList();
+                var priorities = priorityListResult.Success && priorityListResult.Data != null
+                    ? priorityListResult.Data
+                    : new List<PriorityCodeDto>();
+                Priorities = priorities
                     .OrderBy(p => p.PriorityCode)
                     .Select(p => new SelectListItem
                     {
                         Value = p.PriorityCode.ToString(),
                         Text = p.PriorityName
                     })
-                    .ToListAsync();
+                    .ToList();
             }
             else if (currentUser != null)
             {
-                var prof = await _context.FfUserProfiles.AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.FfUserId == currentUser.Id);
+                var profileResult = await _adminService.GetUserProfileById(currentUser.Id);
+                var prof = profileResult.Success ? profileResult.Data : null;
                 if (prof != null)
                 {
                     ResidentProfileAutofillJson = JsonSerializer.Serialize(

@@ -1,5 +1,6 @@
-﻿using fixflow.web.Domain.Enums;
+using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
+using fixflow.web.Data;
 
 
 namespace fixflow.web.Services;
@@ -26,4 +27,15 @@ public interface IAdminService
     Task<ServiceResult<bool>> ChangeUserRole(string _requestorId, RoleTypes _requestorRole, string _targetId, RoleTypes _targetUserNewRole);
     Task<ServiceResult<List<UserListItemDto>>> SearchUsers(string _searchString);
     Task<ServiceResult<UserSettingsListItemDTO>> GetUserSettings(string _requestorId, RoleTypes _requestorRole, string _targetUser);
+    Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypeList();
+    Task<ServiceResult<List<StatusCodeDto>>> GetStatusCodeList();
+    Task<ServiceResult<List<PriorityCodeDto>>> GetPriorityCodeList();
+    Task<ServiceResult<List<BuildingDto>>> GetBuildingList();
+    Task<ServiceResult<List<FfUserProfile>>> GetUserProfilesWithIdentityAndLocation();
+    Task<ServiceResult<FfUserProfile>> GetUserProfileById(string ffUserId);
+    Task<ServiceResult<List<FfUserProfile>>> GetUserProfilesByIds(List<string> ffUserIds);
+    Task<ServiceResult<FfBuildingDirectory>> GetBuildingByCode(int locationCode);
+    Task<ServiceResult<int>> GetUnassignedBuildingCode();
+    Task<ServiceResult<bool>> SaveUserProfile(FfUserProfile profile);
+    Task<ServiceResult<bool>> AddUserProfile(FfUserProfile profile);
 }

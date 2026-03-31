@@ -5,31 +5,66 @@
         ? string.Concat(initialChars[0][0], initialChars[1][0]).ToUpperInvariant()
         : userName.Substring(0, Math.Min(2, userName.Length)).ToUpperInvariant();
 }
-<aside class="app-sidebar">
+<aside class="app-sidebar" id="appSidebar">
     <div class="app-brand">
-        <div class="app-brand-title">FixFlow</div>
-        <div class="app-brand-subtitle">Maintenance System</div>
+        <a class="app-brand-link" href="/Dashboard" aria-label="FixFlow home">
+            <img class="app-brand-logo" src="~/images/ff_logo.png" alt="" />
+            <span class="app-brand-copy">
+                <span class="app-brand-title">FixFlow</span>
+                <span class="app-brand-subtitle">Maintenance System</span>
+            </span>
+        </a>
     </div>
     <div class="app-nav">
+        <button type="button"
+                class="app-nav-link app-nav-toggle-link"
+                id="appSidebarToggle"
+                aria-label="Collapse sidebar"
+                aria-expanded="true"
+                title="Collapse sidebar">
+            <i class="bi bi-list" aria-hidden="true"></i>
+            <span class="app-nav-text">Menu</span>
+        </button>
         <div class="app-nav-title">Main</div>
         @{
             var isResident = User.IsInRole("Resident") || User.IsInRole("Pending");
             var ticketsLabel = isResident ? "My Tickets" : "Tickets";
             var ticketsHref = isResident ? "/Dashboard" : "/Tickets/List";
         }
-        <a class="app-nav-link" href="@ticketsHref"><i class="bi bi-clipboard-check"></i> @ticketsLabel</a>
-        <a class="app-nav-link" href="/Account/Profile"><i class="bi bi-person-circle"></i> Account</a>
+        <a class="app-nav-link" href="@ticketsHref" title="@ticketsLabel">
+            <i class="bi bi-clipboard-check"></i>
+            <span class="app-nav-text">@ticketsLabel</span>
+        </a>
+        <a class="app-nav-link" href="/Account/Profile" title="Account">
+            <i class="bi bi-person-circle"></i>
+            <span class="app-nav-text">Account</span>
+        </a>
     </div>
 
     @if (User.IsInRole("Admin"))
     {
         <div class="app-nav">
             <div class="app-nav-title">Admin</div>
-            <a class="app-nav-link" href="/Admin/Buildings"><i class="bi bi-building"></i> Buildings</a>
-            <a class="app-nav-link" href="/Admin/TicketTypes"><i class="bi bi-folder"></i> Ticket Types</a>
-            <a class="app-nav-link" href="/Admin/PriorityCodes"><i class="bi bi-exclamation-triangle"></i> Priority Codes</a>
-            <a class="app-nav-link" href="/Admin/StatusCodes"><i class="bi bi-flag"></i> Status Codes</a>
-            <a class="app-nav-link" href="/Admin/Users"><i class="bi bi-people"></i> Residents &amp; Staff</a>
+            <a class="app-nav-link" href="/Admin/Buildings" title="Buildings">
+                <i class="bi bi-building"></i>
+                <span class="app-nav-text">Buildings</span>
+            </a>
+            <a class="app-nav-link" href="/Admin/TicketTypes" title="Ticket Types">
+                <i class="bi bi-folder"></i>
+                <span class="app-nav-text">Ticket Types</span>
+            </a>
+            <a class="app-nav-link" href="/Admin/PriorityCodes" title="Priority Codes">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span class="app-nav-text">Priority Codes</span>
+            </a>
+            <a class="app-nav-link" href="/Admin/StatusCodes" title="Status Codes">
+                <i class="bi bi-flag"></i>
+                <span class="app-nav-text">Status Codes</span>
+            </a>
+            <a class="app-nav-link" href="/Admin/Users" title="Residents &amp; Staff">
+                <i class="bi bi-people"></i>
+                <span class="app-nav-text">Residents &amp; Staff</span>
+            </a>
         </div>
     }
 
@@ -50,3 +85,29 @@
         </div>
     </div>
 </aside>
+<script>
+    (function () {
+        var shell = document.querySelector('.app-shell');
+        var toggle = document.getElementById('appSidebarToggle');
+        if (!shell || !toggle) return;
+
+        var collapsedClass = 'sidebar-collapsed';
+        var storageKey = 'fixflow.sidebar.collapsed';
+
+        function setCollapsed(isCollapsed) {
+            shell.classList.toggle(collapsedClass, isCollapsed);
+            toggle.setAttribute('aria-expanded', String(!isCollapsed));
+            toggle.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            toggle.setAttribute('title', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+        }
+
+        var storedCollapsed = localStorage.getItem(storageKey) === 'true';
+        setCollapsed(storedCollapsed);
+
+        toggle.addEventListener('click', function () {
+            var next = !shell.classList.contains(collapsedClass);
+            setCollapsed(next);
+            localStorage.setItem(storageKey, String(next));
+        });
+    })();
+</script>

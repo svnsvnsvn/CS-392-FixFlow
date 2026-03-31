@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using fixflow.web.Data;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using fixflow.web.Services;
 
 
 namespace fixflow.web.Pages.Account
@@ -12,16 +12,16 @@ namespace fixflow.web.Pages.Account
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly FfDbContext _db;
+        private readonly IAdminService _adminService;
         private readonly SignInManager<AppUser> _signInManager;
 
         public enum PasswordChangeReason { Undetermined, Voluntary, ForcedOnLogin, NewUser }
 
-        public ProfileModel(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, FfDbContext db, SignInManager<AppUser> signInManager)
+        public ProfileModel(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IAdminService adminService, SignInManager<AppUser> signInManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _db = db;
+            _adminService = adminService;
             _signInManager = signInManager;
         }
 
@@ -107,7 +107,8 @@ namespace fixflow.web.Pages.Account
 
             // We have ASP Identity profile in user
             // Get PSTS user profile
-            var userProfile = await _db.FindAsync<FfUserProfile>(user.Id);
+            var userProfileResult = await _adminService.GetUserProfileById(user.Id);
+            var userProfile = userProfileResult.Success ? userProfileResult.Data : null;
             if (userProfile == null)
             {
                 return NotFound();
@@ -126,8 +127,8 @@ namespace fixflow.web.Pages.Account
 
         private async Task FillResidenceLabelsAsync(string ffUserId)
         {
-            var userProfile = await _db.FfUserProfiles.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.FfUserId == ffUserId);
+            var userProfileResult = await _adminService.GetUserProfileById(ffUserId);
+            var userProfile = userProfileResult.Success ? userProfileResult.Data : null;
             if (userProfile == null)
             {
                 ResidenceBuildingLabel = "—";
@@ -135,8 +136,8 @@ namespace fixflow.web.Pages.Account
                 return;
             }
 
-            var building = await _db.FfBuildingDirectorys.AsNoTracking()
-                .FirstOrDefaultAsync(b => b.LocationCode == userProfile.LocationCode);
+            var buildingResult = await _adminService.GetBuildingByCode(userProfile.LocationCode);
+            var building = buildingResult.Success ? buildingResult.Data : null;
 
             if (building != null && !string.Equals(building.LocationName, "Unassigned", StringComparison.OrdinalIgnoreCase))
             {
@@ -156,7 +157,8 @@ namespace fixflow.web.Pages.Account
 
         private async Task ReloadProfileAndResidenceAsync(AppUser user)
         {
-            var userProfile = await _db.FfUserProfiles.FindAsync(user.Id);
+            var userProfileResult = await _adminService.GetUserProfileById(user.Id);
+            var userProfile = userProfileResult.Success ? userProfileResult.Data : null;
             if (userProfile == null)
             {
                 return;
@@ -238,7 +240,8 @@ namespace fixflow.web.Pages.Account
                 return Page();
             }
 
-            var userProfile = await _db.FfUserProfiles.FindAsync(user.Id);
+            var userProfileResult = await _adminService.GetUserProfileById(user.Id);
+            var userProfile = userProfileResult.Success ? userProfileResult.Data : null;
             if (userProfile == null)
             {
                 return NotFound();
@@ -246,7 +249,12 @@ namespace fixflow.web.Pages.Account
 
             userProfile.FName = ProfileInput.FirstName.Trim();
             userProfile.LName = ProfileInput.LastName.Trim();
-            await _db.SaveChangesAsync();
+            var saveProfileResult = await _adminService.SaveUserProfile(userProfile);
+            if (!saveProfileResult.Success)
+            {
+                ModelState.AddModelError(string.Empty, saveProfileResult.Error ?? "Profile save failed.");
+                return Page();
+            }
 
             await _signInManager.RefreshSignInAsync(user);
             TempData["StatusMessage"] = "Profile saved.";

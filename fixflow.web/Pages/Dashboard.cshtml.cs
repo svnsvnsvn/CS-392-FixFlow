@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using fixflow.web.Data;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
 
@@ -11,14 +9,10 @@ namespace fixflow.web.Pages
 {
     public class DashboardModel : PageModel
     {
-        // TODO (Adam): Remove FfDbContext from this page. All reads/writes should go through a service
-        // (e.g. new IDashboardService or methods on ITicketService) so Razor Pages never touch the DbContext.
-        private readonly FfDbContext _context;
         private readonly ITicketService _ticketService;
 
-        public DashboardModel(FfDbContext context, ITicketService ticketService)
+        public DashboardModel(ITicketService ticketService)
         {
-            _context = context;
             _ticketService = ticketService;
         }
 
@@ -131,39 +125,28 @@ namespace fixflow.web.Pages
 
         private async Task BuildDashboardFromDbAsync(string role)
         {
-            // TODO (Adam): Replace direct _context usage below with a single service call that returns
-            // tickets (scoped by role/user), related flows, status names, and profile display names for
-            // building TicketViewModels + activity. ITicketService currently has no list/query APIs for this.
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-
-            var ticketsQuery = _context.FfTicketRegisters
-                .Include(ticket => ticket.TicketType)
-                .Include(ticket => ticket.PriorityCode)
-                .Include(ticket => ticket.StatusCode)
-                .Include(ticket => ticket.Building)
-                .Include(ticket => ticket.RequestedByUser)
-                .AsNoTracking();
-
-            if (role == "Client")
+            var roleType = role switch
             {
-                ticketsQuery = ticketsQuery.Where(ticket => ticket.RequestedBy == userId);
-            }
-            else if (role == "Technician")
+                "Admin" => RoleTypes.Admin,
+                "Manager" => RoleTypes.Manager,
+                "Technician" => RoleTypes.Employee,
+                _ => RoleTypes.Resident
+            };
+
+            var bundleResult = await _ticketService.GetDashboardBundle(userId, roleType);
+            if (!bundleResult.Success || bundleResult.Data == null)
             {
-                ticketsQuery = ticketsQuery.Where(ticket => ticket.EnteredBy == userId);
+                Tickets = new List<TicketViewModel>();
+                UpcomingAppointments = new List<DashboardAppointment>();
+                RecentActivity = new List<DashboardActivityItem>();
+                Announcements = new List<DashboardAnnouncement>();
+                return;
             }
 
-            var ticketsData = await ticketsQuery.ToListAsync();
-
-            var ticketIds = ticketsData.Select(ticket => ticket.TicketId).ToList();
-            var flows = await _context.FfTicketFlows
-                .Where(flow => ticketIds.Contains(flow.TicketId))
-                .AsNoTracking()
-                .ToListAsync();
-
-            var statusCodes = await _context.FfStatusCodes.AsNoTracking().ToListAsync();
-            var profileLookup = await _context.FfUserProfiles.AsNoTracking()
-                .ToDictionaryAsync(profile => profile.FfUserId, profile => profile);
+            var ticketsData = bundleResult.Data.Tickets;
+            var flows = bundleResult.Data.Flows;
+            var profileLookup = bundleResult.Data.ProfileDisplayNames;
 
             Tickets = ticketsData.Select(ticket =>
             {
@@ -172,8 +155,8 @@ namespace fixflow.web.Pages
                     .Select(flow => flow.TimeStamp)
                     .FirstOrDefault();
 
-                var requestedByName = profileLookup.TryGetValue(ticket.RequestedBy, out var profile)
-                    ? $"{profile.FName} {profile.LName}".Trim()
+                var requestedByName = profileLookup.TryGetValue(ticket.RequestedBy, out var profileName)
+                    ? profileName
                     : ticket.RequestedBy;
 
                 var ticketTypeName = ticket.TicketType?.TypeName ?? "Maintenance";
@@ -227,7 +210,7 @@ namespace fixflow.web.Pages
                 })
                 .ToList();
 
-            var statusLookup = statusCodes.ToDictionary(code => code.Id, code => code.StatusName);
+            var statusLookup = bundleResult.Data.StatusCodeNames;
 
             RecentActivity = flows
                 .OrderByDescending(flow => flow.TimeStamp)
@@ -240,8 +223,8 @@ namespace fixflow.web.Pages
                     var statusName = statusLookup.TryGetValue(flow.NewTicketStatus, out var name)
                         ? name
                         : "Updated";
-                    var assigneeName = profileLookup.TryGetValue(flow.NewAssignee, out var profile)
-                        ? $"{profile.FName} {profile.LName}".Trim()
+                    var assigneeName = profileLookup.TryGetValue(flow.NewAssignee, out var assigneeProfileName)
+                        ? assigneeProfileName
                         : "Unassigned";
 
                     return new DashboardActivityItem

@@ -34,7 +34,7 @@ services:
     container_name: fixflow-web
     restart: always
     environment:
-      ConnectionStrings__Default: "Host=db;Port=5432;Database=fixflow;Username=fixflow;Password=fixflow_local_dev"
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=fixflow;Username=fixflow;Password=fixflow_local_dev"
     depends_on:
       db:
         condition: service_healthy

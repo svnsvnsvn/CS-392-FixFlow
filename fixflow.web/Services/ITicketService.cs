@@ -1,5 +1,6 @@
 using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
+using fixflow.web.Data;
 
 namespace fixflow.web.Services
 
@@ -24,6 +25,14 @@ namespace fixflow.web.Services
         Task<ServiceResult<List<TicketDataDto>>> GetTicketsByRequestor(string _RequestorId);
         Task<ServiceResult<List<TicketDataDto>>> GetTicketsByAssignee(string _AssigneeId);
         Task<ServiceResult<List<TicketHistoryItemDto>>> GetTicketHistory(Guid _TicketId);
+        Task<ServiceResult<FfTicketRegister>> GetTicketById(Guid ticketId);
+        Task<ServiceResult<FfTicketRegister>> GetTicketByIdentifier(string ticketIdOrCode);
+        Task<ServiceResult<List<FfTicketFlow>>> GetTicketFlows(Guid ticketId);
+        Task<ServiceResult<Dictionary<int, string>>> GetStatusCodeNameMap();
+        Task<ServiceResult<List<FfExternalNotes>>> GetExternalNotes(Guid ticketId);
+        Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId);
+        Task<ServiceResult<TicketQueryBundleDto>> GetTicketListBundle();
+        Task<ServiceResult<TicketQueryBundleDto>> GetDashboardBundle(string requestorId, RoleTypes requestorRole);
 
 
     }

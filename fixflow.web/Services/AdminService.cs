@@ -1014,6 +1014,216 @@ namespace fixflow.web.Services
             }
         }
 
+        public async Task<ServiceResult<List<TicketTypeDto>>> GetTicketTypeList()
+        {
+            try
+            {
+                var results = await _db.FfTicketTypess
+                    .AsNoTracking()
+                    .OrderBy(t => t.TypeName)
+                    .Select(t => new TicketTypeDto
+                    {
+                        Id = t.Id,
+                        TypeName = t.TypeName
+                    })
+                    .ToListAsync();
+                return ServiceResult<List<TicketTypeDto>>.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<TicketTypeDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<StatusCodeDto>>> GetStatusCodeList()
+        {
+            try
+            {
+                var results = await _db.FfStatusCodes
+                    .AsNoTracking()
+                    .OrderBy(s => s.StatusCode)
+                    .Select(s => new StatusCodeDto
+                    {
+                        Id = s.Id,
+                        StatusCode = s.StatusCode,
+                        StatusName = s.StatusName
+                    })
+                    .ToListAsync();
+                return ServiceResult<List<StatusCodeDto>>.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<StatusCodeDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<PriorityCodeDto>>> GetPriorityCodeList()
+        {
+            try
+            {
+                var results = await _db.FfPriorityCodess
+                    .AsNoTracking()
+                    .OrderBy(p => p.PriorityCode)
+                    .Select(p => new PriorityCodeDto
+                    {
+                        Id = p.Id,
+                        PriorityCode = p.PriorityCode,
+                        PriorityName = p.PriorityName
+                    })
+                    .ToListAsync();
+                return ServiceResult<List<PriorityCodeDto>>.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<PriorityCodeDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<BuildingDto>>> GetBuildingList()
+        {
+            try
+            {
+                var results = await _db.FfBuildingDirectorys
+                    .AsNoTracking()
+                    .Where(b => b.LocationName != "Unassigned")
+                    .OrderBy(b => b.LocationName)
+                    .Select(b => new BuildingDto
+                    {
+                        LocationCode = b.LocationCode,
+                        LocationName = b.LocationName,
+                        ComplexName = b.ComplexName,
+                        BuildingNumber = b.BuildingNumber,
+                        NumUnits = b.NumUnits,
+                        LocationLat = b.LocationLat,
+                        LocationLon = b.LocationLon
+                    })
+                    .ToListAsync();
+                return ServiceResult<List<BuildingDto>>.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<BuildingDto>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<FfUserProfile>>> GetUserProfilesWithIdentityAndLocation()
+        {
+            try
+            {
+                var results = await _db.FfUserProfiles
+                    .Include(p => p.FfUser)
+                    .Include(p => p.Location)
+                    .OrderBy(p => p.LName)
+                    .ThenBy(p => p.FName)
+                    .ToListAsync();
+                return ServiceResult<List<FfUserProfile>>.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<FfUserProfile>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<FfUserProfile>> GetUserProfileById(string ffUserId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(ffUserId))
+                    return ServiceResult<FfUserProfile>.Fail("User id not provided.");
+                var profile = await _db.FfUserProfiles
+                    .Include(p => p.FfUser)
+                    .Include(p => p.Location)
+                    .FirstOrDefaultAsync(p => p.FfUserId == ffUserId);
+                if (profile == null)
+                    return ServiceResult<FfUserProfile>.Fail("User profile not found.");
+                return ServiceResult<FfUserProfile>.Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<FfUserProfile>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<FfUserProfile>>> GetUserProfilesByIds(List<string> ffUserIds)
+        {
+            try
+            {
+                if (ffUserIds == null || ffUserIds.Count == 0)
+                    return ServiceResult<List<FfUserProfile>>.Ok(new List<FfUserProfile>());
+                var results = await _db.FfUserProfiles
+                    .AsNoTracking()
+                    .Where(p => ffUserIds.Contains(p.FfUserId))
+                    .ToListAsync();
+                return ServiceResult<List<FfUserProfile>>.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<FfUserProfile>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<FfBuildingDirectory>> GetBuildingByCode(int locationCode)
+        {
+            try
+            {
+                var building = await _db.FfBuildingDirectorys
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.LocationCode == locationCode);
+                if (building == null)
+                    return ServiceResult<FfBuildingDirectory>.Fail("Building not found.");
+                return ServiceResult<FfBuildingDirectory>.Ok(building);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<FfBuildingDirectory>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<int>> GetUnassignedBuildingCode()
+        {
+            try
+            {
+                var building = await _db.FfBuildingDirectorys
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.LocationName == "Unassigned");
+                if (building == null)
+                    return ServiceResult<int>.Fail("Unassigned building not found.");
+                return ServiceResult<int>.Ok(building.LocationCode);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<bool>> SaveUserProfile(FfUserProfile profile)
+        {
+            try
+            {
+                _db.FfUserProfiles.Update(profile);
+                await _db.SaveChangesAsync();
+                return ServiceResult<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<bool>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<bool>> AddUserProfile(FfUserProfile profile)
+        {
+            try
+            {
+                _db.FfUserProfiles.Add(profile);
+                await _db.SaveChangesAsync();
+                return ServiceResult<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<bool>.Fail(ex.Message);
+            }
+        }
+
 
     }
 }

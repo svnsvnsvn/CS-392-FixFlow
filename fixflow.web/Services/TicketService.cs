@@ -638,6 +638,237 @@ namespace fixflow.web.Services
                 return ServiceResult<List<TicketHistoryItemDto>>.Fail(ex.Message);
             }
         }
+        public async Task<ServiceResult<FfTicketRegister>> GetTicketById(Guid ticketId)
+        {
+            try
+            {
+                if (ticketId == Guid.Empty)
+                    return ServiceResult<FfTicketRegister>.Fail("Ticket id not provided.");
+
+                var ticket = await _db.FfTicketRegisters
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+                if (ticket == null)
+                    return ServiceResult<FfTicketRegister>.Fail("Ticket not found.");
+                return ServiceResult<FfTicketRegister>.Ok(ticket);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<FfTicketRegister>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<FfTicketRegister>> GetTicketByIdentifier(string ticketIdOrCode)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(ticketIdOrCode))
+                    return ServiceResult<FfTicketRegister>.Fail("Ticket id not provided.");
+
+                FfTicketRegister? ticket;
+                if (Guid.TryParse(ticketIdOrCode, out var ticketId))
+                {
+                    ticket = await _db.FfTicketRegisters
+                        .Include(t => t.TicketType)
+                        .Include(t => t.PriorityCode)
+                        .Include(t => t.StatusCode)
+                        .Include(t => t.Building)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+                }
+                else
+                {
+                    ticket = await _db.FfTicketRegisters
+                        .Include(t => t.TicketType)
+                        .Include(t => t.PriorityCode)
+                        .Include(t => t.StatusCode)
+                        .Include(t => t.Building)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(t => t.TicketShortCode == ticketIdOrCode);
+                }
+
+                if (ticket == null)
+                    return ServiceResult<FfTicketRegister>.Fail("Ticket not found.");
+                return ServiceResult<FfTicketRegister>.Ok(ticket);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<FfTicketRegister>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<FfTicketFlow>>> GetTicketFlows(Guid ticketId)
+        {
+            try
+            {
+                var flows = await _db.FfTicketFlows
+                    .Where(flow => flow.TicketId == ticketId)
+                    .OrderBy(flow => flow.TimeStamp)
+                    .AsNoTracking()
+                    .ToListAsync();
+                return ServiceResult<List<FfTicketFlow>>.Ok(flows);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<FfTicketFlow>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<Dictionary<int, string>>> GetStatusCodeNameMap()
+        {
+            try
+            {
+                var statusCodes = await _db.FfStatusCodes
+                    .AsNoTracking()
+                    .ToDictionaryAsync(code => code.Id, code => code.StatusName);
+                return ServiceResult<Dictionary<int, string>>.Ok(statusCodes);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<Dictionary<int, string>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<FfExternalNotes>>> GetExternalNotes(Guid ticketId)
+        {
+            try
+            {
+                var notes = await _db.FfExternalNotess
+                    .Where(note => note.TicketId == ticketId)
+                    .OrderByDescending(note => note.TimeStamp)
+                    .AsNoTracking()
+                    .ToListAsync();
+                return ServiceResult<List<FfExternalNotes>>.Ok(notes);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<FfExternalNotes>>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId)
+        {
+            try
+            {
+                var notes = await _db.FfInternalNotess
+                    .Where(note => note.TicketId == ticketId)
+                    .OrderByDescending(note => note.TimeStamp)
+                    .AsNoTracking()
+                    .ToListAsync();
+                return ServiceResult<List<FfInternalNotes>>.Ok(notes);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<FfInternalNotes>>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<TicketQueryBundleDto>> GetTicketListBundle()
+        {
+            try
+            {
+                var tickets = await _db.FfTicketRegisters
+                    .Include(t => t.TicketType)
+                    .Include(t => t.PriorityCode)
+                    .Include(t => t.StatusCode)
+                    .Include(t => t.Building)
+                    .Include(t => t.RequestedByUser)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var ticketIds = tickets.Select(t => t.TicketId).ToList();
+                var flows = ticketIds.Count == 0
+                    ? new List<FfTicketFlow>()
+                    : await _db.FfTicketFlows
+                        .Where(f => ticketIds.Contains(f.TicketId))
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                var latestFlows = flows
+                    .GroupBy(f => f.TicketId)
+                    .Select(g => g.OrderByDescending(f => f.TimeStamp).First())
+                    .ToList();
+
+                var assigneeIds = latestFlows
+                    .Where(f => !string.IsNullOrWhiteSpace(f.NewAssignee))
+                    .Select(f => f.NewAssignee)
+                    .Distinct()
+                    .ToList();
+
+                var profileDisplayNames = assigneeIds.Count == 0
+                    ? new Dictionary<string, string>()
+                    : await _db.FfUserProfiles
+                        .Where(p => assigneeIds.Contains(p.FfUserId))
+                        .ToDictionaryAsync(p => p.FfUserId, p => $"{p.FName} {p.LName}".Trim());
+
+                return ServiceResult<TicketQueryBundleDto>.Ok(new TicketQueryBundleDto
+                {
+                    Tickets = tickets,
+                    Flows = flows,
+                    ProfileDisplayNames = profileDisplayNames
+                });
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<TicketQueryBundleDto>.Fail(ex.Message);
+            }
+        }
+
+        public async Task<ServiceResult<TicketQueryBundleDto>> GetDashboardBundle(string requestorId, RoleTypes requestorRole)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(requestorId))
+                    return ServiceResult<TicketQueryBundleDto>.Fail("Requestor Id not provided.");
+
+                var ticketsQuery = _db.FfTicketRegisters
+                    .Include(ticket => ticket.TicketType)
+                    .Include(ticket => ticket.PriorityCode)
+                    .Include(ticket => ticket.StatusCode)
+                    .Include(ticket => ticket.Building)
+                    .Include(ticket => ticket.RequestedByUser)
+                    .AsNoTracking();
+
+                if (requestorRole == RoleTypes.Resident || requestorRole == RoleTypes.Pending)
+                    ticketsQuery = ticketsQuery.Where(ticket => ticket.RequestedBy == requestorId);
+                else if (requestorRole == RoleTypes.Employee)
+                    ticketsQuery = ticketsQuery.Where(ticket => ticket.EnteredBy == requestorId);
+
+                var tickets = await ticketsQuery.ToListAsync();
+                var ticketIds = tickets.Select(ticket => ticket.TicketId).ToList();
+                var flows = ticketIds.Count == 0
+                    ? new List<FfTicketFlow>()
+                    : await _db.FfTicketFlows
+                        .Where(flow => ticketIds.Contains(flow.TicketId))
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                var statusCodeNames = await _db.FfStatusCodes.AsNoTracking()
+                    .ToDictionaryAsync(code => code.Id, code => code.StatusName);
+
+                var profileIds = tickets.Select(t => t.RequestedBy)
+                    .Concat(flows.Select(f => f.NewAssignee))
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct()
+                    .ToList();
+
+                var profileDisplayNames = profileIds.Count == 0
+                    ? new Dictionary<string, string>()
+                    : await _db.FfUserProfiles.AsNoTracking()
+                        .Where(profile => profileIds.Contains(profile.FfUserId))
+                        .ToDictionaryAsync(profile => profile.FfUserId, profile => $"{profile.FName} {profile.LName}".Trim());
+
+                return ServiceResult<TicketQueryBundleDto>.Ok(new TicketQueryBundleDto
+                {
+                    Tickets = tickets,
+                    Flows = flows,
+                    ProfileDisplayNames = profileDisplayNames,
+                    StatusCodeNames = statusCodeNames
+                });
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<TicketQueryBundleDto>.Fail(ex.Message);
+            }
+        }
         public async Task<ServiceResult<bool>> AddNewNote(UserCredentialDTO _SubmitterId, NoteDto _NewNote)
         {
             try
@@ -681,7 +912,7 @@ namespace fixflow.web.Services
                  }
             catch (Exception ex)
             {
-                ServiceResult<bool>.Fail(ex.Message);
+                return ServiceResult<bool>.Fail(ex.Message);
             }
         }
     }

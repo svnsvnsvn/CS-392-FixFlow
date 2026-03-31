@@ -5,20 +5,23 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using fixflow.web.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
+using fixflow.web.Services;
 
 namespace fixflow.web.Pages.Account;
 
+ [Authorize(Roles = "Admin")]
 public class NewUserModel : PageModel
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly FfDbContext _db;
+    private readonly IAdminService _adminService;
 
-    public NewUserModel(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, FfDbContext db)
+    public NewUserModel(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IAdminService adminService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _db = db;
+        _adminService = adminService;
     }
 
     [BindProperty]
@@ -70,50 +73,43 @@ public class NewUserModel : PageModel
             LockoutEnabled = true
         };
 
-        // Create transaction object to user creation
-        using var userCreationTransaction = await _db.Database.BeginTransactionAsync();
-        try
+        // Create user
+        var resultU = await _userManager.CreateAsync(user);
+        if (!resultU.Succeeded)
         {
-            // Create user
-            var resultU = await _userManager.CreateAsync(user);
-            if (!resultU.Succeeded)
-            {
-                throw new Exception("User creation failed.");
-            }
-
-            // New user assigned pending role while awaiting full onboard.        
-            var resultUR = await _userManager.AddToRoleAsync(user, RoleTypes.Pending.ToString());
-            if (!resultUR.Succeeded)
-            {
-                throw new Exception("User role assignment failed.");
-            }
-
-            // Get the "Unassigned" building code for profile
-            var defaultBuilding = await _db.FfBuildingDirectorys.SingleAsync(b => b.LocationName == "Unassigned");
-            if (defaultBuilding == null)
-            {
-                throw new Exception("User creation failed. Unassigned building not found.");
-            }
-            
-            // Build user profile
-            var userProfile = new FfUserProfile
-            {
-                FName = Input.FirstName,
-                LName = Input.LastName,
-                FfUserId = user.Id,
-                LocationCode = defaultBuilding.LocationCode
-            };
-
-
-            _db.FfUserProfiles.Add(userProfile);
-            await _db.SaveChangesAsync();
-
-            await userCreationTransaction.CommitAsync();
+            ModelState.AddModelError(string.Empty, "User creation failed.");
+            return Page();
         }
-        catch
+
+        // New user assigned pending role while awaiting full onboard.
+        var resultUR = await _userManager.AddToRoleAsync(user, RoleTypes.Pending.ToString());
+        if (!resultUR.Succeeded)
         {
-            await userCreationTransaction.RollbackAsync();          // Stop db writes if something failed. Prevent half transactions.
-            throw;
+            await _userManager.DeleteAsync(user);
+            ModelState.AddModelError(string.Empty, "User role assignment failed.");
+            return Page();
+        }
+
+        var defaultBuildingCodeResult = await _adminService.GetUnassignedBuildingCode();
+        if (!defaultBuildingCodeResult.Success)
+        {
+            await _userManager.DeleteAsync(user);
+            ModelState.AddModelError(string.Empty, defaultBuildingCodeResult.Error ?? "Unassigned building was not found.");
+            return Page();
+        }
+
+        var addProfileResult = await _adminService.AddUserProfile(new FfUserProfile
+        {
+            FName = Input.FirstName,
+            LName = Input.LastName,
+            FfUserId = user.Id,
+            LocationCode = defaultBuildingCodeResult.Data
+        });
+        if (!addProfileResult.Success)
+        {
+            await _userManager.DeleteAsync(user);
+            ModelState.AddModelError(string.Empty, addProfileResult.Error ?? "User profile creation failed.");
+            return Page();
         }
 
 

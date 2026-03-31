@@ -1,4 +1,5 @@
 using fixflow.web.Data;
+using fixflow.web.Dto;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Pages;
 using fixflow.web.Services;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -16,12 +16,9 @@ namespace fixflow.web.Pages.Admin
     [Authorize(Roles = "Admin,Manager,Employee")]
     public class UsersModel : UserAdminPageModel
     {
-        private readonly FfDbContext _context;
-
-        public UsersModel(FfDbContext context, UserManager<AppUser> userManager, IAdminService adminService)
+        public UsersModel(UserManager<AppUser> userManager, IAdminService adminService)
             : base(adminService, userManager)
         {
-            _context = context;
         }
 
         public IList<FfUserProfile> Users { get; set; } = default!;
@@ -55,12 +52,10 @@ namespace fixflow.web.Pages.Admin
         {
             await LoadBuildingOptionsAsync();
 
-            Users = await _context.FfUserProfiles
-                .Include(p => p.FfUser)
-                .Include(p => p.Location)
-                .OrderBy(p => p.LName)
-                .ThenBy(p => p.FName)
-                .ToListAsync();
+            var usersResult = await _adminService.GetUserProfilesWithIdentityAndLocation();
+            Users = usersResult.Success && usersResult.Data != null
+                ? usersResult.Data
+                : new List<FfUserProfile>();
 
             var rows = new List<UserRowViewModel>();
             foreach (var profile in Users)
@@ -118,16 +113,18 @@ namespace fixflow.web.Pages.Admin
 
         private async Task LoadBuildingOptionsAsync()
         {
-            BuildingOptions = await _context.FfBuildingDirectorys
-                .AsNoTracking()
-                .Where(b => b.LocationName != "Unassigned")
+            var buildingsResult = await _adminService.GetBuildingList();
+            var buildings = buildingsResult.Success && buildingsResult.Data != null
+                ? buildingsResult.Data
+                : new List<BuildingDto>();
+            BuildingOptions = buildings
                 .OrderBy(b => b.LocationName)
                 .Select(b => new SelectListItem
                 {
                     Value = b.LocationCode.ToString(),
                     Text = b.LocationName + " (#" + b.BuildingNumber + ")"
                 })
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -152,7 +149,8 @@ namespace fixflow.web.Pages.Admin
                 return Page();
             }
 
-            var profile = await _context.FfUserProfiles.FirstOrDefaultAsync(p => p.FfUserId == SelectedUserId);
+            var profileResult = await _adminService.GetUserProfileById(SelectedUserId);
+            var profile = profileResult.Success ? profileResult.Data : null;
             if (profile == null)
             {
                 ModelState.AddModelError(string.Empty, "This account has no profile record to update.");
@@ -177,8 +175,8 @@ namespace fixflow.web.Pages.Admin
 
             if (EditLocationCode != 0)
             {
-                var building = await _context.FfBuildingDirectorys.AsNoTracking()
-                    .FirstOrDefaultAsync(b => b.LocationCode == EditLocationCode);
+                var buildingResult = await _adminService.GetBuildingByCode(EditLocationCode);
+                var building = buildingResult.Success ? buildingResult.Data : null;
                 if (building == null)
                     ModelState.AddModelError(nameof(EditLocationCode), "Choose a valid building or “Not assigned”.");
                 else if (EditUnit > building.NumUnits || EditUnit < 0)
@@ -257,7 +255,13 @@ namespace fixflow.web.Pages.Admin
             profile.LName = EditLName;
             profile.LocationCode = EditLocationCode;
             profile.Unit = EditUnit;
-            await _context.SaveChangesAsync();
+            var saveProfile = await _adminService.SaveUserProfile(profile);
+            if (!saveProfile.Success)
+            {
+                ModelState.AddModelError(string.Empty, saveProfile.Error ?? "Unable to save user profile.");
+                await OnGetAsync();
+                return Page();
+            }
 
             return RedirectToPage();
         }

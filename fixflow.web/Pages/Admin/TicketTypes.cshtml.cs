@@ -1,30 +1,30 @@
-using fixflow.web.Data;
 using fixflow.web.Domain.Enums;
+using fixflow.web.Dto;
 using fixflow.web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace fixflow.web.Pages.Admin
 {
     [Authorize(Roles = nameof(RoleTypes.Admin))]
     public class TicketTypesModel : AppPageModel
     {
-        private readonly FfDbContext _context;
         private readonly IAdminService _adminService;
 
-        public TicketTypesModel(FfDbContext context, IAdminService adminService)
+        public TicketTypesModel(IAdminService adminService)
         {
-            _context = context;
             _adminService = adminService;
         }
 
-        public IList<FfTicketTypes> TicketTypes { get; set; } = default!;
+        public IList<TicketTypeDto> TicketTypes { get; set; } = default!;
 
         public async Task OnGetAsync()
         {
-            TicketTypes = await _context.FfTicketTypess.ToListAsync();
+            var results = await _adminService.GetTicketTypeList();
+            TicketTypes = results.Success && results.Data != null
+                ? results.Data
+                : new List<TicketTypeDto>();
         }
         public async Task<IActionResult> OnGetDeleteStatusAsync(int id)
         {

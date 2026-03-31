@@ -127,7 +127,6 @@
                         <thead>
                             <tr>
                                 <th class="col-id" data-tcol="id">ID</th>
-                                <th data-tcol="issue">Issue</th>
                                 <th data-tcol="type">Type</th>
                                 @if (isStaff)
                                 {
@@ -176,10 +175,6 @@
                                     data-requested-by="@requestedBy"
                                     data-assigned-to="@assignedTo">
                                     <td data-tcol="id"><span class="tid">#@ticketCode</span></td>
-                                    <td data-tcol="issue">
-                                        <div class="tissue">@(string.IsNullOrWhiteSpace(ticket.TicketDescription) ? ticketTypeName : (ticket.TicketDescription.Length > 60 ? ticket.TicketDescription.Substring(0, 60) + "…" : ticket.TicketDescription))</div>
-                                        <div class="tmeta">@ticketTypeName</div>
-                                    </td>
                                     <td data-tcol="type">@ticketTypeName</td>
                                     @if (isStaff)
                                     {
@@ -251,7 +246,7 @@
         listTicketRows.forEach((row) => {
             const rowStatus = (row.getAttribute("data-status") ?? "").toLowerCase();
             const rowPriority = (row.getAttribute("data-priority") ?? "").toLowerCase();
-            const searchable = [
+            let searchable = [
                 row.getAttribute("data-ticket-code") ?? "",
                 row.getAttribute("data-type") ?? "",
                 row.getAttribute("data-status") ?? "",
@@ -313,7 +308,6 @@
             <text>
         cols = [
             { key: 'id', label: 'ID', required: true },
-            { key: 'issue', label: 'Issue' },
             { key: 'type', label: 'Type' },
             { key: 'priority', label: 'Priority' },
             { key: 'status', label: 'Status' },
@@ -330,7 +324,6 @@
             <text>
         cols = [
             { key: 'id', label: 'ID', required: true },
-            { key: 'issue', label: 'Issue' },
             { key: 'type', label: 'Type' },
             { key: 'status', label: 'Status' },
             { key: 'location', label: 'Location' },

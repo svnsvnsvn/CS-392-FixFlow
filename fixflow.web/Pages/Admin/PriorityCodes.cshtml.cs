@@ -1,30 +1,30 @@
-using fixflow.web.Data;
 using fixflow.web.Domain.Enums;
+using fixflow.web.Dto;
 using fixflow.web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace fixflow.web.Pages.Admin
 {
     [Authorize(Roles = nameof(RoleTypes.Admin))]
     public class PriorityCodesModel : AppPageModel
     {
-        private readonly FfDbContext _context;
         public readonly IAdminService _adminService;
 
-        public PriorityCodesModel(FfDbContext context, IAdminService adminService)
+        public PriorityCodesModel(IAdminService adminService)
         {
-            _context = context;
             _adminService = adminService;
         }
 
-        public IList<FfPriorityCodes> PriorityCodes { get; set; } = default!;
+        public IList<PriorityCodeDto> PriorityCodes { get; set; } = default!;
 
         public async Task OnGetAsync()
         {
-            PriorityCodes = await _context.FfPriorityCodess.OrderBy(p => p.PriorityCode).ToListAsync();
+            var results = await _adminService.GetPriorityCodeList();
+            PriorityCodes = results.Success && results.Data != null
+                ? results.Data
+                : new List<PriorityCodeDto>();
         }
         public async Task<IActionResult> OnGetIncreasePriorityAsync(int id)
         {

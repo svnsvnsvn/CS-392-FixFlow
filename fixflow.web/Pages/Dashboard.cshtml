@@ -121,7 +121,6 @@
                         <thead>
                             <tr>
                                 <th class="col-id" data-tcol="id">ID</th>
-                                <th data-tcol="issue">Issue</th>
                                 <th data-tcol="category">Category</th>
                                 <th data-tcol="status">Status</th>
                                 @if (Model.UserRole != "Client")
@@ -157,7 +156,6 @@
                                     data-created-date="@ticket.CreatedDate.ToString("yyyy-MM-dd")"
                                     data-submitted-by="@ticket.SubmittedBy">
                                     <td data-tcol="id"><span class="tid">#@ticket.Id</span></td>
-                                    <td data-tcol="issue"><div class="tissue">@ticket.Title</div></td>
                                     <td data-tcol="category">@ticket.Category</td>
                                     <td data-tcol="status"><span class="sdot @sdClass">@ticket.Status</span></td>
                                     @if (Model.UserRole != "Client")
@@ -352,7 +350,6 @@
             <text>
         cols = [
             { key: 'id', label: 'ID', required: true },
-            { key: 'issue', label: 'Issue' },
             { key: 'category', label: 'Category' },
             { key: 'status', label: 'Status' },
             { key: 'created', label: 'Created' },
@@ -365,7 +362,6 @@
             <text>
         cols = [
             { key: 'id', label: 'ID', required: true },
-            { key: 'issue', label: 'Issue' },
             { key: 'category', label: 'Category' },
             { key: 'status', label: 'Status' },
             { key: 'submittedBy', label: 'Submitted By' },
@@ -380,7 +376,6 @@
             <text>
         cols = [
             { key: 'id', label: 'ID', required: true },
-            { key: 'issue', label: 'Issue' },
             { key: 'category', label: 'Category' },
             { key: 'status', label: 'Status' },
             { key: 'submittedBy', label: 'Submitted By' },

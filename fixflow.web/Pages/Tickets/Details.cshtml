@@ -8,7 +8,7 @@
     ViewData["HideNav"] = true;
     ViewData["ActiveNav"] = "Tickets";
     ViewData["BreadcrumbPath"] = "Operations";
-    ViewData["BreadcrumbTitle"] = $"Ticket #@Model.Ticket.Id";
+    ViewData["BreadcrumbTitle"] = $"Ticket #{Model.Ticket.Id}";
 }
 
 @section Styles {
@@ -20,20 +20,25 @@
 
     <main class="main ref-main details-main">
         @await Html.PartialAsync("_Topbar")
-            <div class="page-header">
+        <div class="ref-page tickets-hub details-page">
+            <div class="ph">
                 <div>
-                    <h1 class="page-title"><i class="bi bi-ticket-perforated"></i> Ticket #@Model.Ticket.Id</h1>
-                    <p class="page-subtitle">Details and updates for this request.</p>
+                    <div class="ph-bc">Request details</div>
+                    <div class="ph-s">Details and updates for this request.</div>
                 </div>
                 <div class="details-actions">
-                    <a href="@ticketsHomeHref" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> @ticketsHomeLabel</a>
+                    <a href="@ticketsHomeHref" class="btn btn-s"><i class="bi bi-arrow-left"></i> @ticketsHomeLabel</a>
                 </div>
             </div>
 
 
             <div class="details-grid">
                 <div>
-                    <div class="details-card">
+                    <section class="tsec details-card">
+                        <div class="tsec-hd">
+                            <span class="ct">Request Overview</span>
+                        </div>
+                        <div class="details-card-body">
                         <div class="ticket-title">@Model.Ticket.Title</div>
 
                         <div class="ticket-meta">
@@ -83,83 +88,104 @@
                                 {
                                     <form method="post" asp-page-handler="AssignTechnician" asp-route-ticketId="@Model.Ticket.Id" class="ff-form-inline-flex">
                                         <select asp-for="SelectedTechnicianId" asp-items="Model.AvailableTechnicians" class="form-control ff-select-auto"></select>
-                                        <button type="submit" class="btn btn-primary">@(Model.Ticket.Status == "Assigned" ? "Reassign Technician" : "Assign Technician")</button>
+                                        <button type="submit" class="btn btn-p">@(Model.Ticket.Status == "Assigned" ? "Reassign Technician" : "Assign Technician")</button>
                                     </form>
-                                    <button class="btn btn-secondary">Change Priority</button>
+                                    <button class="btn btn-s">Change Priority</button>
                                 }
                                 @if (Model.UserRole == "Technician" && Model.Ticket.Status == "Assigned")
                                 {
-                                    <button class="btn btn-primary">Start Work</button>
+                                    <button class="btn btn-p">Start Work</button>
                                 }
                                 @if (Model.UserRole == "Technician" && Model.Ticket.Status == "In Progress")
                                 {
-                                    <button class="btn btn-primary">Mark Complete</button>
-                                    <button class="btn btn-secondary">Put On Hold</button>
+                                    <button class="btn btn-p">Mark Complete</button>
+                                    <button class="btn btn-s">Put On Hold</button>
                                 }
                                 @if (Model.UserRole == "Client" && Model.IsOwnTicket && Model.Ticket.Status == "Completed")
                                 {
-                                    <button class="btn btn-primary">Confirm Resolved</button>
-                                    <button class="btn btn-secondary">Reopen Ticket</button>
+                                    <button class="btn btn-p">Confirm Resolved</button>
+                                    <button class="btn btn-s">Reopen Ticket</button>
                                 }
                                 @if (Model.UserRole == "Admin")
                                 {
-                                    <button class="btn btn-secondary">Edit Ticket</button>
-                                    <button class="btn btn-ghost">Delete Ticket</button>
+                                    <button class="btn btn-s">Edit Ticket</button>
+                                    <button class="btn btn-s">Delete Ticket</button>
                                 }
                             </div>
                         }
-                    </div>
-
-                    <div class="details-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Comments & Updates</h3>
                         </div>
+                    </section>
 
-                        @foreach (var comment in Model.PublicComments)
-                        {
-                            <div class="comment">
-                                <div class="comment-header">
-                                    <div class="comment-author">
-                                        @comment.AuthorName
-                                        @if (!string.IsNullOrEmpty(comment.AuthorRole) && Model.UserRole != "Client")
-                                        {
-                                            <span class="comment-badge">@comment.AuthorRole</span>
-                                        }
-                                    </div>
-                                    <span>@comment.CreatedDate.ToString("MMM dd, yyyy h:mm tt")</span>
-                                </div>
-                                <div class="comment-text">@comment.Text</div>
-                            </div>
-                        }
-
-                        @if (!Model.PublicComments.Any())
-                        {
-                            <div class="empty-state">
-                                <i class="bi bi-chat ff-empty-icon" aria-hidden="true"></i>
-                                <p>No comments yet</p>
-                            </div>
-                        }
-
-                        <div class="comment-form">
-                            <form method="post" asp-page-handler="AddComment">
+                    <section class="tsec details-card">
+                        <div class="tsec-hd card-header">
+                            <h3 class="card-title">Comments & Updates</h3>
+                            <form method="post" asp-page-handler="SummarizeComments">
                                 <input type="hidden" name="ticketId" value="@Model.Ticket.Id" />
-                                <div class="form-group">
-                                    <label>Add a comment</label>
-                                    <textarea name="commentText" placeholder="Type your message here..." required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">  <i class="bi bi-send"></i> Post Comment </button>
+                                <button type="submit" class="btn btn-s"><i class="bi bi-stars"></i> Summarize comments</button>
                             </form>
                         </div>
-                    </div>
+
+                        <div class="details-card-body">
+                            @if (!string.IsNullOrWhiteSpace(Model.CommentSummaryStub))
+                            {
+                                <div class="summary-stub" role="status" aria-live="polite">
+                                    <div class="summary-stub-title">Comment Summary (stub)</div>
+                                    <p>@Model.CommentSummaryStub</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="summary-placeholder">
+                                    Click <strong>Summarize comments</strong> to preview where an automated summary will appear.
+                                </div>
+                            }
+
+                            @foreach (var comment in Model.PublicComments)
+                            {
+                                <div class="comment">
+                                    <div class="comment-header">
+                                        <div class="comment-author">
+                                            @comment.AuthorName
+                                            @if (!string.IsNullOrEmpty(comment.AuthorRole) && Model.UserRole != "Client")
+                                            {
+                                                <span class="comment-badge">@comment.AuthorRole</span>
+                                            }
+                                        </div>
+                                        <span>@comment.CreatedDate.ToString("MMM dd, yyyy h:mm tt")</span>
+                                    </div>
+                                    <div class="comment-text">@comment.Text</div>
+                                </div>
+                            }
+
+                            @if (!Model.PublicComments.Any())
+                            {
+                                <div class="empty-state">
+                                    <i class="bi bi-chat ff-empty-icon" aria-hidden="true"></i>
+                                    <p>No comments yet</p>
+                                </div>
+                            }
+
+                            <div class="comment-form">
+                                <form method="post" asp-page-handler="AddComment">
+                                    <input type="hidden" name="ticketId" value="@Model.Ticket.Id" />
+                                    <div class="form-group">
+                                        <label>Add a comment</label>
+                                        <textarea class="fta" name="commentText" placeholder="Type your message here..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-p"><i class="bi bi-send"></i> Post Comment</button>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
 
                     @if (Model.UserRole != "Client")
                     {
-                        <div class="details-card">
-                            <div class="card-header">
+                        <section class="tsec details-card">
+                            <div class="tsec-hd card-header">
                                 <h3 class="card-title">Internal Notes</h3>
                                 <span class="text-muted text-sm">Not visible to clients</span>
                             </div>
-
+                            <div class="details-card-body">
                             @foreach (var note in Model.InternalNotes)
                             {
                                 <div class="comment internal">
@@ -187,20 +213,22 @@
                                     <input type="hidden" name="ticketId" value="@Model.Ticket.Id" />
                                     <div class="form-group">
                                         <label>Add internal note</label>
-                                        <textarea name="noteText" placeholder="This will only be visible to staff..." required></textarea>
+                                        <textarea class="fta" name="noteText" placeholder="This will only be visible to staff..." required></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-secondary">  <i class="bi bi-sticky"></i> Add Note </button>
+                                    <button type="submit" class="btn btn-s"><i class="bi bi-sticky"></i> Add Note</button>
                                 </form>
                             </div>
-                        </div>
+                            </div>
+                        </section>
                     }
                 </div>
 
                 <div>
-                    <div class="details-card">
-                        <div class="card-header">
+                    <section class="tsec details-card">
+                        <div class="tsec-hd card-header">
                             <h3 class="card-title">Ticket Information</h3>
                         </div>
+                        <div class="details-card-body">
                         <div class="info-list">
                             <div class="info-item">
                                 <span class="info-label">Submitted By</span>
@@ -232,12 +260,14 @@
                                 </div>
                             }
                         </div>
-                    </div>
+                        </div>
+                    </section>
 
-                    <div class="details-card">
-                        <div class="card-header">
+                    <section class="tsec details-card">
+                        <div class="tsec-hd card-header">
                             <h3 class="card-title">Activity History</h3>
                         </div>
+                        <div class="details-card-body">
                         <div class="timeline">
                             @foreach (var activity in Model.ActivityHistory)
                             {
@@ -257,8 +287,10 @@
                                 </div>
                             }
                         </div>
-                    </div>
+                        </div>
+                    </section>
                 </div>
             </div>
+        </div>
     </main>
 </div>

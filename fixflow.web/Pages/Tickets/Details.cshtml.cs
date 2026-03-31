@@ -5,22 +5,21 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace fixflow.web.Pages.Tickets
 {
     public class DetailsModel : PageModel
     {
-        private readonly FfDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
+        private readonly IAdminService _adminService;
 
-        public DetailsModel(FfDbContext context, UserManager<AppUser> userManager, ITicketService ticketService)
+        public DetailsModel(UserManager<AppUser> userManager, ITicketService ticketService, IAdminService adminService)
         {
-            _context = context;
             _userManager = userManager;
             _ticketService = ticketService;
+            _adminService = adminService;
         }
 
         public string UserRole { get; set; } = "Client";
@@ -30,6 +29,7 @@ namespace fixflow.web.Pages.Tickets
         public List<CommentViewModel> InternalNotes { get; set; } = new();
         public List<ActivityViewModel> ActivityHistory { get; set; } = new();
         public List<SelectListItem> AvailableTechnicians { get; set; } = new();
+        public string CommentSummaryStub { get; set; } = string.Empty;
 
         [BindProperty]
         public string SelectedTechnicianId { get; set; } = string.Empty;
@@ -49,51 +49,36 @@ namespace fixflow.web.Pages.Tickets
             {
                 return Page();
             }
-            RoleTypes userRole = Enum.Parse<RoleTypes>(roles.FirstOrDefault());
+            var currentRole = roles.FirstOrDefault() ?? RoleTypes.Resident.ToString();
+            RoleTypes userRole = Enum.Parse<RoleTypes>(currentRole);
+            UserRole = MapRoleForUi(currentRole);
 
-            // Try to parse as GUID first
-            FfTicketRegister? ticket = null;
-            
-            if (Guid.TryParse(id, out var ticketId))
-            {
-                ticket = await _context.FfTicketRegisters
-                    .Include(t => t.TicketType)
-                    .Include(t => t.PriorityCode)
-                    .Include(t => t.StatusCode)
-                    .Include(t => t.Building)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.TicketId == ticketId);
-            }
-            else
-            {
-                // Try to find by short code
-                ticket = await _context.FfTicketRegisters
-                    .Include(t => t.TicketType)
-                    .Include(t => t.PriorityCode)
-                    .Include(t => t.StatusCode)
-                    .Include(t => t.Building)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.TicketShortCode == id);
-            }
-
+            var ticketResult = await _ticketService.GetTicketByIdentifier(id);
+            var ticket = ticketResult.Success ? ticketResult.Data : null;
             if (ticket == null)
             {
                 return NotFound();
             }
 
-            var profiles = await _context.FfUserProfiles
-                .AsNoTracking()
-                .ToDictionaryAsync(profile => profile.FfUserId, profile => profile);
+            var flowsResult = await _ticketService.GetTicketFlows(ticket.TicketId);
+            var flows = flowsResult.Success && flowsResult.Data != null
+                ? flowsResult.Data
+                : new List<FfTicketFlow>();
 
-            var flows = await _context.FfTicketFlows
-                .Where(flow => flow.TicketId == ticket.TicketId)
-                .OrderBy(flow => flow.TimeStamp)
-                .AsNoTracking()
-                .ToListAsync();
+            var statusCodeMapResult = await _ticketService.GetStatusCodeNameMap();
+            var statusCodes = statusCodeMapResult.Success && statusCodeMapResult.Data != null
+                ? statusCodeMapResult.Data
+                : new Dictionary<int, string>();
 
-            var statusCodes = await _context.FfStatusCodes
-                .AsNoTracking()
-                .ToDictionaryAsync(code => code.Id, code => code.StatusName);
+            var profileIds = new List<string> { ticket.RequestedBy };
+            profileIds.AddRange(flows.Select(f => f.NewAssignee));
+            var profilesResult = await _adminService.GetUserProfilesByIds(profileIds
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList());
+            var profiles = profilesResult.Success && profilesResult.Data != null
+                ? profilesResult.Data.ToDictionary(profile => profile.FfUserId, profile => profile)
+                : new Dictionary<string, FfUserProfile>();
 
             var createdDate = flows.Select(flow => flow.TimeStamp).FirstOrDefault();
             var lastFlow = flows.LastOrDefault();
@@ -112,7 +97,10 @@ namespace fixflow.web.Pages.Tickets
                     ? ticket.TicketId.ToString()
                     : ticket.TicketShortCode,
                 Title = ticket.TicketType?.TypeName ?? "Maintenance request",
-                Description = "Details will appear once the request is fully documented.",
+                Description = string.IsNullOrWhiteSpace(ticket.TicketDescription)
+                    ? "Details will appear once the request is fully documented."
+                    : ticket.TicketDescription,
+                Status = ticket.StatusCode?.StatusName ?? "Submitted",
                 Priority = ticket.PriorityCode?.PriorityName ?? "Normal",
                 Category = ticket.TicketType?.TypeName ?? "General",
                 Building = ticket.Building?.LocationName ?? "Unknown building",
@@ -126,10 +114,11 @@ namespace fixflow.web.Pages.Tickets
                     : null
             };
 
-            PublicComments = await _context.FfExternalNotess
-                .Where(note => note.TicketId == ticket.TicketId)
-                .OrderByDescending(note => note.TimeStamp)
-                .AsNoTracking()
+            var externalResult = await _ticketService.GetExternalNotes(ticket.TicketId);
+            var externalNotes = externalResult.Success && externalResult.Data != null
+                ? externalResult.Data
+                : new List<FfExternalNotes>();
+            PublicComments = externalNotes
                 .Select(note => new CommentViewModel
                 {
                     AuthorName = note.CreatedBy,
@@ -138,12 +127,13 @@ namespace fixflow.web.Pages.Tickets
                     CreatedDate = note.TimeStamp,
                     IsInternal = false
                 })
-                .ToListAsync();
+                .ToList();
 
-            InternalNotes = await _context.FfInternalNotess
-                .Where(note => note.TicketId == ticket.TicketId)
-                .OrderByDescending(note => note.TimeStamp)
-                .AsNoTracking()
+            var internalResult = await _ticketService.GetInternalNotes(ticket.TicketId);
+            var internalNotes = internalResult.Success && internalResult.Data != null
+                ? internalResult.Data
+                : new List<FfInternalNotes>();
+            InternalNotes = internalNotes
                 .Select(note => new CommentViewModel
                 {
                     AuthorName = note.CreatedBy,
@@ -152,7 +142,7 @@ namespace fixflow.web.Pages.Tickets
                     CreatedDate = note.TimeStamp,
                     IsInternal = true
                 })
-                .ToListAsync();
+                .ToList();
 
             ActivityHistory = flows
                 .OrderByDescending(flow => flow.TimeStamp)
@@ -168,6 +158,11 @@ namespace fixflow.web.Pages.Tickets
                 })
                 .ToList();
 
+            if (TempData.TryGetValue("CommentSummaryStub", out var summaryStubObj))
+            {
+                CommentSummaryStub = summaryStubObj?.ToString() ?? string.Empty;
+            }
+
             // Check if current user owns this ticket (for client view)
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             IsOwnTicket = (UserRole == "Client" && !string.IsNullOrEmpty(currentUserId) && ticket.RequestedBy == currentUserId);
@@ -176,9 +171,10 @@ namespace fixflow.web.Pages.Tickets
             if (UserRole == "Manager" || UserRole == "Admin")
             {
                 var technicians = await _userManager.GetUsersInRoleAsync(RoleTypes.Employee.ToString());
-                var techniciansWithProfiles = await _context.FfUserProfiles
-                    .Where(p => technicians.Select(t => t.Id).Contains(p.FfUserId))
-                    .ToListAsync();
+                var techProfilesResult = await _adminService.GetUserProfilesByIds(technicians.Select(t => t.Id).ToList());
+                var techniciansWithProfiles = techProfilesResult.Success && techProfilesResult.Data != null
+                    ? techProfilesResult.Data
+                    : new List<FfUserProfile>();
 
                 AvailableTechnicians = techniciansWithProfiles
                     .Select(p => new SelectListItem
@@ -216,8 +212,7 @@ namespace fixflow.web.Pages.Tickets
             //     IsInternalNote = false,
             //     CreatedDate = DateTime.UtcNow
             // };
-            // await _context.TicketComments.AddAsync(comment);
-            // await _context.SaveChangesAsync();
+            // await ticketService.AddExternalComment(...);
 
             // Also add to activity history:
             // var activity = new TicketHistory
@@ -229,6 +224,25 @@ namespace fixflow.web.Pages.Tickets
             //     ChangedDate = DateTime.UtcNow
             // };
 
+            return RedirectToPage(new { id = ticketId });
+        }
+
+        public IActionResult OnPostSummarizeCommentsAsync(string ticketId)
+        {
+            // TODO(Adam): Implement summary generation by querying these entities:
+            // 1) FfExternalNotess (customer-visible comments): TicketId, Content, CreatedBy, TimeStamp.
+            // 2) FfInternalNotess (staff-only context): TicketId, Content, CreatedBy, TimeStamp.
+            // 3) FfTicketFlows (status/activity timeline): TicketId, NewTicketStatus, NewAssignee, TimeStamp.
+            //
+            // Suggested flow:
+            // - Fetch notes for the provided TicketId, sorted ascending by TimeStamp.
+            // - Optionally enrich names by joining CreatedBy/NewAssignee to FfUserProfiles.FfUserId.
+            // - Build an input transcript with sections [Public Comments], [Internal Notes], [Ticket Activity].
+            // - Call your preferred summarization service (LLM/provider) and store result in a summary table
+            //   or cache field (e.g., TicketId + GeneratedAt + SummaryText + ModelVersion).
+            // - Return summary text to this page model (CommentSummaryStub), and gate internal content by role.
+            TempData["CommentSummaryStub"] =
+                "Stub preview: summary generation is wired at UI level. Adam should implement server-side aggregation from FfExternalNotess, FfInternalNotess, and FfTicketFlows for this ticket, then return concise highlights, blockers, and next actions.";
             return RedirectToPage(new { id = ticketId });
         }
 
@@ -248,8 +262,7 @@ namespace fixflow.web.Pages.Tickets
             //     IsInternalNote = true,  // This is the key difference!
             //     CreatedDate = DateTime.UtcNow
             // };
-            // await _context.TicketComments.AddAsync(note);
-            // await _context.SaveChangesAsync();
+            // await ticketService.AddInternalNote(...);
 
             return RedirectToPage(new { id = ticketId });
         }
@@ -262,15 +275,8 @@ namespace fixflow.web.Pages.Tickets
             }
 
             // Parse ticket ID
-            FfTicketRegister? ticket = null;
-            if (Guid.TryParse(ticketId, out var ticketGuid))
-            {
-                ticket = await _context.FfTicketRegisters.FirstOrDefaultAsync(t => t.TicketId == ticketGuid);
-            }
-            else
-            {
-                ticket = await _context.FfTicketRegisters.FirstOrDefaultAsync(t => t.TicketShortCode == ticketId);
-            }
+            var ticketResult = await _ticketService.GetTicketByIdentifier(ticketId);
+            var ticket = ticketResult.Success ? ticketResult.Data : null;
 
             if (ticket == null)
             {
@@ -290,12 +296,8 @@ namespace fixflow.web.Pages.Tickets
                 userRole = RoleTypes.Admin;
 
             // Get "Assigned" status code
-            var assignedCode = _ticketService.GetStatusCode("Assigned").Result.Data;
-            
-            var assignedStatus = await _context.FfStatusCodes
-                .FirstOrDefaultAsync(s => s.StatusCode == assignedCode);
-
-            if (assignedStatus == null)
+            var assignedCodeResult = await _ticketService.GetStatusCode("Assigned");
+            if (!assignedCodeResult.Success)
             {
                 TempData["ErrorMessage"] = "System configuration error: Assigned status not found.";
                 return RedirectToPage(new { id = ticketId });
@@ -307,7 +309,7 @@ namespace fixflow.web.Pages.Tickets
                 userRole,
                 ticket.TicketId,
                 SelectedTechnicianId,
-                assignedStatus.Id
+                assignedCodeResult.Data
             );
 
             if (!result.Success)
@@ -354,6 +356,19 @@ namespace fixflow.web.Pages.Tickets
             public string Action { get; set; } = string.Empty;
             public string PerformedBy { get; set; } = string.Empty;
             public DateTime Timestamp { get; set; }
+        }
+
+        private static string MapRoleForUi(string role)
+        {
+            return role switch
+            {
+                nameof(RoleTypes.Admin) => "Admin",
+                nameof(RoleTypes.Manager) => "Manager",
+                nameof(RoleTypes.Employee) => "Technician",
+                nameof(RoleTypes.Resident) => "Client",
+                nameof(RoleTypes.Pending) => "Client",
+                _ => "Client"
+            };
         }
     }
 }

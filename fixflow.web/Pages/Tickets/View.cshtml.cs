@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
+using fixflow.web.Services;
 
 namespace fixflow.web.Pages.Tickets
 {
     public class ViewModel : PageModel
     {
-        private readonly FfDbContext _context;
+        private readonly ITicketService _ticketService;
 
-        public ViewModel(FfDbContext context)
+        public ViewModel(ITicketService ticketService)
         {
-            _context = context;
+            _ticketService = ticketService;
         }
 
         public FfTicketRegister Ticket { get; set; } = default!;
@@ -20,14 +20,13 @@ namespace fixflow.web.Pages.Tickets
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
             TicketId = id;
-            var ticket = await _context.FfTicketRegisters.FirstOrDefaultAsync(m => m.TicketId == id);
-
-            if (ticket == null)
+            var ticketResult = await _ticketService.GetTicketById(id);
+            if (!ticketResult.Success || ticketResult.Data == null)
             {
                 return NotFound();
             }
 
-            Ticket = ticket;
+            Ticket = ticketResult.Data;
             return Page();
         }
     }
