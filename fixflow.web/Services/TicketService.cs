@@ -3,6 +3,7 @@ using fixflow.web.Domain.Enums;
 using fixflow.web.Dto;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using System.Collections.Generic;
 
 namespace fixflow.web.Services
@@ -10,10 +11,12 @@ namespace fixflow.web.Services
     public class TicketService : ITicketService
     {
         private readonly FfDbContext _db;
+        private readonly IMongoCollection<FfAccountNote> _notes;
 
-        public TicketService(FfDbContext db)
+        public TicketService(FfDbContext db, IMongoDatabase mongoDb)
         {
             _db = db;
+            _notes = mongoDb.GetCollection<FfAccountNote>("AccountNotes");
         }
 
         public async Task<ServiceResult<Guid>> AddNewTicket(string _requestorId, RoleTypes _requestorRole, NewTicketDto _newTicketData)
@@ -478,7 +481,6 @@ namespace fixflow.web.Services
             {
                 return ServiceResult<PriorityCodeDto>.Fail(ex.Message);
             }
-
         }
         public async Task<ServiceResult<List<TicketDataDto>>> GetTicketsByRequestor(string _RequestorId)
         {
@@ -634,6 +636,52 @@ namespace fixflow.web.Services
             catch (Exception ex)
             {
                 return ServiceResult<List<TicketHistoryItemDto>>.Fail(ex.Message);
+            }
+        }
+        public async Task<ServiceResult<bool>> AddNewNote(UserCredentialDTO _SubmitterId, NoteDto _NewNote)
+        {
+            try
+            {
+                // Verify _RequestorId is valid and exists exists
+                if (_SubmitterId.UserId == null)
+                {
+                    return ServiceResult<bool>.Fail("_SubmitterId not provided");
+                }
+
+                bool submitterExists = await _db.FfUserProfiles.AnyAsync(a => a.FfUserId == _SubmitterId.UserId);
+                if (!submitterExists)
+                {
+                    return ServiceResult<bool>.Fail("_SubmitterId not found");
+                }
+
+                // Validate new note contents
+                bool ticketExists = await _db.FfTicketRegisters.AnyAsync(a => a.TicketId == _NewNote.TicketId);
+                if (!ticketExists)
+                {
+                    return ServiceResult<bool>.Fail("TicketId related to _newNote not found");
+                }
+
+                if (_NewNote.NoteText.Length < 1)
+                {
+                    return ServiceResult<bool>.Fail("NoteText not valid.");
+                }
+
+                FfAccountNote newNote = new FfAccountNote();
+
+                newNote.TicketId = _NewNote.TicketId;
+                newNote.NoteText = _NewNote.NoteText;
+                newNote.InternalOnly = _NewNote.InternalOnly;
+                newNote.TimeStamp = DateTime.UtcNow;
+                newNote.EnteredByUserId = _SubmitterId.UserId;
+
+                // Create new note
+                await _notes.InsertOneAsync(newNote);
+     
+                return ServiceResult<bool>.Ok(true);
+                 }
+            catch (Exception ex)
+            {
+                ServiceResult<bool>.Fail(ex.Message);
             }
         }
     }
