@@ -1,15 +1,34 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using fixflow.web.Data;
 using fixflow.web.Domain.Enums;
 using fixflow.web.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// AMS - Reqister EF Core
+// Register Postgres DB
 builder.Services.AddDbContext<FfDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
+// Register Mongo DB
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var connectionString =
+        builder.Configuration.GetConnectionString("Mongo");
+
+    return new MongoClient(connectionString);
+});
+
+// Register Mango DB Object
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+
+    return client.GetDatabase("fixflow_notes");
+});
 
 builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<FfDbContext>()
