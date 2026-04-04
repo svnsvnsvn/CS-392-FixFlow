@@ -12,11 +12,13 @@ namespace fixflow.web.Services
     {
         private readonly FfDbContext _db;
         private readonly IMongoCollection<FfAccountNote> _notes;
+        private readonly IAdminService _adminService;
 
-        public TicketService(FfDbContext db, IMongoDatabase mongoDb)
+        public TicketService(FfDbContext db, IMongoDatabase mongoDb, IAdminService adminService)
         {
             _db = db;
             _notes = mongoDb.GetCollection<FfAccountNote>("AccountNotes");
+            _adminService = adminService;
         }
 
         public async Task<ServiceResult<Guid>> AddNewTicket(string _requestorId, RoleTypes _requestorRole, NewTicketDto _newTicketData)
@@ -728,39 +730,39 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<List<FfExternalNotes>>> GetExternalNotes(Guid ticketId)
-        {
-            try
-            {
-                var notes = await _db.FfExternalNotess
-                    .Where(note => note.TicketId == ticketId)
-                    .OrderByDescending(note => note.TimeStamp)
-                    .AsNoTracking()
-                    .ToListAsync();
-                return ServiceResult<List<FfExternalNotes>>.Ok(notes);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<List<FfExternalNotes>>.Fail(ex.Message);
-            }
-        }
+        //public async Task<ServiceResult<List<FfExternalNotes>>> GetExternalNotes(Guid ticketId)
+        //{
+        //    try
+        //    {
+        //        var notes = await _db.FfExternalNotess
+        //            .Where(note => note.TicketId == ticketId)
+        //            .OrderByDescending(note => note.TimeStamp)
+        //            .AsNoTracking()
+        //            .ToListAsync();
+        //        return ServiceResult<List<FfExternalNotes>>.Ok(notes);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ServiceResult<List<FfExternalNotes>>.Fail(ex.Message);
+        //    }
+        //}
 
-        public async Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId)
-        {
-            try
-            {
-                var notes = await _db.FfInternalNotess
-                    .Where(note => note.TicketId == ticketId)
-                    .OrderByDescending(note => note.TimeStamp)
-                    .AsNoTracking()
-                    .ToListAsync();
-                return ServiceResult<List<FfInternalNotes>>.Ok(notes);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<List<FfInternalNotes>>.Fail(ex.Message);
-            }
-        }
+        //public async Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId)
+        //{
+        //    try
+        //    {
+        //        var notes = await _db.FfInternalNotess
+        //            .Where(note => note.TicketId == ticketId)
+        //            .OrderByDescending(note => note.TimeStamp)
+        //            .AsNoTracking()
+        //            .ToListAsync();
+        //        return ServiceResult<List<FfInternalNotes>>.Ok(notes);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ServiceResult<List<FfInternalNotes>>.Fail(ex.Message);
+        //    }
+        //}
         public async Task<ServiceResult<TicketQueryBundleDto>> GetTicketListBundle()
         {
             try
@@ -916,10 +918,73 @@ namespace fixflow.web.Services
             }
         }
 
-        public async Task<ServiceResult<List<NoteDto>>> GetAllNote(UserCredentialDTO _SubmitterId, Guid _TicketId)
+        public async Task<ServiceResult<List<NoteDto>>> GetAllNotes(UserCredentialDTO _SubmitterId, Guid _TicketId, bool _includeInternal)
         {
+            try
+            {
+                // Verify _RequestorId is valid and exists exists
+                if (_SubmitterId.UserId == null)
+                {
+                    return ServiceResult<List<NoteDto>>.Fail("_SubmitterId not provided");
+                }
 
+                bool submitterExists = await _db.FfUserProfiles.AnyAsync(a => a.FfUserId == _SubmitterId.UserId);
+                if (!submitterExists)
+                {
+                    return ServiceResult<List<NoteDto>>.Fail("_SubmitterId not found");
+                }
+
+                List<FfAccountNote> ticketNotes = new List<FfAccountNote>();
+
+                if (_includeInternal)  // All notes public & internal
+                {
+                    ticketNotes = await _notes
+                        .Find(x=> x.TicketId == _TicketId)
+                        .SortByDescending(x => x.TimeStamp)
+                        .ToListAsync();
+                }
+                else // Only public notes
+                {
+                    ticketNotes = await _notes
+                        .Find(x => x.TicketId == _TicketId && x.InternalOnly == false)
+                        .SortByDescending(x => x.TimeStamp)
+                        .ToListAsync();
+                }
+
+                List<NoteDto> NotesToReturn = new List<NoteDto>();
+
+                foreach(var note in ticketNotes)
+                {
+                    // Get profile of User that enterd note. Needed for name
+                    var enteredByUser = await _adminService.GetUserProfileById(note.EnteredByUserId);
+                    string enteredByName;
+                    if (enteredByUser.Data == null)
+                    {
+                        enteredByName = "Unknown";
+                    }
+                    else
+                    {
+                        enteredByName = enteredByUser.Data.LName + ", " + enteredByUser.Data.FName;
+                    }
+
+
+                        NotesToReturn.Add(new NoteDto
+                        {
+                            TicketId = note.TicketId,
+                            NoteText = note.NoteText,
+                            InternalOnly = note.InternalOnly,
+                            TimeStamp = note.TimeStamp,
+                            EnteredByUserId = note.EnteredByUserId,
+                            EnteredByUserName = enteredByName
+                        });
+                }
+
+                return ServiceResult<List<NoteDto>>.Ok(NotesToReturn);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<List<NoteDto>>.Fail(ex.Message);
+            }
         }
-
     }
 }

@@ -6,6 +6,7 @@
         public string NoteText { get; set; } = string.Empty;
         public bool InternalOnly { get; set; } = true;
         public DateTime? TimeStamp { get; set; }
-        public string? EnteredByUserId { get; set; } = string.Empty;
+        public string? EnteredByUserId { get; set; } = string.Empty; 
+        public string? EnteredByUserName { get; set; } = string.Empty;
     }
 }

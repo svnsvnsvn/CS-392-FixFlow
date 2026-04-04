@@ -140,24 +140,21 @@
                                 </div>
                             }
 
-                            @foreach (var comment in Model.PublicComments)
+                            @foreach (var comment in Model.TicketNotes)
                             {
                                 <div class="comment">
                                     <div class="comment-header">
                                         <div class="comment-author">
-                                            @comment.AuthorName
-                                            @if (!string.IsNullOrEmpty(comment.AuthorRole) && Model.UserRole != "Client")
-                                            {
-                                                <span class="comment-badge">@comment.AuthorRole</span>
-                                            }
+                                            @comment.EnteredByUserName
+
                                         </div>
-                                        <span>@comment.CreatedDate.ToString("MMM dd, yyyy h:mm tt")</span>
+                                        <span>@comment.TimeStamp.ToString()</span>
                                     </div>
-                                    <div class="comment-text">@comment.Text</div>
+                                    <div class="comment-text">@comment.NoteText</div>
                                 </div>
                             }
 
-                            @if (!Model.PublicComments.Any())
+                            @if (Model.TicketNotes.Count == 0)
                             {
                                 <div class="empty-state">
                                     <i class="bi bi-chat ff-empty-icon" aria-hidden="true"></i>

@@ -26,8 +26,7 @@ namespace fixflow.web.Pages.Tickets
         public string UserRole { get; set; } = "Client";
         public bool IsOwnTicket { get; set; } = false;
         public TicketDetailViewModel Ticket { get; set; } = new();
-        public List<CommentViewModel> PublicComments { get; set; } = new();
-        public List<CommentViewModel> InternalNotes { get; set; } = new();
+        public List<NoteDto> TicketNotes { get; set; } = new();
         public List<ActivityViewModel> ActivityHistory { get; set; } = new();
         public List<SelectListItem> AvailableTechnicians { get; set; } = new();
         public string CommentSummaryStub { get; set; } = string.Empty;
@@ -113,35 +112,9 @@ namespace fixflow.web.Pages.Tickets
                     : null
             };
 
-            var externalResult = await _ticketService.GetExternalNotes(ticket.TicketId);
-            var externalNotes = externalResult.Success && externalResult.Data != null
-                ? externalResult.Data
-                : new List<FfExternalNotes>();
-            PublicComments = externalNotes
-                .Select(note => new CommentViewModel
-                {
-                    AuthorName = note.CreatedBy,
-                    AuthorRole = string.Empty,
-                    Text = note.Content,
-                    CreatedDate = note.TimeStamp,
-                    IsInternal = false
-                })
-                .ToList();
-
-            var internalResult = await _ticketService.GetInternalNotes(ticket.TicketId);
-            var internalNotes = internalResult.Success && internalResult.Data != null
-                ? internalResult.Data
-                : new List<FfInternalNotes>();
-            InternalNotes = internalNotes
-                .Select(note => new CommentViewModel
-                {
-                    AuthorName = note.CreatedBy,
-                    AuthorRole = "Staff",
-                    Text = note.Content,
-                    CreatedDate = note.TimeStamp,
-                    IsInternal = true
-                })
-                .ToList();
+            // Get all notes for ticket and assign to Model.TicketNotes
+            var ticketNotes = await _ticketService.GetAllNotes(LoggedInUser, ticket.TicketId,true);
+            TicketNotes = ticketNotes.Data;
 
             ActivityHistory = flows
                 .OrderByDescending(flow => flow.TimeStamp)
@@ -202,6 +175,7 @@ namespace fixflow.web.Pages.Tickets
                 return RedirectToPage(new { id = ticketId });
             }
 
+            // Create new note
             NoteDto newNote = new NoteDto();
             newNote.NoteText = commentText;
             newNote.TicketId = new Guid(ticketId);
@@ -209,27 +183,8 @@ namespace fixflow.web.Pages.Tickets
             newNote.EnteredByUserId = LoggedInUser.UserId;
             newNote.TimeStamp = DateTime.UtcNow;
 
+            // Write Note to Db
             var result = await _ticketService.AddNewNote(LoggedInUser, newNote);
-            // Backend will add comment to database:
-            // var comment = new TicketComment
-            // {
-            //     TicketId = ticketId,
-            //     UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-            //     CommentText = commentText,
-            //     IsInternalNote = false,
-            //     CreatedDate = DateTime.UtcNow
-            // };
-            // await ticketService.AddExternalComment(...);
-
-            // Also add to activity history:
-            // var activity = new TicketHistory
-            // {
-            //     TicketId = ticketId,
-            //     ChangedById = User.FindFirstValue(ClaimTypes.NameIdentifier),
-            //     ChangeType = "Comment Added",
-            //     Notes = commentText.Substring(0, Math.Min(100, commentText.Length)),
-            //     ChangedDate = DateTime.UtcNow
-            // };
 
             return RedirectToPage(new { id = ticketId });
         }

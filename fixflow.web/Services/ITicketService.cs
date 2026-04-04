@@ -29,12 +29,12 @@ namespace fixflow.web.Services
         Task<ServiceResult<FfTicketRegister>> GetTicketByIdentifier(string ticketIdOrCode);
         Task<ServiceResult<List<FfTicketFlow>>> GetTicketFlows(Guid ticketId);
         Task<ServiceResult<Dictionary<int, string>>> GetStatusCodeNameMap();
-        Task<ServiceResult<List<FfExternalNotes>>> GetExternalNotes(Guid ticketId);
-        Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId);
+        //Task<ServiceResult<List<FfExternalNotes>>> GetExternalNotes(Guid ticketId);
+        //Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId);
         Task<ServiceResult<TicketQueryBundleDto>> GetTicketListBundle();
         Task<ServiceResult<TicketQueryBundleDto>> GetDashboardBundle(string requestorId, RoleTypes requestorRole);
         Task<ServiceResult<bool>> AddNewNote(UserCredentialDTO _SubmitterId, NoteDto _NewNote);
-        Task<ServiceResult<List<NoteDto>>> GetAllNote(UserCredentialDTO _SubmitterId, Guid _TicketId);
+        Task<ServiceResult<List<NoteDto>>> GetAllNotes(UserCredentialDTO _SubmitterId, Guid _TicketId, bool _includeInternal);
 
 
     }
