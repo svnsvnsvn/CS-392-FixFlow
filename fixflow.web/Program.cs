@@ -58,6 +58,7 @@ builder.Services.AddScoped<FfDbSeeder>();
 
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddHttpClient<IAiService>();
 
 var app = builder.Build();
 
