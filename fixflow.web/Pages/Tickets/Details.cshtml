@@ -168,17 +168,26 @@
                             <div class="comment-form">
                                 <form method="post" asp-page-handler="AddComment">
                                     <input type="hidden" name="ticketId" value="@Model.Ticket.Id" />
+
                                     <div class="form-group">
                                         <label>Add a comment</label>
-                                        <textarea class="fta" name="commentText" placeholder="Type your message here..." required></textarea>
+                                        <textarea class="fta" name="commentText" required></textarea>
                                     </div>
+
+
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <input type="checkbox" name="internalOnly" value="true" checked />
+                                        <label>Internal Only</label>
+                                    </div>
+                                    <input type="hidden" name="internalOnly" value="false" />
+
                                     <button type="submit" class="btn btn-p"><i class="bi bi-send"></i> Post Comment</button>
                                 </form>
                             </div>
                         </div>
                     </section>
 
-                    @if (Model.UserRole != "Client")
+@*                     @if (Model.UserRole != "Client")
                     {
                         <section class="tsec details-card">
                             <div class="tsec-hd card-header">
@@ -220,7 +229,7 @@
                             </div>
                             </div>
                         </section>
-                    }
+                    } *@
                 </div>
 
                 <div>

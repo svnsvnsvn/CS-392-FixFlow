@@ -196,7 +196,7 @@ namespace fixflow.web.Pages.Tickets
             return string.Equals(statusName, "Completed", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task<IActionResult> OnPostAddCommentAsync(string ticketId, string commentText)
+        public async Task<IActionResult> OnPostAddCommentAsync(string ticketId, string commentText, bool internalOnly)
         {
             if (string.IsNullOrWhiteSpace(commentText))
             {
@@ -246,26 +246,26 @@ namespace fixflow.web.Pages.Tickets
             return RedirectToPage(new { id = ticketId });
         }
 
-        public async Task<IActionResult> OnPostAddInternalNoteAsync(string ticketId, string noteText)
-        {
-            if (string.IsNullOrWhiteSpace(noteText))
-            {
-                return RedirectToPage(new { id = ticketId });
-            }
+        //public async Task<IActionResult> OnPostAddInternalNoteAsync(string ticketId, string noteText)
+        //{
+        //    if (string.IsNullOrWhiteSpace(noteText))
+        //    {
+        //        return RedirectToPage(new { id = ticketId });
+        //    }
 
-            // Backend will add internal note to database:
-            // var note = new TicketComment
-            // {
-            //     TicketId = ticketId,
-            //     UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-            //     CommentText = noteText,
-            //     IsInternalNote = true,  // This is the key difference!
-            //     CreatedDate = DateTime.UtcNow
-            // };
-            // await ticketService.AddInternalNote(...);
+        //    // Backend will add internal note to database:
+        //    // var note = new TicketComment
+        //    // {
+        //    //     TicketId = ticketId,
+        //    //     UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+        //    //     CommentText = noteText,
+        //    //     IsInternalNote = true,  // This is the key difference!
+        //    //     CreatedDate = DateTime.UtcNow
+        //    // };
+        //    // await ticketService.AddInternalNote(...);
 
-            return RedirectToPage(new { id = ticketId });
-        }
+        //    return RedirectToPage(new { id = ticketId });
+        //}
 
         public async Task<IActionResult> OnPostAssignTechnicianAsync(string ticketId)
         {
