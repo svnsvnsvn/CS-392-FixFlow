@@ -7,6 +7,7 @@ namespace fixflow.web.Data
     {
         [BsonId]
         public ObjectId Id { get; set; }
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid TicketId { get; set; }
         public string NoteText { get; set; } = string.Empty;
         public string EnteredByUserId { get; set; } = string.Empty;

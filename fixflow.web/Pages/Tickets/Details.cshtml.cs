@@ -1,5 +1,6 @@
 using fixflow.web.Data;
 using fixflow.web.Domain.Enums;
+using fixflow.web.Dto;
 using fixflow.web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ using System.Security.Claims;
 
 namespace fixflow.web.Pages.Tickets
 {
-    public class DetailsModel : PageModel
+    public class DetailsModel : AppPageModel
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
@@ -42,7 +43,7 @@ namespace fixflow.web.Pages.Tickets
             {
                 return Page();
             }
-
+        
             // Get users role
             var roles = await _userManager.GetRolesAsync(user);
             if (roles == null)
@@ -93,9 +94,7 @@ namespace fixflow.web.Pages.Tickets
 
             Ticket = new TicketDetailViewModel
             {
-                Id = string.IsNullOrWhiteSpace(ticket.TicketShortCode)
-                    ? ticket.TicketId.ToString()
-                    : ticket.TicketShortCode,
+                Id = ticket.TicketId.ToString(),
                 Title = ticket.TicketType?.TypeName ?? "Maintenance request",
                 Description = string.IsNullOrWhiteSpace(ticket.TicketDescription)
                     ? "Details will appear once the request is fully documented."
@@ -203,6 +202,14 @@ namespace fixflow.web.Pages.Tickets
                 return RedirectToPage(new { id = ticketId });
             }
 
+            NoteDto newNote = new NoteDto();
+            newNote.NoteText = commentText;
+            newNote.TicketId = new Guid(ticketId);
+            newNote.InternalOnly = internalOnly;
+            newNote.EnteredByUserId = LoggedInUser.UserId;
+            newNote.TimeStamp = DateTime.UtcNow;
+
+            var result = await _ticketService.AddNewNote(LoggedInUser, newNote);
             // Backend will add comment to database:
             // var comment = new TicketComment
             // {

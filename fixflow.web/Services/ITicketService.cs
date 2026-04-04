@@ -33,6 +33,8 @@ namespace fixflow.web.Services
         Task<ServiceResult<List<FfInternalNotes>>> GetInternalNotes(Guid ticketId);
         Task<ServiceResult<TicketQueryBundleDto>> GetTicketListBundle();
         Task<ServiceResult<TicketQueryBundleDto>> GetDashboardBundle(string requestorId, RoleTypes requestorRole);
+        Task<ServiceResult<bool>> AddNewNote(UserCredentialDTO _SubmitterId, NoteDto _NewNote);
+        Task<ServiceResult<List<NoteDto>>> GetAllNote(UserCredentialDTO _SubmitterId, Guid _TicketId);
 
 
     }

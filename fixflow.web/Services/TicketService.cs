@@ -915,5 +915,11 @@ namespace fixflow.web.Services
                 return ServiceResult<bool>.Fail(ex.Message);
             }
         }
+
+        public async Task<ServiceResult<List<NoteDto>>> GetAllNote(UserCredentialDTO _SubmitterId, Guid _TicketId)
+        {
+
+        }
+
     }
 }
