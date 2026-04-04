@@ -10,7 +10,6 @@ using fixflow.web.Services;
 
 namespace fixflow.web.Pages.Account;
 
- [Authorize(Roles = "Admin")]
 public class NewUserModel : PageModel
 {
     private readonly UserManager<AppUser> _userManager;
