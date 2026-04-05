@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Security.Claims;
 
 namespace fixflow.web.Pages.Tickets
@@ -15,18 +16,21 @@ namespace fixflow.web.Pages.Tickets
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
         private readonly IAdminService _adminService;
+        private readonly IAiService _aiService;
 
-        public DetailsModel(UserManager<AppUser> userManager, ITicketService ticketService, IAdminService adminService)
+        public DetailsModel(UserManager<AppUser> userManager, ITicketService ticketService, IAdminService adminService, IAiService aiService)
         {
             _userManager = userManager;
             _ticketService = ticketService;
             _adminService = adminService;
+            _aiService = aiService;
         }
 
         public string UserRole { get; set; } = "Client";
         public bool IsOwnTicket { get; set; } = false;
         public TicketDetailViewModel Ticket { get; set; } = new();
         public List<NoteDto> TicketNotes { get; set; } = new();
+        public NoteDto AISummary { get; set; } = new();
         public List<ActivityViewModel> ActivityHistory { get; set; } = new();
         public List<SelectListItem> AvailableTechnicians { get; set; } = new();
         public string CommentSummaryStub { get; set; } = string.Empty;
@@ -116,6 +120,12 @@ namespace fixflow.web.Pages.Tickets
             var ticketNotes = await _ticketService.GetAllNotes(LoggedInUser, ticket.TicketId,true);
             TicketNotes = ticketNotes.Data;
 
+            if (TempData["GetAISummary"] is not null)
+            {
+                var aiSummary = await _aiService.GetSummaryOfNotes(TicketNotes);
+                AISummary = aiSummary.Data;
+            }
+
             ActivityHistory = flows
                 .OrderByDescending(flow => flow.TimeStamp)
                 .Select(flow => new ActivityViewModel
@@ -189,45 +199,16 @@ namespace fixflow.web.Pages.Tickets
             return RedirectToPage(new { id = ticketId });
         }
 
-        public IActionResult OnPostSummarizeCommentsAsync(string ticketId)
+        public async Task<IActionResult> OnPostSummarizeCommentsAsync(string ticketId)
         {
-            // TODO(Adam): Implement summary generation by querying these entities:
-            // 1) FfExternalNotess (customer-visible comments): TicketId, Content, CreatedBy, TimeStamp.
-            // 2) FfInternalNotess (staff-only context): TicketId, Content, CreatedBy, TimeStamp.
-            // 3) FfTicketFlows (status/activity timeline): TicketId, NewTicketStatus, NewAssignee, TimeStamp.
-            //
-            // Suggested flow:
-            // - Fetch notes for the provided TicketId, sorted ascending by TimeStamp.
-            // - Optionally enrich names by joining CreatedBy/NewAssignee to FfUserProfiles.FfUserId.
-            // - Build an input transcript with sections [Public Comments], [Internal Notes], [Ticket Activity].
-            // - Call your preferred summarization service (LLM/provider) and store result in a summary table
-            //   or cache field (e.g., TicketId + GeneratedAt + SummaryText + ModelVersion).
-            // - Return summary text to this page model (CommentSummaryStub), and gate internal content by role.
-            TempData["CommentSummaryStub"] =
-                "Stub preview: summary generation is wired at UI level. Adam should implement server-side aggregation from FfExternalNotess, FfInternalNotess, and FfTicketFlows for this ticket, then return concise highlights, blockers, and next actions.";
+            //var aiSummary = await _aiService.GetSummaryOfNotes(TicketNotes);
+            //AISummary = aiSummary.Data;
+
+
+            TempData["GetAISummary"] = true;
+            TempData["CommentSummaryStub"] = "XXXThe ticket notes contain only generic placeholder entries (\"First Test Note,\" \"First public note,\" \"Another note\") and provide no meaningful information regarding any issues, actions taken, or changes in status.";  //aiSummary.Data;
             return RedirectToPage(new { id = ticketId });
         }
-
-        //public async Task<IActionResult> OnPostAddInternalNoteAsync(string ticketId, string noteText)
-        //{
-        //    if (string.IsNullOrWhiteSpace(noteText))
-        //    {
-        //        return RedirectToPage(new { id = ticketId });
-        //    }
-
-        //    // Backend will add internal note to database:
-        //    // var note = new TicketComment
-        //    // {
-        //    //     TicketId = ticketId,
-        //    //     UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-        //    //     CommentText = noteText,
-        //    //     IsInternalNote = true,  // This is the key difference!
-        //    //     CreatedDate = DateTime.UtcNow
-        //    // };
-        //    // await ticketService.AddInternalNote(...);
-
-        //    return RedirectToPage(new { id = ticketId });
-        //}
 
         public async Task<IActionResult> OnPostAssignTechnicianAsync(string ticketId)
         {

@@ -129,14 +129,14 @@
                             @if (!string.IsNullOrWhiteSpace(Model.CommentSummaryStub))
                             {
                                 <div class="summary-stub" role="status" aria-live="polite">
-                                    <div class="summary-stub-title">Comment Summary (stub)</div>
-                                    <p>@Model.CommentSummaryStub</p>
+                                    <div class="summary-stub-title">Comment History Summary (AI Generated)</div>
+                                    <p>@Model.AISummary.NoteText</p>
                                 </div>
                             }
                             else
                             {
                                 <div class="summary-placeholder">
-                                    Click <strong>Summarize comments</strong> to preview where an automated summary will appear.
+                                    <p>Click Summarize comments for a summary.</p>
                                 </div>
                             }
 
