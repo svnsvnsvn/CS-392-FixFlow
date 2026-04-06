@@ -132,21 +132,11 @@
                                     <th data-tcol="due">Due Date</th>
                                 }
                                 <th data-tcol="created">Created</th>
-                                <th class="col-actions" data-tcol="actions" aria-label="Actions"></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var ticket in Model.Tickets)
                             {
-                                var statusKey = (ticket.Status ?? "").ToLower().Replace(" ", "");
-                                var sdClass = statusKey switch
-                                {
-                                    "submitted" => "sd-submitted",
-                                    "inprogress" => "sd-inprogress",
-                                    "assigned" => "sd-assigned",
-                                    "completed" => "sd-completed",
-                                    _ => "sd-o"
-                                };
                                 <tr class="ticket-row"
                                     data-ticket-id="@ticket.Id"
                                     data-title="@ticket.Title"
@@ -157,7 +147,7 @@
                                     data-submitted-by="@ticket.SubmittedBy">
                                     <td data-tcol="id"><span class="tid">#@ticket.Id</span></td>
                                     <td data-tcol="category">@ticket.Category</td>
-                                    <td data-tcol="status"><span class="sdot @sdClass">@ticket.Status</span></td>
+                                    <td data-tcol="status">@ticket.Status</td>
                                     @if (Model.UserRole != "Client")
                                     {
                                         <td data-tcol="submittedBy">@ticket.SubmittedBy</td>
@@ -167,11 +157,6 @@
                                         <td data-tcol="due">@(ticket.DueDate?.ToString("MMM dd") ?? "-")</td>
                                     }
                                     <td data-tcol="created">@ticket.CreatedDate.ToString("MMM dd, yyyy")</td>
-                                    <td data-tcol="actions">
-                                        <a href="/Tickets/Details/@ticket.Id" class="act-btn" title="View ticket #@ticket.Id" aria-label="View ticket #@ticket.Id">
-                                            <i class="bi bi-three-dots" aria-hidden="true"></i>
-                                        </a>
-                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -315,6 +300,33 @@
     ticketStatusFilter?.addEventListener("change", applyTicketFilters);
     ticketDateFilter?.addEventListener("change", applyTicketFilters);
     ticketSort?.addEventListener("change", applyTicketFilters);
+
+    ticketRows.forEach((row) => {
+        row.addEventListener("click", (event) => {
+            if (event.target instanceof Element && event.target.closest("a,button,input,select,textarea,label,form")) {
+                return;
+            }
+            const ticketId = row.getAttribute("data-ticket-id");
+            if (ticketId) {
+                window.location.href = "/Tickets/Details/" + encodeURIComponent(ticketId);
+            }
+        });
+
+        row.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+            if (event.target instanceof Element && event.target.closest("a,button,input,select,textarea,label,form")) {
+                return;
+            }
+            const ticketId = row.getAttribute("data-ticket-id");
+            if (ticketId) {
+                event.preventDefault();
+                window.location.href = "/Tickets/Details/" + encodeURIComponent(ticketId);
+            }
+        });
+    });
+
     ticketClearFilters?.addEventListener("click", () => {
         if (ticketSearch) ticketSearch.value = "";
         if (ticketStatusFilter) ticketStatusFilter.value = "all";
@@ -352,8 +364,7 @@
             { key: 'id', label: 'ID', required: true },
             { key: 'category', label: 'Category' },
             { key: 'status', label: 'Status' },
-            { key: 'created', label: 'Created' },
-            { key: 'actions', label: 'Actions', required: true }
+            { key: 'created', label: 'Created' }
         ];
             </text>
         }
@@ -366,8 +377,7 @@
             { key: 'status', label: 'Status' },
             { key: 'submittedBy', label: 'Submitted By' },
             { key: 'due', label: 'Due Date' },
-            { key: 'created', label: 'Created' },
-            { key: 'actions', label: 'Actions', required: true }
+            { key: 'created', label: 'Created' }
         ];
             </text>
         }
@@ -379,8 +389,7 @@
             { key: 'category', label: 'Category' },
             { key: 'status', label: 'Status' },
             { key: 'submittedBy', label: 'Submitted By' },
-            { key: 'created', label: 'Created' },
-            { key: 'actions', label: 'Actions', required: true }
+            { key: 'created', label: 'Created' }
         ];
             </text>
         }

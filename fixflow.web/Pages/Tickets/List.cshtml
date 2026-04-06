@@ -137,25 +137,16 @@
                                 <th data-tcol="unit">Unit</th>
                                 <th data-tcol="requestedBy">Requested By</th>
                                 <th data-tcol="assignedTo">Assigned To</th>
-                                <th class="col-actions" data-tcol="actions" aria-label="Actions"></th>
+                                @if (isTechnician)
+                                {
+                                    <th class="col-actions" data-tcol="actions" aria-label="Actions"></th>
+                                }
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var ticket in Model.Tickets)
                             {
                                 var statusName = ticket.StatusCode?.StatusName ?? "-";
-                                var statusKey = (statusName ?? "").ToLower().Replace(" ", "");
-                                var sdClass = statusKey switch
-                                {
-                                    "submitted" => "sd-submitted",
-                                    "inprogress" => "sd-inprogress",
-                                    "in progress" => "sd-inprogress",
-                                    "assigned" => "sd-assigned",
-                                    "completed" => "sd-completed",
-                                    "cancelled" => "sd-cancelled",
-                                    "closed" => "sd-cls",
-                                    _ => "sd-o"
-                                };
                                 var priorityName = ticket.PriorityCode?.PriorityName ?? "-";
                                 var priorityKey = (priorityName ?? "").ToLower();
                                 var ticketCode = string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode;
@@ -178,26 +169,26 @@
                                     <td data-tcol="type">@ticketTypeName</td>
                                     @if (isStaff)
                                     {
-                                        <td data-tcol="priority"><span class="pri @priorityKey">@priorityName</span></td>
+                                        <td data-tcol="priority">@priorityName</td>
                                     }
-                                    <td data-tcol="status"><span class="sdot @sdClass">@statusName</span></td>
+                                    <td data-tcol="status">@statusName</td>
                                     <td data-tcol="location">@locationName</td>
                                     <td data-tcol="unit">@ticket.Unit</td>
                                     <td data-tcol="requestedBy">@requestedBy</td>
                                     <td data-tcol="assignedTo">@assignedTo</td>
-                                    <td data-tcol="actions">
-                                        <a href="/Tickets/Details/@ticketCode" class="act-btn" aria-label="View ticket" title="View ticket">
-                                            <i class="bi bi-three-dots" aria-hidden="true"></i>
-                                        </a>
-                                        @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
-                                        {
-                                            <form method="post" asp-page-handler="PickUpTicket" asp-route-ticketId="@ticket.TicketId" class="ref-inline-form">
-                                                <button type="submit" class="btn btn-p btn-sm" aria-label="Pick up ticket" title="Pick up ticket">
-                                                    <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                    </td>
+                                    @if (isTechnician)
+                                    {
+                                        <td data-tcol="actions">
+                                            @if (User.IsInRole("Employee") && ticket.StatusCode?.StatusName == "Submitted" && !Model.TicketAssignees.ContainsKey(ticket.TicketId))
+                                            {
+                                                <form method="post" asp-page-handler="PickUpTicket" asp-route-ticketId="@ticket.TicketId" class="ref-inline-form">
+                                                    <button type="submit" class="btn btn-p btn-sm" aria-label="Pick up ticket" title="Pick up ticket">
+                                                        <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    }
                                 </tr>
                             }
                         </tbody>
@@ -288,6 +279,33 @@
     listTicketStatusFilter?.addEventListener("change", applyListTicketFilters);
     if (listTicketPriorityFilter) listTicketPriorityFilter.addEventListener("change", applyListTicketFilters);
     listTicketSort?.addEventListener("change", applyListTicketFilters);
+
+    listTicketRows.forEach((row) => {
+        row.addEventListener("click", (event) => {
+            if (event.target instanceof Element && event.target.closest("a,button,input,select,textarea,label,form")) {
+                return;
+            }
+            const ticketCode = row.getAttribute("data-ticket-code");
+            if (ticketCode) {
+                window.location.href = "/Tickets/Details/" + encodeURIComponent(ticketCode);
+            }
+        });
+
+        row.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+            if (event.target instanceof Element && event.target.closest("a,button,input,select,textarea,label,form")) {
+                return;
+            }
+            const ticketCode = row.getAttribute("data-ticket-code");
+            if (ticketCode) {
+                event.preventDefault();
+                window.location.href = "/Tickets/Details/" + encodeURIComponent(ticketCode);
+            }
+        });
+    });
+
     listTicketClearFilters?.addEventListener("click", () => {
         if (listTicketSearch) listTicketSearch.value = "";
         if (listTicketStatusFilter) listTicketStatusFilter.value = "all";
@@ -303,7 +321,7 @@
         var toggle = document.getElementById('listTicketColumnsToggle');
         if (!table || !panel || !toggle) return;
         var cols;
-        @if (isStaff)
+        @if (isTechnician)
         {
             <text>
         cols = [
@@ -319,6 +337,21 @@
         ];
             </text>
         }
+        else if (isStaff)
+        {
+            <text>
+        cols = [
+            { key: 'id', label: 'ID', required: true },
+            { key: 'type', label: 'Type' },
+            { key: 'priority', label: 'Priority' },
+            { key: 'status', label: 'Status' },
+            { key: 'location', label: 'Location' },
+            { key: 'unit', label: 'Unit' },
+            { key: 'requestedBy', label: 'Requested By' },
+            { key: 'assignedTo', label: 'Assigned To' }
+        ];
+            </text>
+        }
         else
         {
             <text>
@@ -329,8 +362,7 @@
             { key: 'location', label: 'Location' },
             { key: 'unit', label: 'Unit' },
             { key: 'requestedBy', label: 'Requested By' },
-            { key: 'assignedTo', label: 'Assigned To' },
-            { key: 'actions', label: 'Actions', required: true }
+            { key: 'assignedTo', label: 'Assigned To' }
         ];
             </text>
         }

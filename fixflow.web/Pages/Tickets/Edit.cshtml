@@ -2,19 +2,84 @@
 @model fixflow.web.Pages.Tickets.EditModel
 @{
     ViewData["Title"] = "Edit Ticket";
+    ViewData["HideNav"] = true;
+    ViewData["ActiveNav"] = "Tickets";
+    ViewData["BreadcrumbPath"] = "Operations";
+    ViewData["BreadcrumbTitle"] = "Edit Ticket";
 }
 
-<div class="page-header">
-        <h1 class="page-title">Edit Ticket</h1>
-        <p class="page-subtitle">Adjust ticket details and keep the status accurate.</p>
-    </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/tickets.css" />
+}
 
-    <div class="card">
-        <form method="post" class="form-stack">
-            <div class="placeholder">Ticket edit form placeholder</div>
-            <div class="form-actions">
-                <button type="submit">Save Changes</button>
-                <a class="btn btn-secondary" asp-page="./List">Back to Tickets</a>
+<div class="app-shell">
+    @await Html.PartialAsync("_AppSidebar")
+
+    <main class="main ref-main details-main">
+        @await Html.PartialAsync("_Topbar")
+        <div class="ref-page tickets-hub details-page">
+            <div class="ph">
+                <div>
+                    <div class="ph-bc">Ticket Maintenance</div>
+                    <div class="ph-s">Update core ticket metadata.</div>
+                </div>
+                <div class="details-actions">
+                    <a asp-page="./Details" asp-route-id="@Model.Input.TicketId" class="btn btn-s"><i class="bi bi-arrow-left"></i> Back to Ticket</a>
+                </div>
             </div>
-        </form>
-    </div>
+
+            <section class="tsec details-card">
+                <div class="tsec-hd card-header">
+                    <h3 class="card-title">Edit Ticket</h3>
+                </div>
+                <div class="details-card-body">
+                    <form method="post" class="form-stack">
+                        <input asp-for="Input.TicketId" type="hidden" />
+                        <input asp-for="Input.RequestedBy" type="hidden" />
+
+                        <div class="form-group">
+                            <label asp-for="Input.LocationCode">Building</label>
+                            <select asp-for="Input.LocationCode" asp-items="Model.Buildings" class="fsel"></select>
+                            <span asp-validation-for="Input.LocationCode" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Input.Unit">Unit</label>
+                            <input asp-for="Input.Unit" class="fsel" type="number" min="1" />
+                            <span asp-validation-for="Input.Unit" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Input.TicketTypeCode">Ticket Type</label>
+                            <select asp-for="Input.TicketTypeCode" asp-items="Model.TicketTypes" class="fsel"></select>
+                            <span asp-validation-for="Input.TicketTypeCode" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Input.TicketPriorityCode">Priority</label>
+                            <select asp-for="Input.TicketPriorityCode" asp-items="Model.Priorities" class="fsel"></select>
+                            <span asp-validation-for="Input.TicketPriorityCode" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Input.Subject">Subject</label>
+                            <input asp-for="Input.Subject" class="fsel" />
+                            <span asp-validation-for="Input.Subject" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Input.Description">Description</label>
+                            <textarea asp-for="Input.Description" class="fta" rows="5"></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="details-actions mt-6">
+                            <button type="submit" class="btn btn-p">Save Changes</button>
+                            <a class="btn btn-s" asp-page="./List">Back to Tickets</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>

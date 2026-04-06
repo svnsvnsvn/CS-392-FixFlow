@@ -4,15 +4,29 @@
     var isResident = User.IsInRole("Resident") || User.IsInRole("Pending");
     var ticketsHomeHref = isResident ? "/Dashboard" : "/Tickets/List";
     var ticketsHomeLabel = isResident ? "Back to My Tickets" : "Back to Tickets";
-    ViewData["Title"] = $"Ticket #{Model.Ticket.Id} - FixFlow";
+    ViewData["Title"] = $"Ticket #{Model.Ticket.DisplayId} - FixFlow";
     ViewData["HideNav"] = true;
     ViewData["ActiveNav"] = "Tickets";
     ViewData["BreadcrumbPath"] = "Operations";
-    ViewData["BreadcrumbTitle"] = $"Ticket #{Model.Ticket.Id}";
+    ViewData["BreadcrumbTitle"] = $"Ticket #{Model.Ticket.DisplayId}";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/tickets.css" />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.js-auto-submit-select').forEach(function (select) {
+                select.addEventListener('change', function () {
+                    if (select.form) {
+                        select.form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 }
 
 <div class="app-shell">
@@ -58,13 +72,36 @@
                                         _ => "circle-dot"
                                     };
                                 }
-                                <i class="status-icon @detailsStatusClass" data-lucide="@detailsStatusIcon" title="@Model.Ticket.Status"></i>
+                                @if ((Model.UserRole == "Admin" || Model.UserRole == "Manager" || Model.UserRole == "Technician")
+                                    && !string.IsNullOrWhiteSpace(Model.Ticket.CurrentAssigneeId)
+                                    && Model.AvailableStatuses.Count > 0)
+                                {
+                                    <form method="post" asp-page-handler="UpdateStatus" asp-route-ticketId="@Model.Ticket.Id" class="ff-status-form meta-value">
+                                        <select asp-for="SelectedStatusCode" asp-items="Model.AvailableStatuses" class="fsel ff-status-select js-status-select" aria-label="Ticket status"></select>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="meta-value ff-status-inline">
+                                        <span>@Model.Ticket.Status</span>
+                                        <i class="status-icon @detailsStatusClass" data-lucide="@detailsStatusIcon" title="@Model.Ticket.Status"></i>
+                                    </div>
+                                }
                             </div>
                             <div class="meta-item">
                                 <span class="meta-label">Priority</span>
-                                <span class="priority-text @Model.Ticket.Priority.ToLower()">
-                                    @Model.Ticket.Priority
-                                </span>
+                                @if (Model.UserRole == "Admin" || Model.UserRole == "Manager" || Model.UserRole == "Technician")
+                                {
+                                    <form method="post" asp-page-handler="UpdatePriority" asp-route-ticketId="@Model.Ticket.Id" class="ff-status-form meta-value">
+                                        <select asp-for="SelectedPriorityCode" asp-items="Model.AvailablePriorities" class="fsel ff-status-select js-auto-submit-select" aria-label="Ticket priority"></select>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="priority-text @Model.Ticket.Priority.ToLower()">
+                                        @Model.Ticket.Priority
+                                    </span>
+                                }
                             </div>
                             <div class="meta-item">
                                 <span class="meta-label">Category</span>
@@ -101,6 +138,12 @@
                                     <button class="btn btn-p">Mark Complete</button>
                                     <button class="btn btn-s">Put On Hold</button>
                                 }
+                                @if (Model.UserRole == "Manager" || Model.UserRole == "Admin" || Model.UserRole == "Technician")
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@Model.Ticket.Id" class="details-action-icon" aria-label="Edit ticket" title="Edit ticket">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                    </a>
+                                }
                                 @if (Model.UserRole == "Client" && Model.IsOwnTicket && Model.Ticket.Status == "Completed")
                                 {
                                     <button class="btn btn-p">Confirm Resolved</button>
@@ -108,8 +151,9 @@
                                 }
                                 @if (Model.UserRole == "Admin")
                                 {
-                                    <button class="btn btn-s">Edit Ticket</button>
-                                    <button class="btn btn-s">Delete Ticket</button>
+                                    <button type="button" class="details-action-icon" aria-label="Delete ticket" title="Delete ticket">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                    </button>
                                 }
                             </div>
                         }
@@ -126,7 +170,7 @@
                         </div>
 
                         <div class="details-card-body">
-                            @if (!string.IsNullOrWhiteSpace(Model.CommentSummaryStub))
+                            @if (!string.IsNullOrWhiteSpace(Model.AISummary.NoteText))
                             {
                                 <div class="summary-stub" role="status" aria-live="polite">
                                     <div class="summary-stub-title">Comment History Summary (AI Generated)</div>
@@ -172,7 +216,7 @@
                                     </div>
 
 
-                                    <div style="display:flex; align-items:center; gap:6px;">
+                                    <div class="ff-comment-toggle-row">
                                         <input type="checkbox" name="internalOnly" value="true" checked />
                                         <label>Internal Only</label>
                                     </div>

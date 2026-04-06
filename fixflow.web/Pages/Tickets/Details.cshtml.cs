@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Security.Claims;
+using System.Linq;
 
 namespace fixflow.web.Pages.Tickets
 {
@@ -33,10 +34,17 @@ namespace fixflow.web.Pages.Tickets
         public NoteDto AISummary { get; set; } = new();
         public List<ActivityViewModel> ActivityHistory { get; set; } = new();
         public List<SelectListItem> AvailableTechnicians { get; set; } = new();
-        public string CommentSummaryStub { get; set; } = string.Empty;
+        public List<SelectListItem> AvailableStatuses { get; set; } = new();
+        public List<SelectListItem> AvailablePriorities { get; set; } = new();
 
         [BindProperty]
         public string SelectedTechnicianId { get; set; } = string.Empty;
+
+        [BindProperty]
+        public int SelectedStatusCode { get; set; }
+
+        [BindProperty]
+        public int SelectedPriorityCode { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -98,6 +106,7 @@ namespace fixflow.web.Pages.Tickets
             Ticket = new TicketDetailViewModel
             {
                 Id = ticket.TicketId.ToString(),
+                DisplayId = string.IsNullOrWhiteSpace(ticket.TicketShortCode) ? ticket.TicketId.ToString() : ticket.TicketShortCode,
                 Title = ticket.TicketType?.TypeName ?? "Maintenance request",
                 Description = string.IsNullOrWhiteSpace(ticket.TicketDescription)
                     ? "Details will appear once the request is fully documented."
@@ -110,6 +119,9 @@ namespace fixflow.web.Pages.Tickets
                 SubmittedBy = string.IsNullOrWhiteSpace(submittedByName) ? "Unknown" : submittedByName,
                 CreatedDate = createdDate == default ? DateTime.MinValue : createdDate,
                 AssignedTo = assigneeName,
+                CurrentStatusCode = ticket.TicketStatus,
+                CurrentPriorityCode = ticket.TicketPriority,
+                CurrentAssigneeId = lastFlow?.NewAssignee ?? string.Empty,
                 DueDate = null,
                 CompletedDate = TicketStatusIsCompleted(ticket.StatusCode?.StatusName)
                     ? (lastFlow?.TimeStamp ?? DateTime.UtcNow)
@@ -117,13 +129,14 @@ namespace fixflow.web.Pages.Tickets
             };
 
             // Get all notes for ticket and assign to Model.TicketNotes
-            var ticketNotes = await _ticketService.GetAllNotes(LoggedInUser, ticket.TicketId,true);
-            TicketNotes = ticketNotes.Data;
+            var ticketNotesResult = await _ticketService.GetAllNotes(LoggedInUser, ticket.TicketId, true);
+            List<NoteDto> notesForSummary = (ticketNotesResult?.Data ?? new List<NoteDto>())!;
+            TicketNotes = notesForSummary;
 
             if (TempData["GetAISummary"] is not null)
             {
-                var aiSummary = await _aiService.GetSummaryOfNotes(TicketNotes);
-                AISummary = aiSummary.Data;
+                var aiSummary = await _aiService.GetSummaryOfNotes(notesForSummary!);
+                AISummary = aiSummary?.Data ?? new NoteDto();
             }
 
             ActivityHistory = flows
@@ -139,11 +152,6 @@ namespace fixflow.web.Pages.Tickets
                     Timestamp = flow.TimeStamp
                 })
                 .ToList();
-
-            if (TempData.TryGetValue("CommentSummaryStub", out var summaryStubObj))
-            {
-                CommentSummaryStub = summaryStubObj?.ToString() ?? string.Empty;
-            }
 
             // Check if current user owns this ticket (for client view)
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -168,6 +176,12 @@ namespace fixflow.web.Pages.Tickets
                     .ToList();
 
                 AvailableTechnicians.Insert(0, new SelectListItem { Value = "", Text = "-- Select Technician --" });
+            }
+
+            if (CanManageStatus(UserRole))
+            {
+                await LoadAvailableStatusesAsync(Ticket.CurrentStatusCode);
+                await LoadAvailablePrioritiesAsync(Ticket.CurrentPriorityCode);
             }
 
             return Page();
@@ -201,12 +215,7 @@ namespace fixflow.web.Pages.Tickets
 
         public async Task<IActionResult> OnPostSummarizeCommentsAsync(string ticketId)
         {
-            //var aiSummary = await _aiService.GetSummaryOfNotes(TicketNotes);
-            //AISummary = aiSummary.Data;
-
-
             TempData["GetAISummary"] = true;
-            TempData["CommentSummaryStub"] = "XXXThe ticket notes contain only generic placeholder entries (\"First Test Note,\" \"First public note,\" \"Another note\") and provide no meaningful information regarding any issues, actions taken, or changes in status.";  //aiSummary.Data;
             return RedirectToPage(new { id = ticketId });
         }
 
@@ -267,10 +276,199 @@ namespace fixflow.web.Pages.Tickets
             return RedirectToPage(new { id = ticketId });
         }
 
+        public async Task<IActionResult> OnPostUpdateStatusAsync(string ticketId)
+        {
+            if (!CanManageStatus(UserRoleFromClaims()))
+            {
+                return Forbid();
+            }
+
+            var ticketResult = await _ticketService.GetTicketByIdentifier(ticketId);
+            var ticket = ticketResult.Success ? ticketResult.Data : null;
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            var flowsResult = await _ticketService.GetTicketFlows(ticket.TicketId);
+            var currentAssigneeId = flowsResult.Success && flowsResult.Data != null
+                ? flowsResult.Data.OrderByDescending(flow => flow.TimeStamp).Select(flow => flow.NewAssignee).FirstOrDefault()
+                : null;
+
+            if (string.IsNullOrWhiteSpace(currentAssigneeId))
+            {
+                TempData["ErrorMessage"] = "Assign a technician before changing status.";
+                return RedirectToPage(new { id = ticketId });
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToPage("/Account/Login");
+            }
+
+            var requestorRole = GetStaffRoleFromClaims();
+            if (requestorRole == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _ticketService.ReassignTicket(
+                currentUser.Id,
+                requestorRole.Value,
+                ticket.TicketId,
+                currentAssigneeId,
+                SelectedStatusCode);
+
+            if (!result.Success)
+            {
+                TempData["ErrorMessage"] = result.Error ?? "Status update failed.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Status updated successfully.";
+            }
+
+            return RedirectToPage(new { id = ticketId });
+        }
+
+        public async Task<IActionResult> OnPostUpdatePriorityAsync(string ticketId)
+        {
+            if (!CanManageStatus(UserRoleFromClaims()))
+            {
+                return Forbid();
+            }
+
+            var ticketResult = await _ticketService.GetTicketByIdentifier(ticketId);
+            var ticket = ticketResult.Success ? ticketResult.Data : null;
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToPage("/Account/Login");
+            }
+
+            var requestorRole = GetStaffRoleFromClaims();
+            if (requestorRole == null)
+            {
+                return Forbid();
+            }
+
+            var updateDto = new TicketDataDto
+            {
+                TicketId = ticket.TicketId,
+                RequestedBy = ticket.RequestedBy,
+                Location = ticket.Location,
+                Unit = ticket.Unit,
+                TicketTroubleType = ticket.TicketTroubleType,
+                TicketPriority = SelectedPriorityCode,
+                TicketSubject = ticket.TicketSubject,
+                TicketDescription = ticket.TicketDescription
+            };
+
+            var result = await _ticketService.UpdateTicket(currentUser.Id, requestorRole.Value, updateDto);
+            if (!result.Success)
+            {
+                TempData["ErrorMessage"] = result.Error ?? "Priority update failed.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Priority updated successfully.";
+            }
+
+            return RedirectToPage(new { id = ticketId });
+        }
+
+        private async Task LoadAvailableStatusesAsync(int selectedStatusCode)
+        {
+            var statusResult = await _ticketService.GetStatusCodeList();
+            AvailableStatuses = statusResult.Success && statusResult.Data != null
+                ? statusResult.Data
+                    .Where(status => status.StatusCode.HasValue && !string.IsNullOrWhiteSpace(status.StatusName))
+                    .OrderBy(status => status.StatusCode)
+                    .Select(status => new SelectListItem
+                    {
+                        Value = status.StatusCode!.Value.ToString(),
+                        Text = status.StatusName!
+                    })
+                    .ToList()
+                : new List<SelectListItem>();
+
+            SelectedStatusCode = selectedStatusCode;
+        }
+
+        private async Task LoadAvailablePrioritiesAsync(int selectedPriorityCode)
+        {
+            var priorityResult = await _adminService.GetPriorityCodeList();
+            AvailablePriorities = priorityResult.Success && priorityResult.Data != null
+                ? priorityResult.Data
+                    .Where(priority => !string.IsNullOrWhiteSpace(priority.PriorityName))
+                    .OrderBy(priority => priority.PriorityCode)
+                    .Select(priority => new SelectListItem
+                    {
+                        Value = priority.Id.ToString(),
+                        Text = priority.PriorityName!
+                    })
+                    .ToList()
+                : new List<SelectListItem>();
+
+            SelectedPriorityCode = selectedPriorityCode;
+        }
+
+        private static bool CanManageStatus(string role)
+        {
+            return role == "Admin" || role == "Manager" || role == "Technician";
+        }
+
+        private string UserRoleFromClaims()
+        {
+            if (User.IsInRole(RoleTypes.Admin.ToString()))
+            {
+                return "Admin";
+            }
+
+            if (User.IsInRole(RoleTypes.Manager.ToString()))
+            {
+                return "Manager";
+            }
+
+            if (User.IsInRole(RoleTypes.Employee.ToString()))
+            {
+                return "Technician";
+            }
+
+            return "Client";
+        }
+
+        private RoleTypes? GetStaffRoleFromClaims()
+        {
+            if (User.IsInRole(RoleTypes.Admin.ToString()))
+            {
+                return RoleTypes.Admin;
+            }
+
+            if (User.IsInRole(RoleTypes.Manager.ToString()))
+            {
+                return RoleTypes.Manager;
+            }
+
+            if (User.IsInRole(RoleTypes.Employee.ToString()))
+            {
+                return RoleTypes.Employee;
+            }
+
+            return null;
+        }
+
         // ViewModels
         public class TicketDetailViewModel
         {
             public string Id { get; set; } = string.Empty;
+            public string DisplayId { get; set; } = string.Empty;
             public string Title { get; set; } = string.Empty;
             public string Description { get; set; } = string.Empty;
             public string Status { get; set; } = string.Empty;
@@ -280,6 +478,9 @@ namespace fixflow.web.Pages.Tickets
             public string RoomNumber { get; set; } = string.Empty;
             public string SubmittedBy { get; set; } = string.Empty;
             public string? AssignedTo { get; set; }
+            public int CurrentStatusCode { get; set; }
+            public int CurrentPriorityCode { get; set; }
+            public string CurrentAssigneeId { get; set; } = string.Empty;
             public DateTime CreatedDate { get; set; }
             public DateTime? DueDate { get; set; }
             public DateTime? CompletedDate { get; set; }

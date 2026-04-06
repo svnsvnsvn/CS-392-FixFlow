@@ -484,6 +484,11 @@
     cursor: default;
 }
 
+.tsec.tickets-hub-tsec tbody tr.list-ticket-row,
+.tsec.tickets-hub-tsec tbody tr.ticket-row {
+    cursor: pointer;
+}
+
 .tsec.tickets-hub-tsec .ticket-pager {
     display: flex;
     align-items: center;
@@ -578,6 +583,33 @@
 
 .ticket-pager-btn .bi {
     margin: 0;
+}
+
+.ticket-pager {
+    justify-content: center;
+    gap: 10px;
+}
+
+.ticket-pager-status {
+    min-width: auto;
+    padding: 0 8px;
+}
+
+.ticket-pager .ticket-pager-btn,
+.tsec.tickets-hub-tsec .ticket-pager .ticket-pager-btn {
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.ticket-pager .ticket-pager-btn:hover,
+.tsec.tickets-hub-tsec .ticket-pager .ticket-pager-btn:hover {
+    border: none;
+    background: transparent;
+    color: inherit;
 }
 
 .ticket-data-table th[data-tcol="id"],
