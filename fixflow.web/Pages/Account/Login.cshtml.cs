@@ -66,10 +66,9 @@ public class LoginModel : PageModel
             }
             else
             {
-                if (await _userManager.IsInRoleAsync(user, RoleTypes.Resident.ToString())
-                    || await _userManager.IsInRoleAsync(user, RoleTypes.Pending.ToString()))
+                if (await _userManager.IsInRoleAsync(user, RoleTypes.Pending.ToString()))
                 {
-                    return RedirectToPage("/Dashboard");
+                    return RedirectToPage("/Account/Profile");
                 }
 
                 return RedirectToPage("/Tickets/List");
