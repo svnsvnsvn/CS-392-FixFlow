@@ -7,7 +7,7 @@ using fixflow.web.Services;
 
 namespace fixflow.web.Pages.Tickets
 {
-    public class ListModel : PageModel
+    public class ListModel : AppPageModel
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
@@ -41,7 +41,14 @@ namespace fixflow.web.Pages.Tickets
                 return;
             }
 
-            Tickets = bundleResult.Data.Tickets;
+            // If resident then only show tickets requested by them
+            if (LoggedInUser.Role == RoleTypes.Resident)
+            {
+                Tickets = bundleResult.Data.Tickets
+                .Where(x => x.RequestedBy == LoggedInUser.UserId)
+                .ToList();
+            }
+
             var allFlows = bundleResult.Data.Flows;
 
             var latestFlows = allFlows
