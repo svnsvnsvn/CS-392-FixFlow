@@ -181,7 +181,7 @@ namespace fixflow.web.Pages.Tickets
             TempData["SuccessMessage"] = $"Ticket created successfully!";
             if (userRole == RoleTypes.Resident || userRole == RoleTypes.Pending)
             {
-                return RedirectToPage("/Dashboard");
+                return RedirectToPage("/Tickets/Create");
             }
 
             return RedirectToPage("./List");

@@ -215,11 +215,13 @@
                                         <textarea class="fta" name="commentText" required></textarea>
                                     </div>
 
-
-                                    <div class="ff-comment-toggle-row">
-                                        <input type="checkbox" name="internalOnly" value="true" checked />
-                                        <label>Internal Only</label>
-                                    </div>
+                                    @if ((Model.UserRole != "Client") && (Model.UserRole != "Pending"))
+                                    {
+                                        <div class="ff-comment-toggle-row">
+                                            <input type="checkbox" name="internalOnly" value="true" checked />
+                                            <label>Internal Only</label>
+                                        </div>
+                                    }
                                     <input type="hidden" name="internalOnly" value="false" />
 
                                     <button type="submit" class="btn btn-p"><i class="bi bi-send"></i> Post Comment</button>

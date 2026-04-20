@@ -41,10 +41,12 @@ namespace fixflow.web.Pages.Tickets
                 return;
             }
 
+            Tickets = bundleResult.Data.Tickets;
+
             // If resident then only show tickets requested by them
             if (LoggedInUser.Role == RoleTypes.Resident)
             {
-                Tickets = bundleResult.Data.Tickets
+                Tickets = Tickets
                 .Where(x => x.RequestedBy == LoggedInUser.UserId)
                 .ToList();
             }

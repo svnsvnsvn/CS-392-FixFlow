@@ -129,7 +129,13 @@ namespace fixflow.web.Pages.Tickets
             };
 
             // Get all notes for ticket and assign to Model.TicketNotes
-            var ticketNotesResult = await _ticketService.GetAllNotes(LoggedInUser, ticket.TicketId, true);
+            bool getPrivateNotes = false;
+            if ((LoggedInUser.Role != RoleTypes.Resident) && (LoggedInUser.Role != RoleTypes.Pending))
+            {
+                getPrivateNotes = true;
+            }
+            var ticketNotesResult = await _ticketService.GetAllNotes(LoggedInUser, ticket.TicketId, getPrivateNotes);
+            
             List<NoteDto> notesForSummary = (ticketNotesResult?.Data ?? new List<NoteDto>())!;
             TicketNotes = notesForSummary;
 
