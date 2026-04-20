@@ -139,20 +139,29 @@
                                 }
                                 @if (Model.UserRole == "Technician" && Model.Ticket.Status == "In Progress")
                                 {
-                                    <button class="btn btn-p">Mark Complete</button>
-                                    <button class="btn btn-s">Put On Hold</button>
+                                        <form method="post" asp-page-handler="MarkComplete" asp-route-ticketId="@Model.Ticket.Id" class="ff-form-inline-flex">
+                                            <button type="submit" class="btn btn-p">
+                                                Mark Complete
+                                            </button>
+                                        </form>
                                 }
-                                @if (Model.UserRole == "Manager" || Model.UserRole == "Admin" || Model.UserRole == "Technician")
+                                    @if (Model.UserRole == "Manager" && Model.Ticket.Status == "Complete")
+                                    {
+                                        <form method="post" asp-page-handler="MarkClosed" asp-route-ticketId="@Model.Ticket.Id" class="ff-form-inline-flex">
+                                            <button type="submit" class="btn btn-p">
+                                                Close Request
+                                            </button>
+                                        </form>
+                                    }
+
+                                // This was the edit ticket button. Dont think we need this
+@*                                 @if (Model.UserRole == "Manager" || Model.UserRole == "Admin" || Model.UserRole == "Technician")
                                 {
                                     <a asp-page="./Edit" asp-route-id="@Model.Ticket.Id" class="details-action-icon" aria-label="Edit ticket" title="Edit ticket">
                                         <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                     </a>
-                                }
-                                @if (Model.UserRole == "Client" && Model.IsOwnTicket && Model.Ticket.Status == "Completed")
-                                {
-                                    <button class="btn btn-p">Confirm Resolved</button>
-                                    <button class="btn btn-s">Reopen Ticket</button>
-                                }
+                                } *@
+
                                 @if (Model.UserRole == "Admin")
                                 {
                                     <button type="button" class="details-action-icon" aria-label="Delete ticket" title="Delete ticket">

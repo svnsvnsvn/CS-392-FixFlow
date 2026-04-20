@@ -477,6 +477,20 @@ namespace fixflow.web.Pages.Tickets
             return RedirectToPage(new { ticketId });
         }
 
+        public async Task<IActionResult> OnPostMarkCompleteAsync(Guid ticketId)
+        {
+            await _ticketService.ReassignTicket(LoggedInUser.UserId, (RoleTypes)LoggedInUser.Role, ticketId, LoggedInUser.UserId, _ticketService.GetStatusCode("Complete").Result.Data);
+
+            return RedirectToPage(new { ticketId });
+        }
+
+        public async Task<IActionResult> OnPostMarkClosedAsync(Guid ticketId)
+        {
+            await _ticketService.ReassignTicket(LoggedInUser.UserId, (RoleTypes)LoggedInUser.Role, ticketId, LoggedInUser.UserId, _ticketService.GetStatusCode("Closed").Result.Data);
+
+            return RedirectToPage(new { ticketId });
+        }
+
         // ViewModels
         public class TicketDetailViewModel
         {
