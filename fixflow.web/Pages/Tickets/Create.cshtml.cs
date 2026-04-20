@@ -149,9 +149,9 @@ namespace fixflow.web.Pages.Tickets
                         await LoadDropdownDataAsync(user);
                         return Page();
                     }
-
-                    priorityValue = firstPri.PriorityCode ?? 0;
                 }
+                var priResult = await _ticketService.GetPriorityCode("Unassigned");
+                priorityValue = priResult.Data;   // Unassigned, staff will assign priority
             }
 
             var subject = $"Unit {Input.Unit} — maintenance request";

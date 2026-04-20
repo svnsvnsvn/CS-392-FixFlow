@@ -121,17 +121,21 @@
                         @if (Model.UserRole != "Client" || Model.IsOwnTicket)
                         {
                             <div class="details-actions mt-6">
-                                @if (Model.UserRole == "Manager" && (Model.Ticket.Status == "Submitted" || Model.Ticket.Status == "Assigned"))
+                                @if (((Model.UserRole == "Manager") || (Model.UserRole == "Technician")) && (Model.Ticket.Status == "Submitted" || Model.Ticket.Status == "Assigned"))
                                 {
                                     <form method="post" asp-page-handler="AssignTechnician" asp-route-ticketId="@Model.Ticket.Id" class="ff-form-inline-flex">
                                         <select asp-for="SelectedTechnicianId" asp-items="Model.AvailableTechnicians" class="form-control ff-select-auto"></select>
                                         <button type="submit" class="btn btn-p">@(Model.Ticket.Status == "Assigned" ? "Reassign Technician" : "Assign Technician")</button>
                                     </form>
-                                    <button class="btn btn-s">Change Priority</button>
                                 }
                                 @if (Model.UserRole == "Technician" && Model.Ticket.Status == "Assigned")
                                 {
-                                    <button class="btn btn-p">Start Work</button>
+                                        <form method="post" asp-page-handler="StartWork" asp-route-ticketId="@Model.Ticket.Id" class="ff-form-inline-flex">
+                                            <button type="submit" class="btn btn-p">
+                                                Start Work
+                                            </button>
+
+                                        </form>
                                 }
                                 @if (Model.UserRole == "Technician" && Model.Ticket.Status == "In Progress")
                                 {

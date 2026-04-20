@@ -164,7 +164,7 @@ namespace fixflow.web.Pages.Tickets
             IsOwnTicket = (UserRole == "Client" && !string.IsNullOrEmpty(currentUserId) && ticket.RequestedBy == currentUserId);
 
             // Load available technicians for assignment (only for managers)
-            if (UserRole == "Manager" || UserRole == "Admin")
+            if (UserRole == "Manager" || UserRole == "Admin" || UserRole == "Technician")
             {
                 var technicians = await _userManager.GetUsersInRoleAsync(RoleTypes.Employee.ToString());
                 var techProfilesResult = await _adminService.GetUserProfilesByIds(technicians.Select(t => t.Id).ToList());
@@ -468,6 +468,13 @@ namespace fixflow.web.Pages.Tickets
             }
 
             return null;
+        }
+
+        public async Task<IActionResult> OnPostStartWorkAsync(Guid ticketId)
+        {
+            await _ticketService.ReassignTicket(LoggedInUser.UserId,(RoleTypes)LoggedInUser.Role, ticketId,LoggedInUser.UserId,_ticketService.GetStatusCode("In Progress").Result.Data);
+
+            return RedirectToPage(new { ticketId });
         }
 
         // ViewModels

@@ -240,6 +240,7 @@ namespace fixflow.web.Services
                 {
                     return ServiceResult<long>.Fail("Invalid TicketId provided.");
                 }
+                
 
                 // Validate new status code exists
                 bool validStatus = await _db.FfStatusCodes.AnyAsync(u => u.StatusCode == _newStatus);
@@ -269,6 +270,10 @@ namespace fixflow.web.Services
                 try
                 {
                     await _db.FfTicketFlows.AddAsync(ticketFlowUpdate);
+
+                    var subjectTicket = await _db.FfTicketRegisters.FindAsync(_ticketIdToUpdate);
+                    subjectTicket.TicketStatus = _newStatus;
+
                     await _db.SaveChangesAsync();
                     return ServiceResult<long>.Ok(ticketFlowUpdate.ActionId);
                 }
@@ -406,7 +411,7 @@ namespace fixflow.web.Services
             try
             {
                 var result = await _db.FfStatusCodes.SingleAsync(a => a.StatusName == _StatusName);
-                return ServiceResult<int>.Ok(result.StatusCode);
+                return ServiceResult<int>.Ok(result.Id);
             }
             catch (Exception ex)
             {
@@ -448,7 +453,7 @@ namespace fixflow.web.Services
             try
             {
                 var result = await _db.FfPriorityCodess.SingleAsync(a => a.PriorityName == _PriorityName);
-                return ServiceResult<int>.Ok(result.PriorityCode);
+                return ServiceResult<int>.Ok(result.Id);
             }
             catch (Exception ex)
             {
