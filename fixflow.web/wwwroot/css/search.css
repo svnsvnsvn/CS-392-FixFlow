@@ -4,23 +4,26 @@
 
 .typeahead-results {
     position: absolute;
-    top: 100%;
+    top: calc(100% - 1px);
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #ccc;
+    background: var(--surf);
+    border: 1px solid var(--line);
     border-top: none;
+    border-radius: 0 0 var(--r) var(--r);
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
-    display: none;
 }
 
 .typeahead-item {
-    padding: 6px 8px;
+    padding: 8px 11px;
+    font-family: var(--fb);
+    font-size: 13px;
+    color: var(--tp);
     cursor: pointer;
 }
 
     .typeahead-item:hover {
-        background: #f0f0f0;
+        background: var(--line);
     }

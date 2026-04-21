@@ -42,11 +42,17 @@
 
                         @if (Model.IsStaff)
                         {
-                            <div class="typeahead-wrapper">
-                                <input type="text" id="residentSearch" class="form-control" autocomplete="off" />
-                                <input type="hidden" id="ResidentId" name="Input.ResidentId" />
-                                <div id="residentResults" class="typeahead-results"></div>
+                        <div class="fgrid">
+                            <div class="fg">
+                                <div class="typeahead-wrapper">
+                                    <label class="flbl" asp-for="Input.ResidentId">Resident</label>
+                                    <input type="text" id="residentSearch" class="form-control finp" autocomplete="off" />
+                                    <input type="hidden" id="ResidentId" name="Input.ResidentId" />
+                                    <div id="residentResults" class="typeahead-results"></div>
+                                </div>
                             </div>
+                        </div>
+
                         }
 
                         <div class="fgrid">
