@@ -16,12 +16,21 @@ namespace fixflow.web.Pages
             _adminService = adminService;
         }
 
-        public async Task<IActionResult> OnGetSearchAsync(string term)
+        public async Task<IActionResult> OnGetSearchAsync(string term, string? role)
         {
             if (string.IsNullOrWhiteSpace(term) || term.Length < 3)
                 return new JsonResult(Array.Empty<UserListItemDto>());
 
             var results = await _adminService.SearchUsers(term);
+
+            // If list was not entered and a role filter was supplied then
+            if ((role != null) && (results.Data != null))
+            {
+                results.Data = results.Data
+                    .Where(x => x.Role.ToLower() == role.ToLower())
+                    .ToList();
+            }
+                
             return new JsonResult(results.Data);
         }
     }

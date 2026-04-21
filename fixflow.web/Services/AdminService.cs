@@ -929,7 +929,12 @@ namespace fixflow.web.Services
                         from ur in _db.UserRoles
                         join r in _db.Roles on ur.RoleId equals r.Id
                         where searchIds.Contains(ur.UserId)
-                        select new { ur.UserId, RoleName = r.Name }
+                        group r by ur.UserId into g
+                        select new
+                        {
+                            UserId = g.Key,
+                            RoleName = g.Select(x => x.Name).FirstOrDefault()
+                        }
                     ).ToDictionaryAsync(x => x.UserId, x => x.RoleName);
 
 

@@ -8,6 +8,21 @@
     ViewData["BreadcrumbTitle"] = "Create Ticket";
 }
 
+<link rel="stylesheet" href="~/css/search.css"/>
+
+<script src="~/js/Search.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        initializeLiveSearch(
+            "residentSearch",
+            "residentResults",
+            "ResidentId",
+            "/Tickets/Create?handler=Search",
+            () => ({ role: "Resident" })
+        );
+    });
+</script>
+
 <div class="app-shell">
     @await Html.PartialAsync("_AppSidebar")
 
@@ -27,12 +42,10 @@
 
                         @if (Model.IsStaff)
                         {
-                            <div class="fg">
-                                <label class="flbl" asp-for="Input.ResidentId">Resident (optional)</label>
-                                <select class="fsel" asp-for="Input.ResidentId" asp-items="Model.Residents">
-                                    <option value="">-- Select Resident (Optional) --</option>
-                                </select>
-                                <span asp-validation-for="Input.ResidentId" class="text-danger"></span>
+                            <div class="typeahead-wrapper">
+                                <input type="text" id="residentSearch" class="form-control" autocomplete="off" />
+                                <input type="hidden" id="ResidentId" name="Input.ResidentId" />
+                                <div id="residentResults" class="typeahead-results"></div>
                             </div>
                         }
 

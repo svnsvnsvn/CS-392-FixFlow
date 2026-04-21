@@ -1,0 +1,26 @@
+﻿.typeahead-wrapper {
+    position: relative;
+}
+
+.typeahead-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.typeahead-item {
+    padding: 6px 8px;
+    cursor: pointer;
+}
+
+    .typeahead-item:hover {
+        background: #f0f0f0;
+    }

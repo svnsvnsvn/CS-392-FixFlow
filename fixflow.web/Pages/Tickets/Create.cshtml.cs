@@ -11,13 +11,13 @@ using System.Text.Json;
 
 namespace fixflow.web.Pages.Tickets
 {
-    public class CreateModel : PageModel
+    public class CreateModel : SearchPageModel
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITicketService _ticketService;
         private readonly IAdminService _adminService;
 
-        public CreateModel(UserManager<AppUser> userManager, ITicketService ticketService, IAdminService adminService)
+        public CreateModel(UserManager<AppUser> userManager, ITicketService ticketService, IAdminService adminService) :base(adminService)
         {
             _userManager = userManager;
             _ticketService = ticketService;
