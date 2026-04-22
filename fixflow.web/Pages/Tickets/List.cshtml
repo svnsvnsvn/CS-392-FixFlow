@@ -1,6 +1,9 @@
 @page
+@using fixflow.web.Dto
 @model fixflow.web.Pages.Tickets.ListModel
 @{
+    @inject fixflow.web.Services.ITicketService _ticketService
+    
     var isOpsLead = User.IsInRole("Admin") || User.IsInRole("Manager");
     var isTechnician = User.IsInRole("Employee");
     ViewData["Title"] = isOpsLead ? "Operations - FixFlow" : (isTechnician ? "Workspace - FixFlow" : "Tickets List");
@@ -84,7 +87,7 @@
                         <option value="submitted">Submitted</option>
                         <option value="in progress">In Progress</option>
                         <option value="assigned">Assigned</option>
-                        <option value="completed">Completed</option>
+                        <option value="complete">Completed</option>
                         <option value="closed">Closed</option>
                     </select>
                     @if (isStaff)
@@ -156,6 +159,15 @@
                                 var requestedBy = ticket.RequestedByUser == null ? ticket.RequestedBy : $"{ticket.RequestedByUser.FName} {ticket.RequestedByUser.LName}";
                                 var assignedTo = Model.TicketAssignees.ContainsKey(ticket.TicketId) ? Model.TicketAssignees[ticket.TicketId] : "-";
 
+                                
+                                // Hacky way to get created and updated timestamps
+                                var historyResult = await _ticketService.GetTicketHistory(ticket.TicketId);
+                                var history = historyResult.Success && historyResult.Data != null
+                                    ? historyResult.Data
+                                    : new List<TicketHistoryItemDto>();
+                                var createdTicks = history.Count > 0 ? history.First().TimeStamp.Ticks : 0;
+                                var updatedTicks = history.Count > 0 ? history.Last().TimeStamp.Ticks : 0;
+
                                 <tr class="list-ticket-row"
                                     data-ticket-id="@ticket.TicketId"
                                     data-ticket-code="@ticketCode"
@@ -165,7 +177,10 @@
                                     data-location="@locationName"
                                     data-unit="@ticket.Unit"
                                     data-requested-by="@requestedBy"
-                                    data-assigned-to="@assignedTo">
+                                    data-assigned-to="@assignedTo"
+                                    data-created-sort="@createdTicks"
+                                    data-updated-sort="@updatedTicks">
+
                                     <td data-tcol="id"><span class="tid">#@ticketCode</span></td>
                                     <td data-tcol="type">@ticketTypeName</td>
                                     @if (isStaff)
@@ -257,22 +272,31 @@
         const visible = listTicketRows.filter(r => r.style.display !== "none");
         if (listTicketCountEl) listTicketCountEl.textContent = visible.length + " result" + (visible.length !== 1 ? "s" : "");
 
-        const sortedRows = [...listTicketRows].sort((left, right) => {
-            const leftId = Number(left.getAttribute("data-ticket-id") ?? 0);
-            const rightId = Number(right.getAttribute("data-ticket-id") ?? 0);
-            if (hasPriorityFilter && sortValue === "priority") {
-                const lp = listPriorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
-                const rp = listPriorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
-                if (rp !== lp) return rp - lp;
-                return rightId - leftId;
-            }
-            switch (sortValue) {
-                case "newest":
-                case "last-updated": return rightId - leftId;
-                case "oldest": return leftId - rightId;
-                default: return rightId - leftId;
-            }
-        });
+    const sortedRows = [...listTicketRows].sort((left, right) => {
+        const leftCreated = Number(left.getAttribute("data-created-sort") ?? 0);
+        const rightCreated = Number(right.getAttribute("data-created-sort") ?? 0);
+
+        const leftUpdated = Number(left.getAttribute("data-updated-sort") ?? 0);
+        const rightUpdated = Number(right.getAttribute("data-updated-sort") ?? 0);
+
+        if (hasPriorityFilter && sortValue === "priority") {
+            const lp = listPriorityWeight[(left.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+            const rp = listPriorityWeight[(right.getAttribute("data-priority") ?? "").toLowerCase()] ?? 0;
+            if (rp !== lp) return rp - lp;
+            return rightUpdated - leftUpdated;
+        }
+
+        switch (sortValue) {
+            case "newest":
+                return rightCreated - leftCreated;
+            case "oldest":
+                return leftCreated - rightCreated;
+            case "last-updated":
+                return rightUpdated - leftUpdated;
+            default:
+                return rightCreated - leftCreated;
+        }
+    });
         sortedRows.forEach((row) => listTicketsTableBody?.appendChild(row));
     };
 

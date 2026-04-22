@@ -635,7 +635,7 @@ namespace fixflow.web.Services
                 }
 
                 historyFound = historyFound
-                    .OrderByDescending(x => x.TimeStamp)
+                    .OrderBy(x => x.TimeStamp)
                     .ToList();
 
                 return ServiceResult<List<TicketHistoryItemDto>>.Ok(historyFound);
@@ -905,16 +905,26 @@ namespace fixflow.web.Services
                 }
 
                 FfAccountNote newNote = new FfAccountNote();
-
                 newNote.TicketId = _NewNote.TicketId;
                 newNote.NoteText = _NewNote.NoteText;
                 newNote.InternalOnly = _NewNote.InternalOnly;
                 newNote.TimeStamp = DateTime.UtcNow;
                 newNote.EnteredByUserId = _SubmitterId.UserId;
 
-                // Create new note
+               var ticketHistory = await GetTicketHistory(newNote.TicketId);
+
+                FfTicketFlow ticketFlowUpdate = new FfTicketFlow();
+                ticketFlowUpdate.TicketId = newNote.TicketId;
+                ticketFlowUpdate.NewTicketStatus = ticketHistory.Data.Last().TicketStatus;
+                ticketFlowUpdate.NewAssignee = ticketHistory.Data.Last().Assignee; 
+                ticketFlowUpdate.TimeStamp = newNote.TimeStamp;
+
+
+                // Create new note, and add timestamp to flow.
                 await _notes.InsertOneAsync(newNote);
-     
+                await _db.FfTicketFlows.AddAsync(ticketFlowUpdate);
+                await _db.SaveChangesAsync();
+
                 return ServiceResult<bool>.Ok(true);
                  }
             catch (Exception ex)
