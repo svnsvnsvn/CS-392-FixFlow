@@ -8,45 +8,57 @@ services:
     ports:
       - "80:80"
     networks:
-      public_face:
-      backend:
+      - public_face
+      - backend
 
-  db:
+  fixflow-db-postgres:
     image: postgres:16
-    container_name: fixflow-db
+    container_name: fixflow-postgres
     restart: always
     environment:
       POSTGRES_DB: fixflow
       POSTGRES_USER: fixflow
-      POSTGRES_PASSWORD: fixflow_local_dev
+      POSTGRES_PASSWORD: securePassword
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U fixflow -d fixflow"]
       interval: 5s
       timeout: 5s
       retries: 12
     volumes:
-      - fixflow-db-data:/var/lib/postgresql/data
+      - fixflow-postgres-db-data:/var/lib/postgresql/data
     networks:
       - backend
 
-  web:
+  fixflow-db-mongo:
+    image: mongo:7
+    container_name: fixflow-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: fixflow
+      MONGO_INITDB_ROOT_PASSWORD: securePassword
+      MONGO_INITDB_DATABASE: fixflow_notes
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "fixflow", "--password", "securePassword", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - fixflow-mongo-db-data:/data/db
+    networks:
+      - backend
+
+  fixflow-web:
     build: ./fixflow.web
     container_name: fixflow-web
     restart: always
     environment:
-      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=fixflow;Username=fixflow;Password=fixflow_local_dev"
+      ConnectionStrings__Postgres: "Host=fixflow-db-postgres;Database=fixflow;Username=fixflow;Password=securePassword"
+      ConnectionStrings__Mongo: "mongodb://fixflow:securePassword@fixflow-db-mongo:27017/fixflow_notes?authSource=admin"
     depends_on:
-      db:
+      fixflow-db-postgres:
         condition: service_healthy
-    networks:
-      - backend
-
-  adminer:
-    image: adminer
-    container_name: fixflow-adminer
-    restart: always
-    ports:
-        - "8080:8080"
+      fixflow-db-mongo:
+        condition: service_healthy
     networks:
       - backend
 
@@ -57,4 +69,5 @@ networks:
     driver: bridge
 
 volumes:
-  fixflow-db-data:
+  fixflow-postgres-db-data:
+  fixflow-mongo-db-data:
