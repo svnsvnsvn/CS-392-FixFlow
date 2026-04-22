@@ -5,7 +5,7 @@ Designed to be deployed using Docker, to install take the following steps
 
 1. Create a FixFlow folder and download this repository to that folder.  It should have "nginx" and "fixflow.web" folders as well as the docker-compose.yaml
 
-2. In the nginx folder  you should ahve this nginx.conf file:
+2. In the nginx folder  you should have this nginx.conf file:
 
 ```nginx.conf
 events {}
